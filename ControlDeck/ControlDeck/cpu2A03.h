@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+
+// http://users.telenet.be/kim1-6502/6502/hwman.html - general hardware manual source
 namespace NES {
 
 	// Bit location of processor status flags
@@ -10,11 +12,13 @@ namespace NES {
 		InterruptDisable = 2,	// While set processor will not respond to interrupts from devices until cleared via CLI
 		DecimalMode		 = 3,		// Not used (make arithmetic use BCD)
 		BreakCommand	 = 4,		// Set after BRK and interrupt set to process
-		// 5 is an ignored bit
+		// 5 is an ignored bit (always 1?) see http://www.fceux.com/web/help/fceux.html?6502CPU.html under "P Processor status"
 		OverflowFlag	 = 6,		// Look at carry between bit 6 and 7, 7 and carry flag to determine if result switched sign via overflow
 		NegativeFlag	 = 7		// If bit 7 set to 1 as a result of last operation
 	};
 
+	// Sourced from http://e-tradition.net/bytes/6502/6502_instruction_set.html and
+	// http://web.archive.org/web/20020820122913/http://www.obelisk.demon.co.uk/6502/reference.html#EOR
 	enum Instruction {
 		// Load store a single byte between memory and registers
 		LDA,	// Load accumulator		N,Z
@@ -132,7 +136,7 @@ namespace NES {
 	};
 	
 	
-
+	// Sourced from http://e-tradition.net/bytes/6502/6502_instruction_set.html
 	OpCode opCodes[] = {
 		{ 0x00, 1, 7, 0, Instruction::BRK, AddressingMode::Implicit },	
 		{ 0x01, 2, 6, 0, Instruction::ORA, AddressingMode::XIndexedIndirect },
@@ -407,26 +411,61 @@ namespace NES {
 		{ 0xff, 0, 0, 0, Instruction::UNK, AddressingMode::Undefined },
 	};
 	
+	// Sources:  http://nesdev.com/NESDoc.pdf
+	struct Registers {
+		// Program counter high byte
+		inline uint8_t ah() {
+			return (uint8_t)(acc & 0xF0);
+		}
+
+		// program counter low byte
+		inline uint8_t al() {
+			return (uint8_t)(acc & 0x0F);
+		}
+
+		// Program counter high byte
+		inline uint8_t pch(const Registers &r) {
+			return (uint8_t)(programCounter & 0xF);
+		}
+
+		// program counter low byte
+		inline uint8_t pcl(const Registers &r) {
+			return (uint8_t)(programCounter & 0x0F);
+		}
+
+		inline bool flagSet(ProcessorStatus status) {
+			return statusRegister & (1 << status);
+		}
+
+		// Commonly used for counters/offsets in memory accesss.  
+		// Can be loaded/saved in memory, compared with memory values.
+		// Can be used to get a copy of the stack pointer/change its value
+		uint8_t x;
+
+		// Commonly used for counters/offsets in memory accesss.  
+		// Same as x but no ability to alter stack
+		uint8_t y;
+
+		// can be stored/retrieved from memory or stack
+		uint8_t acc;
+
+		// Register holds low 8 bits of the next free location on the stack
+		// Stack located between $0100 and $01FF. 
+		uint8_t stackPointer;
+
+		// Program status flag register 
+		uint8_t statusRegister;
+
+		uint16_t programCounter;
+	};
+
+	struct systemBus {
+		uint16_t addressBus;
+		uint8_t dataBus;
+		bool read;
+
+	};
 
 
-	// Commonly used for counters/offsets in memory accesss.  
-	// Can be loaded/saved in memory, compared with memory values.
-	// Can be used to get a copy of the stack pointer/change its value
-	uint8_t x;		
 
- 	// Commonly used for counters/offsets in memory accesss.  
-	// Same as x but no ability to alter stack
-	uint8_t y;		
-
-	// can be stored/retrieved from memory or stack
-	uint8_t acc;	
-
-	// Register holds low 8 bits of the next free location on the stack
-	// Stack located between $0100 and $01FF. 
-	uint8_t stackPointer;
-
-	// Program status flag register 
-	uint8_t statusRegister;
- 
-	uint16_t programCounter;
 }
