@@ -18,12 +18,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cpu2A03.h">
+    <ClInclude Include="CPU\MemoryMapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CPU\cpu2A03.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CPU\MemoryMapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

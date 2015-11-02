@@ -118,9 +118,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="cpu2A03.h" />
+    <ClInclude Include="CPU\cpu2A03.h" />
+    <ClInclude Include="CPU\MemoryMapper.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CPU\MemoryMapper.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
