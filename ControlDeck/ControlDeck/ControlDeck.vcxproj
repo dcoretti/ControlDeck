@@ -120,8 +120,11 @@
   <ItemGroup>
     <ClInclude Include="CPU\cpu2A03.h" />
     <ClInclude Include="CPU\MemoryMapper.h" />
+    <ClInclude Include="Cycle\ReadWrite.h" />
+    <ClInclude Include="Cycle\StackOperations.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CPU\CPU2A03.cpp" />
     <ClCompile Include="CPU\MemoryMapper.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>

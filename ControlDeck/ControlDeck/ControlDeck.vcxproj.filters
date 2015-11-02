@@ -24,12 +24,21 @@
     <ClInclude Include="CPU\cpu2A03.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Cycle\ReadWrite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Cycle\StackOperations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CPU\MemoryMapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CPU\CPU2A03.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
