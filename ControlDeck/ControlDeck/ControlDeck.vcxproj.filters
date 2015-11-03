@@ -24,10 +24,16 @@
     <ClInclude Include="CPU\cpu2A03.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Cycle\ReadWrite.h">
+    <ClInclude Include="CPU\StackOperations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Cycle\StackOperations.h">
+    <ClInclude Include="CPU\ReadWrite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CPU\SystemComponents.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CPU\InstructionDispatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

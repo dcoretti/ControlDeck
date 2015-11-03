@@ -1,9 +1,9 @@
 #pragma once
-#include "cpu2A03.h"
+#include "SystemComponents.h"
 
 namespace NES {
 	/*
-	Source :http://nesdev.com/NESDoc.pdf
+	Source :http://nesdev.com/NESDoc.pdf Appendix D for memory mapper functions
 	$1000
 	$c000	PRG-ROM (upper)
 	$8000	PRG-ROM (lower)

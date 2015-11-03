@@ -119,9 +119,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CPU\cpu2A03.h" />
+    <ClInclude Include="CPU\InstructionDispatcher.h" />
     <ClInclude Include="CPU\MemoryMapper.h" />
-    <ClInclude Include="Cycle\ReadWrite.h" />
-    <ClInclude Include="Cycle\StackOperations.h" />
+    <ClInclude Include="CPU\ReadWrite.h" />
+    <ClInclude Include="CPU\StackOperations.h" />
+    <ClInclude Include="CPU\SystemComponents.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CPU\CPU2A03.cpp" />
