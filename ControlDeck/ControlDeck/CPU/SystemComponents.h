@@ -69,6 +69,28 @@ namespace NES {
 	*   See also http://users.telenet.be/kim1-6502/6502/hwman.html Appendix A for read/write ops, 1.3.1 for general concepts
 	*/
 	struct SystemBus {
+		inline void setAdh(uint8_t val) {
+			uint16_t mask = ~0 >> 8;
+			mask |= val << 8;
+			addressBus &= mask;
+		}
+		void setAdl(uint8_t val) {
+			uint16_t mask = 0;
+			mask |= (uint16_t)val;
+			addressBus |= mask;
+		}
+		void setAdhOnly(uint8_t val) {
+			addressBus = 0;
+			addressBus |= val << 8;
+		}
+		void setAdlOnly(uint8_t val) {
+			addressBus = val;
+		}
+
+		void setAddressBus(uint8_t adl, uint8_t adh) {
+			addressBus = (adl << 8) + adh;
+		}
+
 		uint16_t addressBus;
 		uint8_t dataBus;
 		bool read;

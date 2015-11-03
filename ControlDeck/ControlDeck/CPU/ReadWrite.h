@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../CPU/cpu2A03.h"
-#include "../CPU/MemoryMapper.h"
+#include "MemoryMapper.h"
+#include "SystemComponents.h"
 
 namespace NES {
 	namespace Cycle {

@@ -5,6 +5,41 @@
 
 namespace NES {
 	namespace Instructions {
+		// General Utilities 
+		namespace {
+			// Stack is pushed to from X register to memory location $0100 + Stack pointer offset (00-ff)
+			// No overflow detection just like the NES
+			void pushStackSetup(SystemBus &systemBus, Registers &registers) {
+				systemBus.addressBus = (uint16_t)(0x100 + registers.stackPointer);
+				registers.stackPointer += 8;
+				systemBus.read = false;
+			}
+
+			// Data must be transfered to register X after read on stack instruction.  
+			// TODO a bit confusing where push knows about register x -> addr  whereas this one only knows where to read.  Does that matter?
+			void popStackSetup(SystemBus &systemBus, Registers &registers) {
+				systemBus.addressBus = (uint16_t)(0x100 + registers.stackPointer);
+				registers.stackPointer -= 8;
+				systemBus.read = true;
+			}
+
+			void popRegister(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+				popStackSetup(systemBus, registers);
+				memoryMapper.doMemoryOperation(systemBus);
+
+				// Update processor status flags
+				if (systemBus.dataBus == 0) {
+					registers.flagSet(ProcessorStatus::ZeroFlag);
+				}
+				registers.setFlagIfNegative(systemBus.dataBus);
+			}
+
+			void pushRegister(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+				pushStackSetup(systemBus, registers);
+				memoryMapper.doMemoryOperation(systemBus);
+			}
+		}
+
 		/*
 			TXS,	// Push x to stack pointer
 			PHA,	// Push accumulator on stack
@@ -44,41 +79,6 @@ namespace NES {
 		void PLP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 			popRegister(systemBus, registers, memoryMapper);
 			registers.statusRegister = systemBus.dataBus;
-		}
-
-		// General Utilities 
-		namespace {
-			void popRegister(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-				popStackSetup(systemBus, registers);
-				memoryMapper.doMemoryOperation(systemBus);
-
-				// Update processor status flags
-				if (systemBus.dataBus == 0) {
-					registers.flagSet(ProcessorStatus::ZeroFlag);
-				}
-				registers.setFlagIfNegative(systemBus.dataBus);
-			}
-
-			void pushRegister(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-				pushStackSetup(systemBus, registers);
-				memoryMapper.doMemoryOperation(systemBus);
-			}
-
-			// Stack is pushed to from X register to memory location $0100 + Stack pointer offset (00-ff)
-			// No overflow detection just like the NES
-			void pushStackSetup(SystemBus &systemBus, Registers &registers) {
-				systemBus.addressBus = (uint16_t)(0x100 + registers.stackPointer);
-				registers.stackPointer += 8;
-				systemBus.read = false;
-			}
-
-			// Data must be transfered to register X after read on stack instruction.  
-			// TODO a bit confusing where push knows about register x -> addr  whereas this one only knows where to read.  Does that matter?
-			void popStackSetup(SystemBus &systemBus, Registers &registers) {
-				systemBus.addressBus = (uint16_t)(0x100 + registers.stackPointer);
-				registers.stackPointer -= 8;
-				systemBus.read = true;
-			}
 		}
 	}
 }

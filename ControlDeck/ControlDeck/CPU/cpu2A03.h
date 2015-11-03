@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "AddressingMode.h"
 #include "InstructionDispatcher.h"
 #include "MemoryMapper.h"
 #include "SystemComponents.h"
@@ -91,22 +92,6 @@ namespace NES {
 		UNK,	// Unknown (not a real instruction)
 	};
 
-	enum AddressingMode {
-		Undefined,
-		Implicit,
-		Accumulator,
-		Immediate,
-		ZeroPage,
-		ZeroPageX,
-		ZeroPageY,
-		Relative,
-		Absolute,
-		AbsoluteX,
-		AbsoluteY,
-		Indirect,
-		XIndexedIndirect,	// indexed indirect
-		IndirectYIndexed,	//indirect indexed
-	};
 
 	struct OpCode {
 		// Op code reference
