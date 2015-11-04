@@ -130,6 +130,7 @@
     <ClCompile Include="CPU\AddressingMode.cpp" />
     <ClCompile Include="CPU\CPU2A03.cpp" />
     <ClCompile Include="CPU\MemoryMapper.cpp" />
+    <ClCompile Include="CPU\ReadWrite.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
