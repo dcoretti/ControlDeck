@@ -54,6 +54,27 @@ namespace NES {
 			}
 		}
 
+		inline bool willAddOverflow(uint8_t val) {
+			// acc ^ val will have a 1 in sign bit if signs are different between them
+			// See if the sign changed from acc to the result and check if the sign bit is set between them
+			return (~(acc ^ val))&(acc ^ (acc+val)) & 0x80 == 0x80;
+		}
+
+		inline bool willSubOverflow(uint8_t val) {
+			return acc - val <= -128 || acc - val > 127;
+		}
+
+		// will the carry flag be set or cleared on an addition with the accumulator
+		// see http://www.6502.org/tutorials/vflag.html
+		inline bool willAddCarry(uint8_t val) {
+			return acc + val > 0xff;
+		}
+		
+		// will the carry flag be set or cleared for a subtraction from the accumulator
+		inline bool willSubCarry(uint8_t val) {
+			return acc - val <= 0;
+		}
+
 		// Commonly used for counters/offsets in memory accesss.  
 		// Can be loaded/saved in memory, compared with memory values.
 		// Can be used to get a copy of the stack pointer/change its value

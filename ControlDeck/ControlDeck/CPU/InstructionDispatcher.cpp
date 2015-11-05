@@ -7,46 +7,46 @@ namespace NES {
 	////////////////////////////////////////////////
 	//	Single byte instructions
 
-	void NOP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::NOP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 		// do nothing
 	}
 
 	// Instructions with accumulator addressing mode TODO how to handle...
-	void ASL(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::ASL(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 
 	}
 
 	// Rotate left (0-filled)
-	void ROL(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::ROL(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 
 	}
 
 	// Logical shift right (shift right with 0 bit going to carry flag, 7 bit set to 0.)
-	void LSR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::LSR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 
 	}
 
 	// Decrement X register
-	void DEX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::DEX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 		registers.x--;
 		registers.setFlagIfZero(registers.x);
 		registers.setFlagIfNegative(registers.x);
 	}
 
 	// Decrement Y register
-	void DEY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::DEY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 		registers.y--;
 		registers.setFlagIfZero(registers.y);
 		registers.setFlagIfNegative(registers.y);
 	}
 
-	void INX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::INX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 		registers.x++;
 		registers.setFlagIfZero(registers.x);
 		registers.setFlagIfNegative(registers.x);
 	}
 
-	void INY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::INY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 		registers.y++;
 		registers.setFlagIfZero(registers.y);
 		registers.setFlagIfNegative(registers.y);
@@ -58,59 +58,110 @@ namespace NES {
 	}
 
 	// Transfer x to accumulator
-	void TXA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::TXA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 		registers.acc = registers.x;
 	}
 
 	// Transfer y to accumulator
-	void TYA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::TYA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 		registers.acc = registers.y;
 	}
 
 	// Transfer accumulator to y
-	void TAY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::TAY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 		registers.y = registers.acc;
 	}
 
 	// Clear carry flag
-	void CLC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::CLC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 		registers.clearFlag(ProcessorStatus::CarryFlag);
 	}
 
 	// Clear decimal mode flag
-	void CLD(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::CLD(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 		registers.clearFlag(ProcessorStatus::DecimalMode);
 	}
 
 	// Clear interrupt disable flag
-	void CLI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::CLI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 		registers.clearFlag(ProcessorStatus::InterruptDisable);
 
 	}
 
 	// Clear overflow flag
-	void CLV(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::CLV(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 		registers.clearFlag(ProcessorStatus::OverflowFlag);
 
 	}
 
 	// Set carry flag
-	void SEC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::SEC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 		registers.setFlag(ProcessorStatus::CarryFlag);
 	}
 
 	// Set decimal flag
-	void SED(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::SED(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 		registers.setFlag(ProcessorStatus::DecimalMode);
 	}
 
 	// Set interrupt disable flag
-	void SEI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+	void InstructionDispatcher::SEI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 		registers.setFlag(ProcessorStatus::InterruptDisable);
 
 	}
 
-	////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+	// Internally executed instructions
+	void InstructionDispatcher::ADC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+		
+	}
+
+	void InstructionDispatcher::CMP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+	}
+
+	void InstructionDispatcher::EOR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+	}
+
+	void InstructionDispatcher::LDY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+	}
+
+	void InstructionDispatcher::AND(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+	}
+
+	void InstructionDispatcher::CPX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+	}
+
+	void InstructionDispatcher::LDA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+	}
+
+	void InstructionDispatcher::ORA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+	}
+
+	void InstructionDispatcher::BIT(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+	}
+
+	void InstructionDispatcher::CPY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+	}
+
+	void InstructionDispatcher::LDX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+	}
+
+	void InstructionDispatcher::SBC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+	}
+
+
+	/////////////////////////////////////////////////
 	//	Stack instructions
 
 	// Push x to stack pointer
