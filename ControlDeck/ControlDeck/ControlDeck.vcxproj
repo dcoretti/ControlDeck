@@ -123,14 +123,15 @@
     <ClInclude Include="CPU\InstructionDispatcher.h" />
     <ClInclude Include="CPU\MemoryMapper.h" />
     <ClInclude Include="CPU\ReadWrite.h" />
-    <ClInclude Include="CPU\StackOperations.h" />
     <ClInclude Include="CPU\SystemComponents.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CPU\AddressingMode.cpp" />
     <ClCompile Include="CPU\CPU2A03.cpp" />
+    <ClCompile Include="CPU\InstructionDispatcher.cpp" />
     <ClCompile Include="CPU\MemoryMapper.cpp" />
     <ClCompile Include="CPU\ReadWrite.cpp" />
+    <ClCompile Include="CPU\SystemComponents.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

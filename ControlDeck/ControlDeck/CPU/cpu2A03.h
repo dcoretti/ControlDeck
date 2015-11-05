@@ -387,6 +387,9 @@ namespace NES {
 	};
 	
 
+	/**
+	* NTSC 6502 CPU 
+	*/
 	class Cpu2a03{
 	public:
 		Cpu2a03(MemoryMapper *memoryMapper);

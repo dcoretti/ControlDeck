@@ -17,26 +17,41 @@ namespace NES {
 
 	// Sources:  http://nesdev.com/NESDoc.pdf
 	struct Registers {
+		// Reference: http://e-tradition.net/bytes/6502/6502_instruction_set.html for flags altered by a given instruction
 		// Program counter high byte
-		inline uint8_t ah();
+		inline uint8_t Registers::ah() {
+			return (uint8_t)(acc & 0xF0);
+		}
 
 		// program counter low byte
-		inline uint8_t al();
+		inline uint8_t Registers::al() {
+			return (uint8_t)(acc & 0x0F);
+		}
 
 		// Program counter high byte
-		inline uint8_t pch(const Registers &r);
-
-		// program counter low byte
-		inline uint8_t pcl(const Registers &r);
+		inline uint8_t Registers::pch(const Registers &r) {
+			return (uint8_t)(programCounter & 0xF);
+		}
 
 		// Status register utils
-		inline bool flagSet(ProcessorStatus flag);
+		// program counter low byte
+		inline bool Registers::flagSet(ProcessorStatus flag) {
+			return (statusRegister & (1 << flag)) != 0;
+		}
 
-		inline void setFlag(ProcessorStatus flag);
+		inline void Registers::setFlag(ProcessorStatus flag) {
+			statusRegister |= (1 << flag);
+		}
 
-		inline void clearFlag(ProcessorStatus flag);
+		inline void Registers::clearFlag(ProcessorStatus flag) {
+			statusRegister &= ~(1 << flag);
+		}
 
-		inline void setFlagIfNegative(uint8_t val);
+		inline void Registers::setFlagIfNegative(uint8_t val) {
+			if (val >> 7 != 0) {
+				setFlag(ProcessorStatus::NegativeFlag);
+			}
+		}
 
 
 		// Commonly used for counters/offsets in memory accesss.  
@@ -74,20 +89,23 @@ namespace NES {
 			mask |= val << 8;
 			addressBus &= mask;
 		}
-		void setAdl(uint8_t val) {
+
+		inline void setAdl(uint8_t val) {
 			uint16_t mask = 0;
 			mask |= (uint16_t)val;
 			addressBus |= mask;
 		}
-		void setAdhOnly(uint8_t val) {
+
+		inline void setAdhOnly(uint8_t val) {
 			addressBus = 0;
 			addressBus |= val << 8;
 		}
-		void setAdlOnly(uint8_t val) {
+
+		inline void setAdlOnly(uint8_t val) {
 			addressBus = val;
 		}
 
-		void setAddressBus(uint8_t adl, uint8_t adh) {
+		inline void setAddressBus(uint8_t adl, uint8_t adh) {
 			addressBus = (adl << 8) + adh;
 		}
 

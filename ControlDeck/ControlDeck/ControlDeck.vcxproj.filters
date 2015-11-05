@@ -24,9 +24,6 @@
     <ClInclude Include="CPU\cpu2A03.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CPU\StackOperations.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CPU\ReadWrite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -54,6 +51,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CPU\ReadWrite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CPU\InstructionDispatcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CPU\SystemComponents.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
