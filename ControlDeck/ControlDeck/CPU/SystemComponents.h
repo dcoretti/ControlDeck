@@ -18,36 +18,31 @@ namespace NES {
 	// Sources:  http://nesdev.com/NESDoc.pdf
 	struct Registers {
 		// Reference: http://e-tradition.net/bytes/6502/6502_instruction_set.html for flags altered by a given instruction
-		// Program counter high byte
-		inline uint8_t Registers::ah() {
-			return (uint8_t)(acc & 0xF0);
-		}
-
-		// program counter low byte
-		inline uint8_t Registers::al() {
-			return (uint8_t)(acc & 0x0F);
+		// Program counter low byte
+		inline uint8_t  pcl() {
+			return (uint8_t)(programCounter & 0x0F);
 		}
 
 		// Program counter high byte
-		inline uint8_t Registers::pch(const Registers &r) {
-			return (uint8_t)(programCounter & 0xF);
+		inline uint8_t pch() {
+			return (uint8_t)(programCounter >> 8);
 		}
 
 		// Status register utils
 		// program counter low byte
-		inline bool Registers::flagSet(ProcessorStatus flag) {
+		inline bool flagSet(ProcessorStatus flag) {
 			return (statusRegister & (1 << flag)) != 0;
 		}
 
-		inline void Registers::setFlag(ProcessorStatus flag) {
+		inline void setFlag(ProcessorStatus flag) {
 			statusRegister |= (1 << flag);
 		}
 
-		inline void Registers::clearFlag(ProcessorStatus flag) {
+		inline void clearFlag(ProcessorStatus flag) {
 			statusRegister &= ~(1 << flag);
 		}
 
-		inline void Registers::setFlagIfNegative(uint8_t val) {
+		inline void setFlagIfNegative(uint8_t val) {
 			if (val >> 7 != 0) {
 				setFlag(ProcessorStatus::NegativeFlag);
 			}
@@ -85,9 +80,9 @@ namespace NES {
 	*/
 	struct SystemBus {
 		inline void setAdh(uint8_t val) {
-			uint16_t mask = ~0 >> 8;
-			mask |= val << 8;
-			addressBus &= mask;
+			// clear high order bits
+			addressBus &= 0x00ff;
+			addressBus |= (val << 8);
 		}
 
 		inline void setAdl(uint8_t val) {
@@ -97,8 +92,7 @@ namespace NES {
 		}
 
 		inline void setAdhOnly(uint8_t val) {
-			addressBus = 0;
-			addressBus |= val << 8;
+			addressBus = val << 8;
 		}
 
 		inline void setAdlOnly(uint8_t val) {
@@ -106,7 +100,7 @@ namespace NES {
 		}
 
 		inline void setAddressBus(uint8_t adl, uint8_t adh) {
-			addressBus = (adl << 8) + adh;
+			addressBus = (adh << 8) + adl;
 		}
 
 		uint16_t addressBus;
