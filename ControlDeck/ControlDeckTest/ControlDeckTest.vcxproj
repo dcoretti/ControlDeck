@@ -19,13 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{64060819-C482-40FF-ADEF-FD45A83E5FE7}</ProjectGuid>
-    <RootNamespace>ControlDeck</RootNamespace>
+    <ProjectGuid>{0AEE1B59-0C91-44BD-9D22-0A090C38F224}</ProjectGuid>
+    <RootNamespace>ControlDeckTest</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
@@ -68,17 +68,26 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\Users\DC\Programming\Libraries\googletest\googletest\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\DC\Programming\Libraries\googletest\googletest\msvc\gtest\Debug\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>gtest_maind.lib;gtestd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Console</SubSystem>
     </Link>
+    <PostBuildEvent>
+      <Command>$(TargetDir)$(TargetFileName)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -119,20 +128,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CPU\AddressingMode.h" />
-    <ClInclude Include="CPU\cpu2A03.h" />
-    <ClInclude Include="CPU\InstructionDispatcher.h" />
-    <ClInclude Include="CPU\MemoryMapper.h" />
-    <ClInclude Include="CPU\ReadWrite.h" />
-    <ClInclude Include="CPU\SystemComponents.h" />
+    <ProjectReference Include="..\ControlDeck\ControlDeck.vcxproj">
+      <Project>{64060819-c482-40ff-adef-fd45a83e5fe7}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CPU\AddressingMode.cpp" />
-    <ClCompile Include="CPU\CPU2A03.cpp" />
-    <ClCompile Include="CPU\InstructionDispatcher.cpp" />
-    <ClCompile Include="CPU\MemoryMapper.cpp" />
-    <ClCompile Include="CPU\ReadWrite.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="CPU\SystemComponentsTest.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

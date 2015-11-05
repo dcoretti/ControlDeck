@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ControlDeck", "ControlDeck\ControlDeck.vcxproj", "{64060819-C482-40FF-ADEF-FD45A83E5FE7}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ControlDeckTest", "ControlDeckTest\ControlDeckTest.vcxproj", "{0AEE1B59-0C91-44BD-9D22-0A090C38F224}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{64060819-C482-40FF-ADEF-FD45A83E5FE7}.Release|x64.Build.0 = Release|x64
 		{64060819-C482-40FF-ADEF-FD45A83E5FE7}.Release|x86.ActiveCfg = Release|Win32
 		{64060819-C482-40FF-ADEF-FD45A83E5FE7}.Release|x86.Build.0 = Release|Win32
+		{0AEE1B59-0C91-44BD-9D22-0A090C38F224}.Debug|x64.ActiveCfg = Debug|x64
+		{0AEE1B59-0C91-44BD-9D22-0A090C38F224}.Debug|x64.Build.0 = Debug|x64
+		{0AEE1B59-0C91-44BD-9D22-0A090C38F224}.Debug|x86.ActiveCfg = Debug|Win32
+		{0AEE1B59-0C91-44BD-9D22-0A090C38F224}.Debug|x86.Build.0 = Debug|Win32
+		{0AEE1B59-0C91-44BD-9D22-0A090C38F224}.Release|x64.ActiveCfg = Release|x64
+		{0AEE1B59-0C91-44BD-9D22-0A090C38F224}.Release|x64.Build.0 = Release|x64
+		{0AEE1B59-0C91-44BD-9D22-0A090C38F224}.Release|x86.ActiveCfg = Release|Win32
+		{0AEE1B59-0C91-44BD-9D22-0A090C38F224}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
