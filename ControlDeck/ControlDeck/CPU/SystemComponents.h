@@ -48,6 +48,11 @@ namespace NES {
 			}
 		}
 
+		inline void setFlagIfZero(uint8_t val) {
+			if (val == 0) {
+				setFlag(ProcessorStatus::ZeroFlag);
+			}
+		}
 
 		// Commonly used for counters/offsets in memory accesss.  
 		// Can be loaded/saved in memory, compared with memory values.
