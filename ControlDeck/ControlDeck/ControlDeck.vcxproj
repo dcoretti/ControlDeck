@@ -132,7 +132,6 @@
     <ClCompile Include="CPU\InstructionDispatcher.cpp" />
     <ClCompile Include="CPU\MemoryMapper.cpp" />
     <ClCompile Include="CPU\ReadWrite.cpp" />
-    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
