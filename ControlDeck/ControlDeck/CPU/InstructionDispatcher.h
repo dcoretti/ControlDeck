@@ -15,6 +15,12 @@ namespace NES {
 
         void NOP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
 
+        // Read Modify Write
+                  
+        void DEC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void INC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void ROR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+
         // shift (with acc addressing mode)
         void ASL(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
         void ROL(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
@@ -64,6 +70,23 @@ namespace NES {
         void TSX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
         void PLA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
         void PLP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+
+        // Misc ops
+        void BCC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void BRK(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void BCS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void BVC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void BEQ(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void BVS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void BMI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void JMP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void RTI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void BNE(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void JSR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void RTS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void BPL(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+
+
 
 
         //utilities

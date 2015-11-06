@@ -26,6 +26,17 @@ namespace NES {
 
     }
 
+    void InstructionDispatcher::DEC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+    }
+    void InstructionDispatcher::INC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+    }
+    void InstructionDispatcher::ROR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+    }
+
+
     // Decrement X register
     void InstructionDispatcher::DEX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.x--;
@@ -110,55 +121,121 @@ namespace NES {
 
     }
 
-    /////////////////////////////////////////////////
-    // Internally executed instructions
+    // TODO .. simplify these
     void InstructionDispatcher::ADC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-        
-    }
+        uint8_t add = registers.acc + systemBus.dataBus;
+        if (registers.willAddOverflow(systemBus.dataBus)) {
+            registers.setFlag(ProcessorStatus::OverflowFlag);
+        }
+        registers.setFlagIfZero(add);
+        if (registers.willAddCarry(systemBus.dataBus)) {
+            registers.setFlag(ProcessorStatus::CarryFlag);
+        }
+        registers.setFlagIfNegative(add);
 
-    void InstructionDispatcher::CMP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::EOR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::LDY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::AND(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::CPX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::LDA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::ORA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::BIT(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::CPY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::LDX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
+        registers.acc = add;
     }
 
     void InstructionDispatcher::SBC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t sub = registers.acc - systemBus.dataBus;
+        if (registers.willSubOverflow(systemBus.dataBus)) {
+            registers.setFlag(ProcessorStatus::OverflowFlag);
+        }
+        registers.setFlagIfZero(sub);
+        if (registers.willSubCarry(systemBus.dataBus)) {
+            registers.setFlag(ProcessorStatus::CarryFlag);
+        }
+        registers.setFlagIfNegative(sub);
 
+        registers.acc = sub;
     }
+
+    /////////////////////////////////////////////////
+    // Logical operations on accumulator
+    void InstructionDispatcher::EOR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        registers.acc ^= systemBus.dataBus;
+        registers.setFlagIfZero(registers.acc);
+        registers.setFlagIfNegative(registers.acc);
+    }
+
+    void InstructionDispatcher::AND(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        registers.acc &= systemBus.dataBus;
+        registers.setFlagIfZero(registers.acc);
+        registers.setFlagIfNegative(registers.acc);
+    }
+
+    void InstructionDispatcher::ORA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        registers.acc |= systemBus.dataBus;
+        registers.setFlagIfZero(registers.acc);
+        registers.setFlagIfNegative(registers.acc);
+    }
+
+    void InstructionDispatcher::LDA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        registers.acc = systemBus.dataBus;
+        registers.setFlagIfZero(registers.acc);
+        registers.setFlagIfNegative(registers.acc);
+    }
+
+    void InstructionDispatcher::LDY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        registers.y = systemBus.dataBus;
+        registers.setFlagIfZero(registers.y);
+        registers.setFlagIfNegative(registers.y);
+    }
+
+    void InstructionDispatcher::LDX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        registers.x = systemBus.dataBus;
+        registers.setFlagIfZero(registers.x);
+        registers.setFlagIfNegative(registers.x);
+    }
+
+    // Bit test by & with acc
+    void InstructionDispatcher::BIT(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t val = registers.acc & systemBus.dataBus;
+        registers.setFlagIfZero(val);
+        registers.setFlagIfNegative(systemBus.dataBus);
+        
+        if (systemBus.dataBus & (1 << 6) != 0) {
+            registers.setFlag(ProcessorStatus::OverflowFlag);
+        }
+    }
+
+    void InstructionDispatcher::CMP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        int8_t sub = (int8_t)registers.acc - (int8_t)systemBus.dataBus;
+        if (sub == 0) {
+            registers.setFlag(ProcessorStatus::ZeroFlag);
+        }
+        if (sub >= 0) {
+            registers.setFlag(ProcessorStatus::CarryFlag);
+        }
+
+        registers.setFlagIfNegative((uint8_t)sub);
+    }
+
+    void InstructionDispatcher::CPY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        int8_t sub = (int8_t)registers.y - (int8_t)systemBus.dataBus;
+        if (sub == 0) {
+            registers.setFlag(ProcessorStatus::ZeroFlag);
+        }
+        if (sub >= 0) {
+            registers.setFlag(ProcessorStatus::CarryFlag);
+        }
+
+        registers.setFlagIfNegative((uint8_t)sub);
+    }
+
+
+    void InstructionDispatcher::CPX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        int8_t sub = (int8_t)registers.x - (int8_t)systemBus.dataBus;
+        if (sub == 0) {
+            registers.setFlag(ProcessorStatus::ZeroFlag);
+        } 
+        if (sub >= 0) {
+            registers.setFlag(ProcessorStatus::CarryFlag);
+        }
+
+        registers.setFlagIfNegative((uint8_t)sub);
+    }
+
 
 
     /////////////////////////////////////////////////
@@ -196,6 +273,60 @@ namespace NES {
         registers.statusRegister = systemBus.dataBus;
     }
 
+    void InstructionDispatcher::BCC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+    }
+
+    void InstructionDispatcher::BRK(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+    }
+
+    void InstructionDispatcher::BCS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+    }
+
+    void InstructionDispatcher::BVC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+    }
+
+    void InstructionDispatcher::BEQ(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+    }
+
+    void InstructionDispatcher::BVS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+    }
+
+    void InstructionDispatcher::BMI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+    }
+
+    void InstructionDispatcher::JMP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+    }
+
+    void InstructionDispatcher::RTI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+    }
+
+    void InstructionDispatcher::BNE(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+    }
+
+    void InstructionDispatcher::JSR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+    }
+
+    void InstructionDispatcher::RTS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+    }
+
+    void InstructionDispatcher::BPL(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+
+    }
+
+    //////////////////////////////////////////////////////
+    // Utility methods
 
     // Stack is pushed to from X register to memory location $0100 + Stack pointer offset (00-ff)
     // No overflow detection just like the NES
