@@ -28,6 +28,16 @@ namespace NES {
             return (uint8_t)(programCounter >> 8);
         }
 
+        inline void setPcl(uint8_t l) {
+            programCounter &= 0xf0;
+            programCounter += l;
+        }
+
+        inline void setPch(uint8_t h) {
+            programCounter &= 0x0f;
+            programCounter |= (h << 8);
+        }
+
         // Status register utils
         // program counter low byte
         inline bool flagSet(ProcessorStatus flag) {

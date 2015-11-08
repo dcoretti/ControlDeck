@@ -7,35 +7,129 @@ namespace NES {
     ////////////////////////////////////////////////
     //	Single byte instructions
 
+    void InstructionDispatcher::dispatchInstruction(const OpCode & opCode, SystemBus & systemBus, Registers & registers, MemoryMapper & memoryMapper)
+    {
+    }
+
     void InstructionDispatcher::NOP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         // do nothing
     }
 
-    // Instructions with accumulator addressing mode TODO how to handle...
-    void InstructionDispatcher::ASL(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    // signed shift
+    void InstructionDispatcher::ASL(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t arg = systemBus.dataBus;
+        if (opCode.addressingMode == AddressingMode::Accumulator) {
+            arg = registers.acc;
+        }
 
+        if (arg & 0x80 != 0) {
+            registers.setFlag(ProcessorStatus::CarryFlag);
+        }
+        arg = (int8_t)arg << 1;
+
+        if (opCode.addressingMode == AddressingMode::Accumulator) {
+            registers.acc = arg;
+        } else {
+            // write back to memory location
+            systemBus.read = false;
+            memoryMapper.doMemoryOperation(systemBus);
+        }
     }
 
     // Rotate left (0-filled)
-    void InstructionDispatcher::ROL(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::ROL(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t arg = systemBus.dataBus;
+        if (opCode.addressingMode == AddressingMode::Accumulator) {
+            arg = registers.acc;
+        }
 
+        bool carrySet = registers.flagSet(ProcessorStatus::CarryFlag);
+        if (arg & 0x80 != 0) {
+            registers.setFlag(ProcessorStatus::CarryFlag);
+        }
+        arg = arg << (uint8_t)1;
+        arg += carrySet ? 1 : 0;
+
+        registers.setFlagIfZero(arg);
+        registers.setFlagIfNegative(arg);
+
+        if (opCode.addressingMode == AddressingMode::Accumulator) {
+            registers.acc = arg;
+        }
+        else {
+            // write back to memory location
+            systemBus.read = false;
+            memoryMapper.doMemoryOperation(systemBus);
+        }
+    }
+
+    void InstructionDispatcher::ROR(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t arg = systemBus.dataBus;
+        if (opCode.addressingMode == AddressingMode::Accumulator) {
+            arg = registers.acc;
+        }
+        uint8_t carryMask = registers.flagSet(ProcessorStatus::CarryFlag) ? 0x80 : 0x00;
+        if (arg & 0x01 != 0) {
+            registers.setFlag(ProcessorStatus::CarryFlag);
+        }
+        arg = arg >> (uint8_t)1;
+        // old carry flag is brought in as bit 7;
+        arg &= carryMask;
+
+        registers.setFlagIfZero(arg);
+        registers.setFlagIfNegative(arg);
+
+        if (opCode.addressingMode == AddressingMode::Accumulator) {
+            registers.acc = arg;
+        }
+        else {
+            // write back to memory location
+            systemBus.read = false;
+            memoryMapper.doMemoryOperation(systemBus);
+        }
     }
 
     // Logical shift right (shift right with 0 bit going to carry flag, 7 bit set to 0.)
-    void InstructionDispatcher::LSR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::LSR(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t arg = systemBus.dataBus;
+        if (opCode.addressingMode == AddressingMode::Accumulator) {
+            arg = registers.acc;
+        }
 
+        if (arg & 0x01 != 0) {
+            registers.setFlag(ProcessorStatus::CarryFlag);
+        }
+        arg = arg >> (uint8_t)1;
+        registers.setFlagIfZero(arg);
+        registers.setFlagIfNegative(arg);
+
+        if (opCode.addressingMode == AddressingMode::Accumulator) {
+            registers.acc = arg;
+        }
+        else {
+            // write back to memory location
+            systemBus.read = false;
+            memoryMapper.doMemoryOperation(systemBus);
+        }
     }
 
-    void InstructionDispatcher::DEC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::DEC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        systemBus.dataBus--;
+        registers.setFlagIfZero(systemBus.dataBus);
+        registers.setFlagIfNegative(systemBus.dataBus);
 
+        systemBus.read = false;
+        memoryMapper.doMemoryOperation(systemBus);
     }
-    void InstructionDispatcher::INC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
 
+    void InstructionDispatcher::INC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        systemBus.dataBus++;
+        registers.setFlagIfZero(systemBus.dataBus);
+        registers.setFlagIfNegative(systemBus.dataBus);
+
+        systemBus.read = false;
+        memoryMapper.doMemoryOperation(systemBus);
     }
-    void InstructionDispatcher::ROR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
 
     // Decrement X register
     void InstructionDispatcher::DEX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
@@ -64,7 +158,7 @@ namespace NES {
     }
 
     // Transfer accumulator to x
-    void TAX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::TAX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.x = registers.acc;
     }
 
@@ -244,99 +338,149 @@ namespace NES {
     // Push x to stack pointer
     void InstructionDispatcher::TXS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         systemBus.dataBus = registers.x;
-        pushRegister(systemBus, registers, memoryMapper);
+        pushDataBusToStack(systemBus, registers, memoryMapper);
     }
     // Push accumulator on stack
     void InstructionDispatcher::PHA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         systemBus.dataBus = registers.acc;
-        pushRegister(systemBus, registers, memoryMapper);
+        pushDataBusToStack(systemBus, registers, memoryMapper);
     }
     // Push processor status on stack
     void InstructionDispatcher::PHP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         systemBus.dataBus = registers.statusRegister;
-        pushRegister(systemBus, registers, memoryMapper);
+        pushDataBusToStack(systemBus, registers, memoryMapper);
     }
 
     // Pop stack pointer to x
     void InstructionDispatcher::TSX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-        popRegister(systemBus, registers, memoryMapper);
+        popStackToDataBus(systemBus, registers, memoryMapper);
         registers.x = systemBus.dataBus;
     }
     // Pop accumulator from stack
     void InstructionDispatcher::PLA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-        popRegister(systemBus, registers, memoryMapper);
+        popStackToDataBus(systemBus, registers, memoryMapper);
         registers.acc = systemBus.dataBus;
     }
     // Pop processor status from stack
     void InstructionDispatcher::PLP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-        popRegister(systemBus, registers, memoryMapper);
+        popStackToDataBus(systemBus, registers, memoryMapper);
         registers.statusRegister = systemBus.dataBus;
     }
 
     void InstructionDispatcher::BCC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::BRK(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
+        if (!registers.flagSet(ProcessorStatus::CarryFlag)) {
+            registers.programCounter += systemBus.dataBus;
+        }
     }
 
     void InstructionDispatcher::BCS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::BVC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
+        if (registers.flagSet(ProcessorStatus::CarryFlag)) {
+            registers.programCounter += systemBus.dataBus;
+        }
     }
 
     void InstructionDispatcher::BEQ(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::BVS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::BMI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::JMP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::RTI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::BNE(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::JSR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
-    }
-
-    void InstructionDispatcher::RTS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
+        if (registers.flagSet(ProcessorStatus::ZeroFlag)) {
+            registers.programCounter += systemBus.dataBus;
+        }
     }
 
     void InstructionDispatcher::BPL(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-
+        if (!registers.flagSet(ProcessorStatus::ZeroFlag)) {
+            registers.programCounter += systemBus.dataBus;
+        }
     }
+
+    void InstructionDispatcher::BMI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        if (registers.flagSet(ProcessorStatus::NegativeFlag)) {
+            registers.programCounter += systemBus.dataBus;
+        }
+    }
+
+    void InstructionDispatcher::BNE(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        if (!registers.flagSet(ProcessorStatus::NegativeFlag)) {
+            registers.programCounter += systemBus.dataBus;
+        }
+    }
+
+    void InstructionDispatcher::BVC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        if (!registers.flagSet(ProcessorStatus::OverflowFlag)) {
+            registers.programCounter += systemBus.dataBus;
+        }
+    }
+
+    void InstructionDispatcher::BVS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        if (registers.flagSet(ProcessorStatus::OverflowFlag)) {
+            registers.programCounter += systemBus.dataBus;
+        }
+    }
+
+    void InstructionDispatcher::JMP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        registers.programCounter = systemBus.addressBus;
+    }
+
+    void InstructionDispatcher::BRK(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t interruptVector = systemBus.addressBus;
+        // push program counter
+        systemBus.dataBus = registers.pch();
+        pushDataBusToStack(systemBus, registers, memoryMapper);
+        systemBus.dataBus = registers.pcl();
+        pushDataBusToStack(systemBus, registers, memoryMapper);
+        // push status register
+        systemBus.dataBus = registers.statusRegister;
+        pushDataBusToStack(systemBus, registers, memoryMapper);
+
+        registers.programCounter = interruptVector;
+        registers.setFlag(ProcessorStatus::BreakCommand);
+    }
+
+
+    void InstructionDispatcher::RTI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        // pop stack to processor flags
+        popStackSetup(systemBus, registers);
+        memoryMapper.doMemoryOperation(systemBus);
+        registers.statusRegister = systemBus.dataBus;
+        // pop program counter
+        popStackSetup(systemBus, registers);
+        memoryMapper.doMemoryOperation(systemBus);
+        registers.setPcl(systemBus.dataBus);
+        popStackSetup(systemBus, registers);
+        memoryMapper.doMemoryOperation(systemBus);
+        registers.setPch(systemBus.dataBus);
+    }
+
+
+    void InstructionDispatcher::JSR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        registers.programCounter = systemBus.addressBus;
+        // Usual timing order only fetches ADL here
+        systemBus.dataBus = registers.pch();
+        pushDataBusToStack(systemBus, registers, memoryMapper);
+        systemBus.dataBus = registers.pcl();
+        pushDataBusToStack(systemBus, registers, memoryMapper);
+        // Usual timing order only fetches ADH here
+    }
+
+    void InstructionDispatcher::RTS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        popStackToDataBus(systemBus, registers, memoryMapper);
+        registers.pcl = systemBus.dataBus;
+        popStackToDataBus(systemBus, registers, memoryMapper);
+        registers.pch = systemBus.dataBus;
+
+        // PC needs to be incremented by 1 to get next isntruction
+    }
+
 
     //////////////////////////////////////////////////////
     // Utility methods
-
-    // Stack is pushed to from X register to memory location $0100 + Stack pointer offset (00-ff)
+    // Stack is pushed to from register to memory location $0100 + Stack pointer offset (00-ff)
     // No overflow detection just like the NES
+
     void InstructionDispatcher::pushStackSetup(SystemBus &systemBus, Registers &registers) {
         systemBus.addressBus = (uint16_t)(0x100 + registers.stackPointer);
         registers.stackPointer += 8;
         systemBus.read = false;
     }
 
-    // Data must be transfered to register X after read on stack instruction.  
     // TODO a bit confusing where push knows about register x -> addr  whereas this one only knows where to read.  Does that matter?
     void InstructionDispatcher::popStackSetup(SystemBus &systemBus, Registers &registers) {
         systemBus.addressBus = (uint16_t)(0x100 + registers.stackPointer);
@@ -344,9 +488,13 @@ namespace NES {
         systemBus.read = true;
     }
 
-    void InstructionDispatcher::popRegister(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::popStackToDataBus(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         popStackSetup(systemBus, registers);
         memoryMapper.doMemoryOperation(systemBus);
+    }
+
+    void InstructionDispatcher::popStackToDataBusWithFlags(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        popStackToDataBus(systemBus, registers, memoryMapper);
 
         // Update processor status flags
         if (systemBus.dataBus == 0) {
@@ -355,7 +503,7 @@ namespace NES {
         registers.setFlagIfNegative(systemBus.dataBus);
     }
 
-    void InstructionDispatcher::pushRegister(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::pushDataBusToStack(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         pushStackSetup(systemBus, registers);
         memoryMapper.doMemoryOperation(systemBus);
     }

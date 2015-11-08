@@ -1,5 +1,6 @@
 #pragma once
 
+#include "cpu2A03.h"
 #include "MemoryMapper.h"
 #include "SystemComponents.h"
 #include <unordered_map>
@@ -10,21 +11,23 @@ namespace NES {
     class InstructionDispatcher {
     public:
         InstructionDispatcher() {}
-    private:
+        void dispatchInstruction(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
 
+
+    private:
 
         void NOP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
 
         // Read Modify Write
                   
-        void DEC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
-        void INC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
-        void ROR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void DEC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void INC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void ROR(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
 
         // shift (with acc addressing mode)
-        void ASL(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
-        void ROL(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
-        void LSR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void ASL(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void ROL(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void LSR(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
 
         // decrement
         void DEX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
@@ -71,20 +74,21 @@ namespace NES {
         void PLA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
         void PLP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
 
-        // Misc ops
+        // Branching
         void BCC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
-        void BRK(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
         void BCS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
-        void BVC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
         void BEQ(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void BVC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
         void BVS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void BNE(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void BPL(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+
+        void BRK(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
         void BMI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
         void JMP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
         void RTI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
-        void BNE(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
         void JSR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
         void RTS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
-        void BPL(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
 
 
 
@@ -92,7 +96,13 @@ namespace NES {
         //utilities
         void pushStackSetup(SystemBus &systemBus, Registers &registers);
         void popStackSetup(SystemBus &systemBus, Registers &registers);
-        void popRegister(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
-        void pushRegister(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void popStackToDataBusWithFlags(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void popStackToDataBus(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+
+        void pushDataBusToStack(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+
+
+
+        AddressingModeHandler addressingModeHandler;
     };
 }

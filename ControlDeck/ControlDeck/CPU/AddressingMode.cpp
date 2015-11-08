@@ -2,7 +2,6 @@
 #include "ReadWrite.h"
 
 namespace NES {
-
 	/**
 	*	Operate on data directly held in instruction operand
 	*	1 Cycle:
@@ -12,7 +11,6 @@ namespace NES {
 		Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
 		memoryMapper.doMemoryOperation(systemBus);
 	}
-
 
 	/**
 	*	Get address in zero page ($0000-$00ff)
@@ -51,13 +49,15 @@ namespace NES {
 	*	2 Cycles:
 	*		1. Fetch ADL
 	*		2. Fetch ADH
+    *   address bus will contain address.  No actual read of data at absolute address is done.
 	*/
 	void AddressingModeHandler::getAbsoluateAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
 		Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
 		memoryMapper.doMemoryOperation(systemBus);
-		systemBus.setAdl(systemBus.dataBus);
+        uint8_t adlTmp = systemBus.dataBus;
 		Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
 		memoryMapper.doMemoryOperation(systemBus);
+        systemBus.setAdl(adlTmp);
 		systemBus.setAdh(systemBus.dataBus);
 	}
 
@@ -95,12 +95,8 @@ namespace NES {
 	*		4. Fetch Jump H address
 	*/
 	void AddressingModeHandler::getIndirectAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-		Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
-		memoryMapper.doMemoryOperation(systemBus);
-		systemBus.setAdl(systemBus.dataBus);
-		Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
-		memoryMapper.doMemoryOperation(systemBus);
-		systemBus.setAdh(systemBus.dataBus);
+        getAbsoluateAddress(systemBus, registers, memoryMapper);
+
 		fetchIndirectAddressToBus(systemBus, memoryMapper);
 	}
 
