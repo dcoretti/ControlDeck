@@ -16,7 +16,7 @@ namespace NES {
 
     }
 
-    void InstructionDispatcher::NOP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::NOP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         // do nothing
     }
 
@@ -137,91 +137,91 @@ namespace NES {
     }
 
     // Decrement X register
-    void InstructionDispatcher::DEX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::DEX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.x--;
         registers.setFlagIfZero(registers.x);
         registers.setFlagIfNegative(registers.x);
     }
 
     // Decrement Y register
-    void InstructionDispatcher::DEY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::DEY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.y--;
         registers.setFlagIfZero(registers.y);
         registers.setFlagIfNegative(registers.y);
     }
 
-    void InstructionDispatcher::INX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::INX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.x++;
         registers.setFlagIfZero(registers.x);
         registers.setFlagIfNegative(registers.x);
     }
 
-    void InstructionDispatcher::INY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::INY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.y++;
         registers.setFlagIfZero(registers.y);
         registers.setFlagIfNegative(registers.y);
     }
 
     // Transfer accumulator to x
-    void InstructionDispatcher::TAX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::TAX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.x = registers.acc;
     }
 
     // Transfer x to accumulator
-    void InstructionDispatcher::TXA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::TXA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.acc = registers.x;
     }
 
     // Transfer y to accumulator
-    void InstructionDispatcher::TYA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::TYA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.acc = registers.y;
     }
 
     // Transfer accumulator to y
-    void InstructionDispatcher::TAY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::TAY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.y = registers.acc;
     }
 
     // Clear carry flag
-    void InstructionDispatcher::CLC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::CLC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.clearFlag(ProcessorStatus::CarryFlag);
     }
 
     // Clear decimal mode flag
-    void InstructionDispatcher::CLD(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::CLD(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.clearFlag(ProcessorStatus::DecimalMode);
     }
 
     // Clear interrupt disable flag
-    void InstructionDispatcher::CLI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::CLI(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.clearFlag(ProcessorStatus::InterruptDisable);
 
     }
 
     // Clear overflow flag
-    void InstructionDispatcher::CLV(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::CLV(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.clearFlag(ProcessorStatus::OverflowFlag);
 
     }
 
     // Set carry flag
-    void InstructionDispatcher::SEC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::SEC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.setFlag(ProcessorStatus::CarryFlag);
     }
 
     // Set decimal flag
-    void InstructionDispatcher::SED(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::SED(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.setFlag(ProcessorStatus::DecimalMode);
     }
 
     // Set interrupt disable flag
-    void InstructionDispatcher::SEI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::SEI(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.setFlag(ProcessorStatus::InterruptDisable);
 
     }
 
     // TODO .. simplify these
-    void InstructionDispatcher::ADC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::ADC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         uint8_t add = registers.acc + systemBus.dataBus;
         if (registers.willAddOverflow(systemBus.dataBus)) {
             registers.setFlag(ProcessorStatus::OverflowFlag);
@@ -235,7 +235,7 @@ namespace NES {
         registers.acc = add;
     }
 
-    void InstructionDispatcher::SBC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::SBC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         uint8_t sub = registers.acc - systemBus.dataBus;
         if (registers.willSubOverflow(systemBus.dataBus)) {
             registers.setFlag(ProcessorStatus::OverflowFlag);
@@ -251,44 +251,44 @@ namespace NES {
 
     /////////////////////////////////////////////////
     // Logical operations on accumulator
-    void InstructionDispatcher::EOR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::EOR(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.acc ^= systemBus.dataBus;
         registers.setFlagIfZero(registers.acc);
         registers.setFlagIfNegative(registers.acc);
     }
 
-    void InstructionDispatcher::AND(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::AND(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.acc &= systemBus.dataBus;
         registers.setFlagIfZero(registers.acc);
         registers.setFlagIfNegative(registers.acc);
     }
 
-    void InstructionDispatcher::ORA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::ORA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.acc |= systemBus.dataBus;
         registers.setFlagIfZero(registers.acc);
         registers.setFlagIfNegative(registers.acc);
     }
 
-    void InstructionDispatcher::LDA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::LDA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.acc = systemBus.dataBus;
         registers.setFlagIfZero(registers.acc);
         registers.setFlagIfNegative(registers.acc);
     }
 
-    void InstructionDispatcher::LDY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::LDY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.y = systemBus.dataBus;
         registers.setFlagIfZero(registers.y);
         registers.setFlagIfNegative(registers.y);
     }
 
-    void InstructionDispatcher::LDX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::LDX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.x = systemBus.dataBus;
         registers.setFlagIfZero(registers.x);
         registers.setFlagIfNegative(registers.x);
     }
 
     // Bit test by & with acc
-    void InstructionDispatcher::BIT(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::BIT(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         uint8_t val = registers.acc & systemBus.dataBus;
         registers.setFlagIfZero(val);
         registers.setFlagIfNegative(systemBus.dataBus);
@@ -298,7 +298,7 @@ namespace NES {
         }
     }
 
-    void InstructionDispatcher::CMP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::CMP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         int8_t sub = (int8_t)registers.acc - (int8_t)systemBus.dataBus;
         if (sub == 0) {
             registers.setFlag(ProcessorStatus::ZeroFlag);
@@ -310,7 +310,7 @@ namespace NES {
         registers.setFlagIfNegative((uint8_t)sub);
     }
 
-    void InstructionDispatcher::CPY(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::CPY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         int8_t sub = (int8_t)registers.y - (int8_t)systemBus.dataBus;
         if (sub == 0) {
             registers.setFlag(ProcessorStatus::ZeroFlag);
@@ -323,7 +323,7 @@ namespace NES {
     }
 
 
-    void InstructionDispatcher::CPX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::CPX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         int8_t sub = (int8_t)registers.x - (int8_t)systemBus.dataBus;
         if (sub == 0) {
             registers.setFlag(ProcessorStatus::ZeroFlag);
@@ -341,90 +341,90 @@ namespace NES {
     //	Stack instructions
 
     // Push x to stack pointer
-    void InstructionDispatcher::TXS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::TXS(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         systemBus.dataBus = registers.x;
         pushDataBusToStack(systemBus, registers, memoryMapper);
     }
     // Push accumulator on stack
-    void InstructionDispatcher::PHA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::PHA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         systemBus.dataBus = registers.acc;
         pushDataBusToStack(systemBus, registers, memoryMapper);
     }
     // Push processor status on stack
-    void InstructionDispatcher::PHP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::PHP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         systemBus.dataBus = registers.statusRegister;
         pushDataBusToStack(systemBus, registers, memoryMapper);
     }
 
     // Pop stack pointer to x
-    void InstructionDispatcher::TSX(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::TSX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         popStackToDataBus(systemBus, registers, memoryMapper);
         registers.x = systemBus.dataBus;
     }
     // Pop accumulator from stack
-    void InstructionDispatcher::PLA(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::PLA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         popStackToDataBus(systemBus, registers, memoryMapper);
         registers.acc = systemBus.dataBus;
     }
     // Pop processor status from stack
-    void InstructionDispatcher::PLP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::PLP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         popStackToDataBus(systemBus, registers, memoryMapper);
         registers.statusRegister = systemBus.dataBus;
     }
 
-    void InstructionDispatcher::BCC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::BCC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         if (!registers.flagSet(ProcessorStatus::CarryFlag)) {
             registers.programCounter += systemBus.dataBus;
         }
     }
 
-    void InstructionDispatcher::BCS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::BCS(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         if (registers.flagSet(ProcessorStatus::CarryFlag)) {
             registers.programCounter += systemBus.dataBus;
         }
     }
 
-    void InstructionDispatcher::BEQ(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::BEQ(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         if (registers.flagSet(ProcessorStatus::ZeroFlag)) {
             registers.programCounter += systemBus.dataBus;
         }
     }
 
-    void InstructionDispatcher::BPL(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::BPL(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         if (!registers.flagSet(ProcessorStatus::ZeroFlag)) {
             registers.programCounter += systemBus.dataBus;
         }
     }
 
-    void InstructionDispatcher::BMI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::BMI(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         if (registers.flagSet(ProcessorStatus::NegativeFlag)) {
             registers.programCounter += systemBus.dataBus;
         }
     }
 
-    void InstructionDispatcher::BNE(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::BNE(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         if (!registers.flagSet(ProcessorStatus::NegativeFlag)) {
             registers.programCounter += systemBus.dataBus;
         }
     }
 
-    void InstructionDispatcher::BVC(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::BVC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         if (!registers.flagSet(ProcessorStatus::OverflowFlag)) {
             registers.programCounter += systemBus.dataBus;
         }
     }
 
-    void InstructionDispatcher::BVS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::BVS(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         if (registers.flagSet(ProcessorStatus::OverflowFlag)) {
             registers.programCounter += systemBus.dataBus;
         }
     }
 
-    void InstructionDispatcher::JMP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::JMP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.programCounter = systemBus.addressBus;
     }
 
-    void InstructionDispatcher::BRK(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::BRK(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         // push program counter
         systemBus.dataBus = registers.pch();
         pushDataBusToStack(systemBus, registers, memoryMapper);
@@ -449,7 +449,7 @@ namespace NES {
     }
 
 
-    void InstructionDispatcher::RTI(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::RTI(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         // pop stack to processor flags
         popStackSetup(systemBus, registers);
         memoryMapper.doMemoryOperation(systemBus);
@@ -464,7 +464,7 @@ namespace NES {
     }
 
 
-    void InstructionDispatcher::JSR(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::JSR(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.programCounter = systemBus.addressBus;
         // Usual timing order only fetches ADL here
         systemBus.dataBus = registers.pch();
@@ -474,13 +474,36 @@ namespace NES {
         // Usual timing order only fetches ADH here
     }
 
-    void InstructionDispatcher::RTS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+    void InstructionDispatcher::RTS(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         popStackToDataBus(systemBus, registers, memoryMapper);
         registers.setPcl(systemBus.dataBus);
         popStackToDataBus(systemBus, registers, memoryMapper);
         registers.setPch(systemBus.dataBus);
 
         // PC needs to be incremented by 1 to get next isntruction
+    }
+
+    void InstructionDispatcher::STA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        systemBus.dataBus = registers.acc;
+        systemBus.read = false;
+        memoryMapper.doMemoryOperation(systemBus);
+    }
+
+    void InstructionDispatcher::STX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        systemBus.dataBus = registers.x;
+        systemBus.read = false;
+        memoryMapper.doMemoryOperation(systemBus);
+    }
+
+    void InstructionDispatcher::STY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        systemBus.dataBus = registers.y;
+        systemBus.read = false;
+        memoryMapper.doMemoryOperation(systemBus);
+    }
+
+
+    void InstructionDispatcher::UNK(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        // TODO do something to stop execution if we get here?
     }
 
 
