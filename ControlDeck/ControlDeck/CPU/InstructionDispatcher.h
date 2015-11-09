@@ -1,6 +1,7 @@
 #pragma once
 
-#include "cpu2A03.h"
+#include "OpCode.h"
+#include "AddressingModeHandler.h"
 #include "MemoryMapper.h"
 #include "SystemComponents.h"
 #include <unordered_map>
@@ -10,7 +11,8 @@ namespace NES {
 
     class InstructionDispatcher {
     public:
-        InstructionDispatcher() {}
+        InstructionDispatcher();
+
         void dispatchInstruction(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
 
 

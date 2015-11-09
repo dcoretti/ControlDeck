@@ -1,14 +1,17 @@
 #include "InstructionDispatcher.h"
-
 #include <cstdint>
 
 
 namespace NES {
+    InstructionDispatcher::InstructionDispatcher(): addressingModeHandler() {
+    }
     ////////////////////////////////////////////////
     //	Single byte instructions
 
-    void InstructionDispatcher::dispatchInstruction(const OpCode & opCode, SystemBus & systemBus, Registers & registers, MemoryMapper & memoryMapper)
+    void InstructionDispatcher::dispatchInstruction(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper)
     {
+
+
     }
 
     void InstructionDispatcher::NOP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
@@ -22,7 +25,7 @@ namespace NES {
             arg = registers.acc;
         }
 
-        if (arg & 0x80 != 0) {
+        if ((arg & 0x80) != 0) {
             registers.setFlag(ProcessorStatus::CarryFlag);
         }
         arg = (int8_t)arg << 1;
@@ -44,7 +47,7 @@ namespace NES {
         }
 
         bool carrySet = registers.flagSet(ProcessorStatus::CarryFlag);
-        if (arg & 0x80 != 0) {
+        if ((arg & 0x80) != 0) {
             registers.setFlag(ProcessorStatus::CarryFlag);
         }
         arg = arg << (uint8_t)1;
@@ -69,7 +72,7 @@ namespace NES {
             arg = registers.acc;
         }
         uint8_t carryMask = registers.flagSet(ProcessorStatus::CarryFlag) ? 0x80 : 0x00;
-        if (arg & 0x01 != 0) {
+        if ((arg & 0x01) != 0) {
             registers.setFlag(ProcessorStatus::CarryFlag);
         }
         arg = arg >> (uint8_t)1;
@@ -96,7 +99,7 @@ namespace NES {
             arg = registers.acc;
         }
 
-        if (arg & 0x01 != 0) {
+        if ((arg & 0x01) != 0) {
             registers.setFlag(ProcessorStatus::CarryFlag);
         }
         arg = arg >> (uint8_t)1;
@@ -288,7 +291,7 @@ namespace NES {
         registers.setFlagIfZero(val);
         registers.setFlagIfNegative(systemBus.dataBus);
         
-        if (systemBus.dataBus & (1 << 6) != 0) {
+        if ((systemBus.dataBus & (1 << 6)) != 0) {
             registers.setFlag(ProcessorStatus::OverflowFlag);
         }
     }
@@ -420,7 +423,6 @@ namespace NES {
     }
 
     void InstructionDispatcher::BRK(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-        uint8_t interruptVector = systemBus.addressBus;
         // push program counter
         systemBus.dataBus = registers.pch();
         pushDataBusToStack(systemBus, registers, memoryMapper);
@@ -430,7 +432,17 @@ namespace NES {
         systemBus.dataBus = registers.statusRegister;
         pushDataBusToStack(systemBus, registers, memoryMapper);
 
-        registers.programCounter = interruptVector;
+        // fetch interrupt vector from 0xfffe/f
+        systemBus.addressBus = (uint16_t)0xffffe;
+        systemBus.read = true;
+        memoryMapper.doMemoryOperation(systemBus);
+        uint8_t adl = systemBus.dataBus;
+
+        systemBus.addressBus = (uint16_t)0xfffff;
+        systemBus.read = true;
+        memoryMapper.doMemoryOperation(systemBus);
+        registers.programCounter = (systemBus.dataBus << 8) + adl;
+
         registers.setFlag(ProcessorStatus::BreakCommand);
     }
 
@@ -462,9 +474,9 @@ namespace NES {
 
     void InstructionDispatcher::RTS(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         popStackToDataBus(systemBus, registers, memoryMapper);
-        registers.pcl = systemBus.dataBus;
+        registers.setPcl(systemBus.dataBus);
         popStackToDataBus(systemBus, registers, memoryMapper);
-        registers.pch = systemBus.dataBus;
+        registers.setPch(systemBus.dataBus);
 
         // PC needs to be incremented by 1 to get next isntruction
     }

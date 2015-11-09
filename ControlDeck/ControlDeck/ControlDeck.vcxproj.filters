@@ -33,7 +33,16 @@
     <ClInclude Include="CPU\InstructionDispatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CPU\AddressingMode.h">
+    <ClInclude Include="CPU\InstructionSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CPU\AddressingModes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CPU\AddressingModeHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CPU\OpCode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -44,13 +53,13 @@
     <ClCompile Include="CPU\CPU2A03.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CPU\AddressingMode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CPU\ReadWrite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CPU\InstructionDispatcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CPU\AddressingModeHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
