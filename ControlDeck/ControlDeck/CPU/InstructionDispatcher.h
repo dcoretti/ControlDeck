@@ -14,8 +14,6 @@ namespace NES {
         InstructionDispatcher();
 
         void dispatchInstruction(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
-
-
     private:
 
         void NOP(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);

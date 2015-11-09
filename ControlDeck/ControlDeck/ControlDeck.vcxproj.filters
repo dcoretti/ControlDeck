@@ -36,13 +36,13 @@
     <ClInclude Include="CPU\InstructionSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CPU\AddressingModes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CPU\AddressingModeHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CPU\OpCode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CPU\AddressingMode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

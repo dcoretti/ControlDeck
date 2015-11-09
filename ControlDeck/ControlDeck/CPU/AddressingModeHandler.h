@@ -1,4 +1,5 @@
 #pragma once
+#include "AddressingMode.h"
 #include "SystemComponents.h"
 #include "MemoryMapper.h"
 
@@ -16,6 +17,10 @@ namespace NES {
     */
     class AddressingModeHandler {
     public:
+        void handleAddressingMode(const AddressingMode addressingMode, SystemBus &bus, Registers &registers, MemoryMapper &memoryMapper);
+
+    private:
+
         // TODO are page transitions an issue here (indirect address crossing page boundary to load JMP address?)
         // TODO use this instead of stack specific instructions which have implied addressing mode.  Make any instruction use addressing mode 
         //		handler to prepare for the next cycle by fetching op code operands??
@@ -30,7 +35,6 @@ namespace NES {
         static void getYIndexedAbsoluteAddress(SystemBus &bus, Registers &registers,  MemoryMapper &memoryMapper);
 
         static void getIndirectAddress(SystemBus &bus, Registers &registers,  MemoryMapper &memoryMapper);
-        static void getAccumulatorAddress(SystemBus &bus, Registers &registers,  MemoryMapper &memoryMapper);
         static void getRelativeAddress(SystemBus &bus, Registers &registers,  MemoryMapper &memoryMapper);
         static void getXIndexedIndirectAddress(SystemBus &bus, Registers &registers,  MemoryMapper &memoryMapper);
         static void getIndirectYIndexedAddress(SystemBus &bus, Registers &registers,  MemoryMapper &memoryMapper);

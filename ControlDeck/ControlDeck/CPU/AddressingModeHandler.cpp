@@ -2,6 +2,57 @@
 #include "ReadWrite.h"
 
 namespace NES {
+    void AddressingModeHandler::handleAddressingMode(const AddressingMode addressingMode, SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+        switch (addressingMode) {
+        case AddressingMode::Absolute:
+            getAbsoluateAddress(systemBus, registers, memoryMapper);
+            break;
+        case AddressingMode::AbsoluteX:
+            getXIndexedAbsoluteAddress(systemBus, registers, memoryMapper);
+            break;
+        case AddressingMode::AbsoluteY:
+            getYIndexedAbsoluteAddress(systemBus, registers, memoryMapper);
+            break;
+        case AddressingMode::Accumulator:
+            // no memory access used
+            break;
+        case AddressingMode::Immediate:
+            getImmediateAddress(systemBus, registers, memoryMapper);
+            break;
+        case AddressingMode::Implicit:
+            // no memory access used
+            break;
+        case AddressingMode::Indirect:
+            getIndirectAddress(systemBus, registers, memoryMapper);
+            break;
+        case AddressingMode::IndirectYIndexed:
+            getIndirectYIndexedAddress(systemBus, registers, memoryMapper);
+            break;
+        case AddressingMode::Relative:
+            getRelativeAddress(systemBus, registers, memoryMapper);
+            break;
+        case AddressingMode::XIndexedIndirect:
+            getXIndexedIndirectAddress(systemBus, registers, memoryMapper);
+            break;
+        case AddressingMode::ZeroPage:
+            getZeroPageAddress(systemBus, registers, memoryMapper);
+            break;
+        case AddressingMode::ZeroPageX:
+            getXIndexedZeroPageAddress(systemBus, registers, memoryMapper);
+            break;
+        case AddressingMode::ZeroPageY:
+            getYIndexedZeroPageAddress(systemBus, registers, memoryMapper);
+            break;
+
+
+        case AddressingMode::Undefined:
+        default:
+            // TODO do some actual handling here.
+            systemBus.addressBus = 0xDDDD;
+            break;
+        }
+    }
+
 	/**
 	*	Operate on data directly held in instruction operand
 	*	1 Cycle:
@@ -130,14 +181,6 @@ namespace NES {
 		fetchIndirectAddressToBus(systemBus, memoryMapper);
 
 		systemBus.addressBus += registers.y;
-	}
-
-	/**
-	*	Accumulator addressing requires no actual address data.
-	*/
-	void AddressingModeHandler::getAccumulatorAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-		// No op - accumulator value is implied as the operand
-		// Todo avoid needing this?
 	}
 
 	/**

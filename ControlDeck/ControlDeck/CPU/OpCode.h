@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AddressingModes.h"
+#include "AddressingMode.h"
 #include "InstructionSet.h"
 #include <cstdint>
 

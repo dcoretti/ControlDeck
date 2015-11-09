@@ -8,9 +8,11 @@ namespace NES {
     ////////////////////////////////////////////////
     //	Single byte instructions
 
-    void InstructionDispatcher::dispatchInstruction(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper)
-    {
+    void InstructionDispatcher::dispatchInstruction(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+        // Set up system bus to contain relevant memory data for a particular instruction.
+        addressingModeHandler.handleAddressingMode(opCode.addressingMode, systemBus, registers, memoryMapper);
 
+        // Call the instruction handler
 
     }
 
