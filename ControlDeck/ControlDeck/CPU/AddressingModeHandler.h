@@ -19,8 +19,6 @@ namespace NES {
     public:
         void handleAddressingMode(const AddressingMode addressingMode, SystemBus &bus, Registers &registers, MemoryMapper &memoryMapper);
 
-    private:
-
         // TODO are page transitions an issue here (indirect address crossing page boundary to load JMP address?)
         // TODO use this instead of stack specific instructions which have implied addressing mode.  Make any instruction use addressing mode 
         //		handler to prepare for the next cycle by fetching op code operands??

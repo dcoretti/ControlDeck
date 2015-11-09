@@ -43,14 +43,17 @@ namespace NES {
         case AddressingMode::ZeroPageY:
             getYIndexedZeroPageAddress(systemBus, registers, memoryMapper);
             break;
-
-
         case AddressingMode::Undefined:
         default:
             // TODO do some actual handling here.
             systemBus.addressBus = 0xDDDD;
-            break;
+            return;
         }
+
+        // Do final read
+        systemBus.read = true;
+        memoryMapper.doMemoryOperation(systemBus);
+
     }
 
 	/**
@@ -60,7 +63,6 @@ namespace NES {
 	*/
 	void AddressingModeHandler::getImmediateAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
 		Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
-		memoryMapper.doMemoryOperation(systemBus);
 	}
 
 	/**
@@ -69,8 +71,10 @@ namespace NES {
 	*		1. fetch addr operand (1 byte)		
 	*/ 
 	void AddressingModeHandler::getZeroPageAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+        // get operand addr
 		Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
 		memoryMapper.doMemoryOperation(systemBus);
+        // setup from zero page
 		systemBus.setAdlOnly(systemBus.dataBus);
 	}
 
@@ -123,6 +127,62 @@ namespace NES {
 	}
 
 
+    /**
+    *	JMP specific addressing mode: load the address located at the memory location specified by the operands
+    *	4 Cycles:
+    *		1. Fetch ADL (indirect address)
+    *		2. Fetch ADH (indirect address)
+    *		3. Fetch Jump L address from indirect address in memory
+    *		4. Fetch Jump H address
+    */
+    void AddressingModeHandler::getIndirectAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+        getAbsoluateAddress(systemBus, registers, memoryMapper);
+
+        fetchIndirectAddressToBus(systemBus, memoryMapper);
+    }
+
+    /**
+    *	Also called Pre-indexed.  X + operand gives the address of the location of the data
+    *	3 Cycles:
+    *		1. Fetch ADL (indirect address)
+    *		2. Fetch ADL+X (location of final address)
+    *		3. Fetch ADL+X+1
+    */
+    void AddressingModeHandler::getXIndexedIndirectAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+        Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
+        memoryMapper.doMemoryOperation(systemBus);
+        systemBus.setAdlOnly(systemBus.dataBus + registers.x);
+        fetchIndirectAddressToBus(systemBus, memoryMapper);
+    }
+
+    /**
+    *	Also called post-indexed.  operand gives a zero page address.  The full address at that location + Y is the final address
+    *	3 Cycles:
+    *		1. Fetch ADL (zero page pointer address)
+    *		2. Fetch ADL from zero page (effective address)
+    *		3. Fetch ADH from zero page (effective address) and add Y to ADL.
+    *
+    *	TODO handle special case denoted in http://www.fceux.com/web/help/fceux.html?6502CPU.html 6th cycle when given invalid effective address
+    */
+    void AddressingModeHandler::getIndirectYIndexedAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+        Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
+        memoryMapper.doMemoryOperation(systemBus);
+        systemBus.setAdlOnly(systemBus.dataBus);
+        fetchIndirectAddressToBus(systemBus, memoryMapper);
+
+        systemBus.addressBus += registers.y;
+    }
+
+    /**
+    *	Branch specific instructions need to fetch the next instruction.
+    *	1 Cycle:
+    *		1. Fetch operand for branch jump to be used when determining conditional
+    */
+    void AddressingModeHandler::getRelativeAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+        Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
+        memoryMapper.doMemoryOperation(systemBus);
+    }
+
 	/**
 	* Helper for indirect addressing: given a system bus with the location of the indirect address, fetch the 16bit address starting at that location
 	* and set it on the systemBus addressBus.
@@ -137,59 +197,4 @@ namespace NES {
 		systemBus.setAddressBus(tmpAdl, systemBus.dataBus);
 	}
 
-	/**
-	*	JMP specific addressing mode: load the address located at the memory location specified by the operands
-	*	4 Cycles:
-	*		1. Fetch ADL (indirect address)
-	*		2. Fetch ADH (indirect address)
-	*		3. Fetch Jump L address from indirect address in memory
-	*		4. Fetch Jump H address
-	*/
-	void AddressingModeHandler::getIndirectAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-        getAbsoluateAddress(systemBus, registers, memoryMapper);
-
-		fetchIndirectAddressToBus(systemBus, memoryMapper);
-	}
-
-	/**
-	*	Also called Pre-indexed.  X + operand gives the address of the location of the data
-	*	3 Cycles:
-	*		1. Fetch ADL (indirect address)
-	*		2. Fetch ADL+X (location of final address)
-	*		3. Fetch ADL+X+1
-	*/
-	void AddressingModeHandler::getXIndexedIndirectAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-		Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
-		memoryMapper.doMemoryOperation(systemBus);
-		systemBus.setAdlOnly(systemBus.dataBus + registers.x);
-		fetchIndirectAddressToBus(systemBus, memoryMapper);
-	}
-
-	/**
-	*	Also called post-indexed.  operand gives a zero page address.  The full address at that location + Y is the final address
-	*	3 Cycles:
-	*		1. Fetch ADL (zero page pointer address)
-	*		2. Fetch ADL from zero page (effective address)
-	*		3. Fetch ADH from zero page (effective address) and add Y to ADL.
-	*		
-	*	TODO handle special case denoted in http://www.fceux.com/web/help/fceux.html?6502CPU.html 6th cycle when given invalid effective address
-	*/
-	void AddressingModeHandler::getIndirectYIndexedAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-		Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
-		memoryMapper.doMemoryOperation(systemBus);
-		systemBus.setAdlOnly(systemBus.dataBus);
-		fetchIndirectAddressToBus(systemBus, memoryMapper);
-
-		systemBus.addressBus += registers.y;
-	}
-
-	/**
-	*	Branch specific instructions need to fetch the next instruction.  
-	*	1 Cycle:
-	*		1. Fetch operand for branch jump to be used when determining conditional
-	*/
-	void AddressingModeHandler::getRelativeAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-		Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
-		memoryMapper.doMemoryOperation(systemBus);
-	}
 }

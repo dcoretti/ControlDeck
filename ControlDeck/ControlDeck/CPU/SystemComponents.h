@@ -147,6 +147,6 @@ namespace NES {
     struct SystemRam {
         // Actual System RAM
         static const size_t systemRAMBytes = 2048;
-        uint8_t ram[systemRAMBytes];
+        uint8_t ram[systemRAMBytes]{ 0 };
     };
 }

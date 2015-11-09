@@ -125,7 +125,6 @@
     <ClInclude Include="CPU\InstructionDispatcher.h" />
     <ClInclude Include="CPU\InstructionSet.h" />
     <ClInclude Include="CPU\MemoryMapper.h" />
-    <ClInclude Include="CPU\OpCode.h" />
     <ClInclude Include="CPU\ReadWrite.h" />
     <ClInclude Include="CPU\SystemComponents.h" />
   </ItemGroup>

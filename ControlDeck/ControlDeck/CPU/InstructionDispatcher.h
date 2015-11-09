@@ -1,7 +1,7 @@
 #pragma once
 
-#include "OpCode.h"
 #include "AddressingModeHandler.h"
+#include "InstructionSet.h"
 #include "MemoryMapper.h"
 #include "SystemComponents.h"
 #include <unordered_map>
@@ -27,14 +27,12 @@ namespace NES {
         AddressingMode addressingMode;
         InstructionFnPtr instructionHandler;
     };
-
-
-
+    
     class InstructionDispatcher {
     public:
         InstructionDispatcher();
 
-        void dispatchInstruction(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        void dispatchInstruction(uint8_t operation, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
     private:
 
         static void NOP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);

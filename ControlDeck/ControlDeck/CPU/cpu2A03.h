@@ -19,6 +19,12 @@ namespace NES {
         void waitForNextInstruction();
         void fetchOpCode();
 
+
+        // $4011 set to 0
+        // reset preserves all registers except pc
+        // reset vector is at FFFC,FFFD (usually ROM)
+        void reset();
+
         SystemBus systemBus;
         SystemRam ram;
         Registers registers;
@@ -26,3 +32,4 @@ namespace NES {
 
     };
 }
+

@@ -133,6 +133,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CPU\AddressingModeHandlerTest.cpp" />
+    <ClCompile Include="CPU\InstructionTest.cpp" />
+    <ClCompile Include="CPU\ReadWriteTest.cpp" />
     <ClCompile Include="CPU\SystemComponentsTest.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
