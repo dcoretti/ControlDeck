@@ -10,7 +10,8 @@ namespace NES {
     }
 
     void Cpu2a03::fetchOpCode() {
-        Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
+        systemBus.addressBus = registers.programCounter;
+        systemBus.read = true;
         memoryMapper->doMemoryOperation(systemBus);
     }
 

@@ -56,14 +56,32 @@ namespace NES {
 
     }
 
+    void readFromAddress(SystemBus &systemBus, MemoryMapper &memoryMapper, uint16_t addr) {
+        systemBus.addressBus = addr;
+        systemBus.read = true;
+        memoryMapper.doMemoryOperation(systemBus);
+    }
+
+
 	/**
 	*	Operate on data directly held in instruction operand
 	*	1 Cycle:
 	*		1. Get data from PC+1
 	*/
 	void AddressingModeHandler::getImmediateAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-		Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
+        systemBus.addressBus = registers.programCounter;
+        systemBus.read = true;
 	}
+
+    /**
+    *	Branch specific instructions need to fetch the next instruction.
+    *	1 Cycle:
+    *		1. Fetch operand for branch jump to be used when determining conditional
+    */
+    void AddressingModeHandler::getRelativeAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+        systemBus.addressBus = registers.programCounter;
+        systemBus.read = true;
+    }
 
 	/**
 	*	Get address in zero page ($0000-$00ff)
@@ -72,8 +90,7 @@ namespace NES {
 	*/ 
 	void AddressingModeHandler::getZeroPageAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
         // get operand addr
-		Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
-		memoryMapper.doMemoryOperation(systemBus);
+        readFromAddress(systemBus, memoryMapper, registers.programCounter);
         // setup from zero page
 		systemBus.setAdlOnly(systemBus.dataBus);
 	}
@@ -84,8 +101,7 @@ namespace NES {
 	*		1. fetch addr operand (1 byte)
 	*/
 	void AddressingModeHandler::getXIndexedZeroPageAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-		Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
-		memoryMapper.doMemoryOperation(systemBus);
+        readFromAddress(systemBus, memoryMapper, registers.programCounter);
 		systemBus.setAdlOnly((systemBus.dataBus + registers.x) % 0x80);
 	}
 
@@ -95,8 +111,7 @@ namespace NES {
 	*		1. fetch addr operand (1 byte)
 	*/
 	void AddressingModeHandler::getYIndexedZeroPageAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-		Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
-		memoryMapper.doMemoryOperation(systemBus);
+        readFromAddress(systemBus, memoryMapper, registers.programCounter);
 		systemBus.setAdlOnly((systemBus.dataBus + registers.y) % 0x80);
 	}
 
@@ -104,16 +119,12 @@ namespace NES {
 	*	2 Cycles:
 	*		1. Fetch ADL
 	*		2. Fetch ADH
-    *   address bus will contain address.  No actual read of data at absolute address is done.
 	*/
 	void AddressingModeHandler::getAbsoluateAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-		Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
-		memoryMapper.doMemoryOperation(systemBus);
+        readFromAddress(systemBus, memoryMapper, registers.programCounter);
         uint8_t adlTmp = systemBus.dataBus;
-		Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
-		memoryMapper.doMemoryOperation(systemBus);
-        systemBus.setAdl(adlTmp);
-		systemBus.setAdh(systemBus.dataBus);
+        readFromAddress(systemBus, memoryMapper, registers.programCounter+1);
+        systemBus.setAddressBus(adlTmp, systemBus.dataBus);
 	}
 
 	void AddressingModeHandler::getXIndexedAbsoluteAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
@@ -145,14 +156,14 @@ namespace NES {
     *	Also called Pre-indexed.  X + operand gives the address of the location of the data
     *	3 Cycles:
     *		1. Fetch ADL (indirect address)
-    *		2. Fetch ADL+X (location of final address)
+    *		2. Fetch [ADL]+X (location of final address)
     *		3. Fetch ADL+X+1
     */
     void AddressingModeHandler::getXIndexedIndirectAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-        Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
-        memoryMapper.doMemoryOperation(systemBus);
+        readFromAddress(systemBus, memoryMapper, registers.programCounter);
         systemBus.setAdlOnly(systemBus.dataBus + registers.x);
         fetchIndirectAddressToBus(systemBus, memoryMapper);
+        // address bus now contains the address retrieved from x in zero page.
     }
 
     /**
@@ -165,22 +176,11 @@ namespace NES {
     *	TODO handle special case denoted in http://www.fceux.com/web/help/fceux.html?6502CPU.html 6th cycle when given invalid effective address
     */
     void AddressingModeHandler::getIndirectYIndexedAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-        Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
-        memoryMapper.doMemoryOperation(systemBus);
+        readFromAddress(systemBus, memoryMapper, registers.programCounter);
         systemBus.setAdlOnly(systemBus.dataBus);
         fetchIndirectAddressToBus(systemBus, memoryMapper);
 
         systemBus.addressBus += registers.y;
-    }
-
-    /**
-    *	Branch specific instructions need to fetch the next instruction.
-    *	1 Cycle:
-    *		1. Fetch operand for branch jump to be used when determining conditional
-    */
-    void AddressingModeHandler::getRelativeAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-        Cycle::Util::readDataFromProgramCounterSetup(systemBus, registers);
-        memoryMapper.doMemoryOperation(systemBus);
     }
 
 	/**
@@ -191,7 +191,7 @@ namespace NES {
 		systemBus.read = true;
 		memoryMapper.doMemoryOperation(systemBus);
 		uint8_t tmpAdl = systemBus.dataBus;
-		systemBus.addressBus++;
+		systemBus.addressBus++; // adh at next word
 		memoryMapper.doMemoryOperation(systemBus);
 
 		systemBus.setAddressBus(tmpAdl, systemBus.dataBus);

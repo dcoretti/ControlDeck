@@ -28,7 +28,7 @@ namespace NES {
     // Read and write main CPU memory.  dataBusBuffer holds intermediate read value to be read
     // by instruction into register etc.
     void MemoryMapper::systemRamHandler(SystemBus &systemBus) {
-        size_t actual = systemBus.addressBus % 800;
+        size_t actual = systemBus.addressBus % 0x800;
         if (systemBus.read) {
             systemBus.dataBus = systemRam->ram[actual];
         } else {

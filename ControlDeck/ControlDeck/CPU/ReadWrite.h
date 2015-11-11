@@ -7,7 +7,7 @@ namespace NES {
     namespace Cycle {
         namespace Util {
             // Single byte read from program counter
-            void readDataFromProgramCounterSetup(SystemBus& systemBus, Registers &registers);
+           // void readDataFromProgramCounterSetup(SystemBus& systemBus, Registers &registers);
         }
     }
 }
