@@ -55,12 +55,16 @@ namespace NES {
         inline void setFlagIfNegative(uint8_t val) {
             if (val >> 7 != 0) {
                 setFlag(ProcessorStatus::NegativeFlag);
+            } else {
+                clearFlag(ProcessorStatus::NegativeFlag);
             }
         }
 
         inline void setFlagIfZero(uint8_t val) {
             if (val == 0) {
                 setFlag(ProcessorStatus::ZeroFlag);
+            } else {
+                clearFlag(ProcessorStatus::ZeroFlag);
             }
         }
 

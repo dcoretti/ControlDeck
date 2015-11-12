@@ -134,7 +134,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CPU\AddressingModeHandlerTest.cpp" />
-    <ClCompile Include="CPU\CPUTestcommon.cpp" />
     <ClCompile Include="CPU\InstructionTest.cpp" />
     <ClCompile Include="CPU\MemoryMapperTest.cpp" />
     <ClCompile Include="CPU\SystemComponentsTest.cpp" />
