@@ -2,7 +2,6 @@
 
 #include "CPU\MemoryMapper.h"
 
-
 static const uint8_t GOOD_BYTE = 0x12;
 NES::SystemRam getSystemRamWithMarkedOutOfRangeMemory() {
     NES::SystemRam ram;
