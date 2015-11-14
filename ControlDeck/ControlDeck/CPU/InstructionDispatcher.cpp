@@ -4,6 +4,7 @@
 
 namespace NES {
    const OpCode InstructionDispatcher::opCodes[256] = {
+        // op, bytes, cycles, page, instruction, addressing mode, handler
         { 0x00, 1, 7, 0, Instruction::BRK, AddressingMode::Implicit, &BRK },
         { 0x01, 2, 6, 0, Instruction::ORA, AddressingMode::XIndexedIndirect, &ORA },
         { 0x02, 0, 0, 0, Instruction::UNK, AddressingMode::Undefined, &UNK },
@@ -276,18 +277,18 @@ namespace NES {
         { 0xfe, 3, 7, 0, Instruction::INC, AddressingMode::AbsoluteX, &INC },
         { 0xff, 0, 0, 0, Instruction::UNK, AddressingMode::Undefined, &UNK }
     };
-    InstructionDispatcher::InstructionDispatcher(): addressingModeHandler() {
-    }
+
     ////////////////////////////////////////////////
     //	Single byte instructions
 
-    void InstructionDispatcher::dispatchInstruction(uint8_t operation, SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-        OpCode opCode = opCodes[operation];
+    void InstructionDispatcher::dispatchInstruction(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+        OpCode opCode = opCodes[systemBus.dataBus];
         // Set up system bus to contain relevant memory data for a particular instruction.
-        addressingModeHandler.handleAddressingMode(opCode.addressingMode, systemBus, registers, memoryMapper);
-
+        AddressingModeHandler::handleAddressingMode(opCode.addressingMode, systemBus, registers, memoryMapper);
         // Call the instruction handler
         opCode.instructionHandler(opCode, systemBus, registers, memoryMapper);
+
+        // TODO handle return of post-instruction data such as cylce timing and paging 
     }
 
     void InstructionDispatcher::NOP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {

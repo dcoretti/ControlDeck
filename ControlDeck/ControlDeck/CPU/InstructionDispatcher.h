@@ -30,9 +30,8 @@ namespace NES {
     
     class InstructionDispatcher {
     public:
-        InstructionDispatcher();
-
-        void dispatchInstruction(uint8_t operation, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+        // Requires systembus to be set up with the read of the instruction 
+        static void dispatchInstruction(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
 
   
         static void NOP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
@@ -122,10 +121,6 @@ namespace NES {
         static void popStackToDataBus(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
 
         static void pushDataBusToStack(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
-
-
-
-        AddressingModeHandler addressingModeHandler;
 
         // Sourced from http://e-tradition.net/bytes/6502/6502_instruction_set.html
         static const OpCode opCodes[256];

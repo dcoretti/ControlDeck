@@ -21,12 +21,6 @@
     <ClInclude Include="CPU\MemoryMapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CPU\cpu2A03.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CPU\ReadWrite.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CPU\SystemComponents.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -42,15 +36,15 @@
     <ClInclude Include="CPU\AddressingMode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CPU\cpu2A03.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CPU\MemoryMapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CPU\CPU2A03.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CPU\ReadWrite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CPU\InstructionDispatcher.cpp">

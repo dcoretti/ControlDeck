@@ -1,5 +1,4 @@
 #include "AddressingModeHandler.h"
-#include "ReadWrite.h"
 
 namespace NES {
     void AddressingModeHandler::handleAddressingMode(const AddressingMode addressingMode, SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
@@ -54,6 +53,8 @@ namespace NES {
         systemBus.read = true;
         memoryMapper.doMemoryOperation(systemBus);
 
+        // Fix program counter
+        registers.programCounter += addressingModeProgramCounterDelta[addressingMode];
     }
 
     void readFromAddress(SystemBus &systemBus, MemoryMapper &memoryMapper, uint16_t addr) {

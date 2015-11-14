@@ -10,16 +10,20 @@ class AddressingModeHandlerTest : public CPUTest {
 
 TEST_F(AddressingModeHandlerTest, immediateAddressTest) {
     getSequentialMemory();
-
+    uint16_t pc = registers.programCounter;
     addrHandler.handleAddressingMode(AddressingMode::Immediate, bus, registers, *memoryMapper);
-    EXPECT_EQ(ram.ram[registers.programCounter], bus.dataBus);
+    EXPECT_EQ(ram.ram[pc], bus.dataBus);
+    EXPECT_EQ(pc + 1, registers.programCounter);
 }
 
 TEST_F(AddressingModeHandlerTest, immediateaddressReadTest) {
     bus.read = false;   // make sure read doesn't matter.
     getSequentialMemory();
+    uint16_t pc = registers.programCounter;
+
     addrHandler.handleAddressingMode(AddressingMode::Immediate, bus, registers, *memoryMapper);
-    EXPECT_EQ(ram.ram[registers.programCounter], bus.dataBus);
+    EXPECT_EQ(ram.ram[pc], bus.dataBus);
+    EXPECT_EQ(pc + 1, registers.programCounter);
 }
 
 TEST_F(AddressingModeHandlerTest, zeroPageAddressTest) {

@@ -24,8 +24,6 @@ protected:
         instructionPtr(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
         EXPECT_EQ(-1, (int8_t)val);
         testOnlyOneFlagSet(ProcessorStatus::NegativeFlag);
-
-
     }
 
     void assertDecrementWithDataBus(uint8_t &val, InstructionFnPtr instructionPtr) {
