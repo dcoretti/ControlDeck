@@ -10,11 +10,13 @@ namespace NES {
 
     void PPURegisters::setNameTable(uint8_t table) {
         if (table <= 3) {
-            control &= (0xfc + table);
+            control = (control & 0xfc) | table;
         }
     }
 
     void PPURegisters::setIncrementMode(IncrementMode mode) {
+        control = (control & 0xfb) | ((uint8_t)mode << 2);
+
         control &= (mode == IncrementMode::ADD_ONE ? 0xfb : 0xff);
     }
 
@@ -24,7 +26,7 @@ namespace NES {
 
     void PPURegisters::setSpritePatternTable(uint8_t table) {
         if (table <= 1) {
-            control &= (table << 3);
+            control = (control & 0xf7) | (table <<3);
         }
     }
     uint8_t PPURegisters::getSpritePatternTable() {
@@ -33,7 +35,7 @@ namespace NES {
 
     void PPURegisters::setBackgroundPatternTable(uint8_t table) {
         if (table <= 1) {
-            control &= (table << 4);
+            control = (control & 0xef) | (table << 4);
         }
     }
 
@@ -42,7 +44,7 @@ namespace NES {
     }
 
     void PPURegisters::setSpriteSize(SpriteSize spriteSize) {
-        control &= (spriteSize == SpriteSize::SIZE_8_8 ? 0xef : 0xff);
+        control = (control & 0xef) | ((uint8_t)spriteSize << 6);
     }
 
     SpriteSize PPURegisters::getSpriteSize() {
@@ -50,7 +52,7 @@ namespace NES {
     }
 
     void PPURegisters::setMasterSlaveSelect(MasterSlaveSelectMode mode) {
-        control &= (mode == MasterSlaveSelectMode::USE_EXT ? 0xbf : 0xff);
+        control = (control & 0xbf) | ((uint8_t)mode << 7);
     }
 
     MasterSlaveSelectMode PPURegisters::getMasterSlaveSelect() {
@@ -58,7 +60,7 @@ namespace NES {
     }
 
     void PPURegisters::setGenerateVBlankNmi(bool enabled) {
-        control &= (enabled ? 0xff : 0x7f);
+        control = (control & 0xef) | ((uint8_t)enabled << 7);
     }
 
     bool PPURegisters::getGenerateVBlankNmi() {
@@ -68,7 +70,7 @@ namespace NES {
     /////////////////////////////////////////////////////////////////
     // Mask register accessor
     void PPURegisters::setGrayscale(bool enabled) {
-        mask &= (enabled ? 0xff : 0xfe);
+        mask = (mask & 0xfe) | (uint8_t)enabled;
     }
 
     bool PPURegisters::getGrayscale() {
@@ -76,7 +78,7 @@ namespace NES {
     }
 
     void PPURegisters::setShowBackgroundLeft(bool enabled) {
-        mask &= (enabled ? 0xff : 0xfd);
+        mask = (mask & 0xfd) | ((uint8_t)enabled << 2);
     }
 
     bool PPURegisters::getShowBackgroundLeft() {
@@ -85,7 +87,7 @@ namespace NES {
 
 
     void PPURegisters::setShowSpritesLeft(bool enabled) {
-        mask &= (enabled ? 0xff : 0xfb);
+        mask = (mask & 0xfb) | ((uint8_t)enabled << 3);
     }
 
     bool PPURegisters::getShowSpritesLeft() {
@@ -94,7 +96,7 @@ namespace NES {
 
 
     void PPURegisters::setShowBackground(bool enabled) {
-        mask &= (enabled ? 0xff : 0xf7);
+        mask = (mask & 0xf7) | ((uint8_t)enabled << 3);
     }
 
     bool PPURegisters::getShowBackground() {
@@ -103,7 +105,7 @@ namespace NES {
 
 
     void PPURegisters::setShowSprites(bool enabled) {
-        mask &= (enabled ? 0xff : 0xef);
+        mask = (mask & 0xef) | ((uint8_t)enabled << 4);
     }
 
     bool PPURegisters::getShowSprites() {
@@ -113,7 +115,7 @@ namespace NES {
 
     void PPURegisters::setColorEmphasis(ColorEmphasis emphasis) {
         // emphasis already is set to the proper bits.  Adding in 0x0f to create the full bit mask
-        mask &= (emphasis + 0x0f);
+        mask = (mask & 0x1f) | ((uint8_t)emphasis << 5);
     }
 
     bool PPURegisters::getColorEmphasis(ColorEmphasis emphasis) {
@@ -125,7 +127,7 @@ namespace NES {
     // Status register accessors
 
     void PPURegisters::setSpriteOverflow(bool overflow) {
-        status &= (overflow ? 0xff : 0xdf);
+        status = (status & 0xdf) | ((uint8_t)overflow << 6);
     }
 
     bool PPURegisters::getSpriteOverflow() {
@@ -133,7 +135,7 @@ namespace NES {
     }
 
     void PPURegisters::setSpriteZeroHit(bool hit) {
-        status &= (hit ? 0xff : 0xbf);
+        status = (status & 0xbf) | ((uint8_t)hit << 6);
     }
 
     bool PPURegisters::getSpriteZeroHit() {
@@ -141,10 +143,51 @@ namespace NES {
     }
 
     void PPURegisters::setVBlank(bool vblank) {
-        status &= (vblank ? 0xff : 0x7f);
+        status = (status & 0x7f) | ((uint8_t)vblank << 7);
     }
 
     bool PPURegisters::getVBlank() {
         return (status & 0x80) > 0;
     }
+
+
+
+    /////////////////////////////////////////////////////////////////
+    // OAM attributes
+
+    void ObjectAttributeMemory::setPalette(uint8_t palette) {
+        if (palette < 4) {
+            attributes = (attributes & 0xfc) | palette;
+        }
+    }
+
+    uint8_t ObjectAttributeMemory::getPalette() {
+        return (uint8_t)(attributes & 0x03);
+    }
+
+    void ObjectAttributeMemory::setPriority(SpritePriority priority) {
+        attributes = (attributes & 0xdf) | ((uint8_t)priority << 5);
+    }
+
+    SpritePriority ObjectAttributeMemory::getPriority() {
+        return (attributes & 0x20) > 0 ? SpritePriority::BEHIND_BACKGROUND : SpritePriority::IN_FRONT_OF_BACKGROUND;
+    }
+
+    void ObjectAttributeMemory::setHorizontalFlip(bool enabled) {
+        attributes = (attributes & 0xbf) | ((uint8_t)enabled << 6);
+    }
+
+    bool ObjectAttributeMemory::getHorizontalFlip() {
+        return (attributes & 0x40) > 0;
+
+    }
+
+    void ObjectAttributeMemory::setVerticalFlip(bool enabled) {
+        attributes = (attributes & 0x7f) | ((uint8_t)enabled << 7);
+    }
+
+    bool ObjectAttributeMemory::getVerticalFlip() {
+        return (attributes & 0x80) > 0;
+    }
+
 }

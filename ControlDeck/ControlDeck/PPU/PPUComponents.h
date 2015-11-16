@@ -132,6 +132,7 @@ namespace NES{
         uint8_t status;
 
         /**
+        *   Object Attribute Memory. 
         *   Writing to oamData increments oamAddr.
         */
         uint8_t oamAddr;
@@ -146,5 +147,35 @@ namespace NES{
 
         // MSB of 256 byte dma transfer starting location. 
         uint8_t oamDma;
+    };
+
+    enum class SpritePriority {
+        IN_FRONT_OF_BACKGROUND = 0,
+        BEHIND_BACKGROUND
+    };
+
+    /**
+    *   Single 4byte Object attribute memory details
+    *   Attributes should always preserve bits 2-4 being zero.
+    */
+    struct ObjectAttributeMemory {
+        // attribute accessors
+        void setPalette(uint8_t palette);
+        uint8_t getPalette();
+        void setPriority(SpritePriority priority);
+        SpritePriority getPriority();
+        void setHorizontalFlip(bool enabled);
+        bool getHorizontalFlip();
+        void setVerticalFlip(bool enabled);
+        bool getVerticalFlip();
+
+        // byte 0
+        uint8_t spriteTopY;
+        // byte 1
+        uint8_t tileIndex;
+        // byte 2 - 
+        uint8_t attributes;
+        // byte 3
+        uint8_t spriteLeftX;
     };
 }
