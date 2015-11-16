@@ -3,6 +3,8 @@
 
 namespace NES{
 
+    // Control types
+    
     enum class MasterSlaveSelectMode {
         USE_EXT = 0,    // Palette index for background color comes from EXT pins (0 in NES since they are grounded)
         USE_SLAVE = 1   // Use secondary picture generator to replace background
@@ -16,6 +18,16 @@ namespace NES{
     enum class SpriteSize {
         SIZE_8_8 = 0,
         SIZE_8_16 = 1
+    };
+
+    // Mask types
+    enum ColorEmphasis {
+        EMPHASIZE_RED_NTSC = 0x20,
+        EMPHASIZE_GREEN_PAL = 0x20,
+        EMPHASIZE_GREEN_NTSC = 0x40,
+        EMPHASIZE_RED_PAL = 0x40,
+        EMPHASIZE_BLUE_NTSC = 0x80,
+        EMPHASIZE_BLUE_PAL = 0x80
     };
 
 
@@ -45,6 +57,27 @@ namespace NES{
 
         void setGenerateVBlankNmi(bool enabled);
         bool getGenerateVBlankNmi();
+
+
+        // Mask register accessors
+        void setGrayscale(bool enabled);
+        bool getGrayscale();
+
+        void setShowBackgroundLeft(bool enabled);
+        bool getShowBackgroundLeft();
+
+        void setShowSpritesLeft(bool enabled);
+        bool getShowSpritesLeft();
+
+        void setShowBackground(bool enabled);
+        bool getShowBackground();
+
+        void setShowSprites(bool enabled);
+        bool getShowSprites();
+
+        void setColorEmphasis(ColorEmphasis emphasis);
+        bool getColorEmphasis(ColorEmphasis emphasis);
+
 
         /**
         *   Bit |    Function
