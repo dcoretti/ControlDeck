@@ -44,7 +44,7 @@ namespace NES {
     }
 
     SpriteSize PPURegisters::getSpriteSize() {
-        return (control & 0x20 > 0) ? SpriteSize::SIZE_8_16 : SpriteSize::SIZE_8_8;
+        return ((control & 0x20) > 0) ? SpriteSize::SIZE_8_16 : SpriteSize::SIZE_8_8;
     }
 
     void PPURegisters::setMasterSlaveSelect(MasterSlaveSelectMode mode) {
@@ -60,7 +60,7 @@ namespace NES {
     }
 
     bool PPURegisters::getGenerateVBlankNmi() {
-        return control & 0x80 > 0;
+        return (control & 0x80) > 0;
     }
 
 
