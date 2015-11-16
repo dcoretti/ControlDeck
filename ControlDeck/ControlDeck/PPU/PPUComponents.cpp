@@ -75,10 +75,8 @@ namespace NES {
         return (mask & 0x01) > 0;
     }
 
-
     void PPURegisters::setShowBackgroundLeft(bool enabled) {
         mask &= (enabled ? 0xff : 0xfd);
-
     }
 
     bool PPURegisters::getShowBackgroundLeft() {
@@ -106,7 +104,6 @@ namespace NES {
 
     void PPURegisters::setShowSprites(bool enabled) {
         mask &= (enabled ? 0xff : 0xef);
-
     }
 
     bool PPURegisters::getShowSprites() {
@@ -123,4 +120,31 @@ namespace NES {
         return (mask & emphasis) > 0;
     }
 
+
+    /////////////////////////////////////////////////////////////////
+    // Status register accessors
+
+    void PPURegisters::setSpriteOverflow(bool overflow) {
+        status &= (overflow ? 0xff : 0xdf);
+    }
+
+    bool PPURegisters::getSpriteOverflow() {
+        return (status & 0x20) > 0;
+    }
+
+    void PPURegisters::setSpriteZeroHit(bool hit) {
+        status &= (hit ? 0xff : 0xbf);
+    }
+
+    bool PPURegisters::getSpriteZeroHit() {
+        return (status & 0x40) > 0;
+    }
+
+    void PPURegisters::setVBlank(bool vblank) {
+        status &= (vblank ? 0xff : 0x7f);
+    }
+
+    bool PPURegisters::getVBlank() {
+        return (status & 0x80) > 0;
+    }
 }

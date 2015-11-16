@@ -78,6 +78,15 @@ namespace NES{
         void setColorEmphasis(ColorEmphasis emphasis);
         bool getColorEmphasis(ColorEmphasis emphasis);
 
+        // Status register
+        void setSpriteOverflow(bool overflow);
+        bool getSpriteOverflow();
+
+        void setSpriteZeroHit(bool hit);
+        bool getSpriteZeroHit();
+
+        bool getVBlank();
+        void setVBlank(bool vblank);
 
         /**
         *   Bit |    Function
@@ -94,13 +103,48 @@ namespace NES{
         */
         uint8_t control;
 
+        /**
+        *   Bit |   Function
+        *   ================
+        *   0   |   Grayscale
+        *   1   |   Show background for leftmost 8pixels (scrolling)
+        *   2   |   Show sprites in  leftmost 8 pixels
+        *   3   |   Show background
+        *   4   |   Show sprites
+        *   5   |   Emphasize red (ntsc)
+        *   6   |   Emphasize green (ntsc)
+        *   7   |   Emphasize blue (ntsc)
+        */
         uint8_t mask;
+
+        /**
+        *   Bit |   Function
+        *   ================
+        *   0   |   Least significant bits previously written into a ppu register
+        *   1   |
+        *   2   |
+        *   3   |
+        *   4   |
+        *   5   |   sprite overflow
+        *   6   |   Sprite 0 hit
+        *   7   |   Vertical blank
+        */
         uint8_t status;
+
+        /**
+        *   Writing to oamData increments oamAddr.
+        */
         uint8_t oamAddr;
         uint8_t oamData;
+
+        // scrolling position
         uint8_t scroll;
+
+
         uint8_t addr;
         uint8_t data;
-        uint8_t oamdma;
+
+        // MSB of 256 byte dma transfer starting location. 
+        uint8_t oamDma;
     };
 }
