@@ -190,4 +190,18 @@ namespace NES {
         return (attributes & 0x80) > 0;
     }
 
+
+    /////////////////////////////////////////////////////////////////
+    // Name/Pattern table
+
+    /**
+    *   Tile bit layout: 33221100 within each 4x4 tile sub-group
+    *   Returns the 2bit number representing those bits.
+    */
+    uint8_t AttributeTable::getTileBitsFromGroup(uint8_t group, uint8_t tile) {
+        if (tile < 4 && group < 64) {
+            return (tileGroup[group] & (0x03 << tile)) >> tile;
+        }
+        return 0;
+    }
 }

@@ -195,11 +195,66 @@ namespace NES{
     };
 
     /**
-    *   Background tile context for a given line in the PPU.  
+    *   Each color is an 8 bit index into the global color palette (64 color entries).
+    *   Each palette is a set of 3 color indices.
+    *   http://wiki.nesdev.com/w/index.php/PPU_programmer_reference#Palettes
+    */
+    struct ColorPalette {
+        uint8_t colorIndex[3];
+    };
+
+    struct SystemColorPalette {
+        // vram $3f00 (mirrored every 4 bytes until 3f1c)
+        uint8_t universalBackgroundColor;
+        // vram $3f01-$3f0f
+        ColorPalette backgroundPalettes[4];
+        //vram $3f11 - $3f1f
+        ColorPalette spritePalette[4];
+    };
+
+    /**
+    *   8x8 pixel tile to be drawn on the screen.  Each half represents one bit of the palette table entry
+    *   corresponding to the color to be displayed on the screen.
+    */
+    struct PatternTableEntry {
+
+        uint8_t colorPlaneBit0[8];
+        uint8_t colorPlaneBit1[8];
+    };
+
+    /** 
+    *   PPU Pattern table of 8x8 pixel tiles (one at both $0000 and $1000)
+    *   see: http://wiki.nesdev.com/w/index.php/PPU_pattern_tables
+    */
+    struct PatternTable {
+        PatternTableEntry patterns[256];
+    };
+
+
+    struct NameTable {
+        // 32 tile wide (* 8 = 256) 30 tiles height (* 8 = 240) for 256x240 screen.
+        uint8_t tileIndices[32][30];
+    };
+
+    /**
+    *   Each tileGroup byte represents a 4x4 set of tiles by containing the upper 2 bits of each tile's color
+    */
+    struct AttributeTable {
+        uint8_t getTileBitsFromGroup(uint8_t group, uint8_t tile);
+        
+        uint8_t tileGroup[64];
+
+    };
+
+
+    // Context structures representing the current memory being used in a given scan line
+
+    /**
+    *   Background tile context for a given line in the PPU.
     */
     struct BackgroundLineContext {
         // combined with other registers: vram address, temporary vram address, fine x scroll and first/second write toggle
-        
+
         // Representativeof two 16-bit shift registers representing two background tiles used in a given scan line
         uint8_t nextTile[2];
         uint8_t curTile[2];
@@ -225,4 +280,7 @@ namespace NES{
         // Per-sprite x-positions
         uint8_t counters[8];
     };
+
+
+
 }

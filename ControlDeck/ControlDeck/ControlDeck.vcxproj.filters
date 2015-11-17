@@ -45,6 +45,12 @@
     <ClInclude Include="PPU\PPU2C02.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PPU\ColorPalette.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PPU\PPUMemoryMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CPU\MemoryMapper.cpp">

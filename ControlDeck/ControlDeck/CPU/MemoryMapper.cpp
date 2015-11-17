@@ -13,7 +13,7 @@ namespace NES {
         }
         // I/O registers
         else if (systemBus.addressBus < 0x4020) {
-            if (systemBus.setAddressBus == OAMDMA) {
+            if (systemBus.addressBus == OAMDMA) {
                 ppuRegisterHandler(systemBus);
             }
         }
