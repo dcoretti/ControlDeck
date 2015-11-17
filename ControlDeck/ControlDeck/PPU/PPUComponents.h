@@ -2,7 +2,6 @@
 #include <cstdint>
 
 namespace NES{
-
     // Control types
     
     enum class MasterSlaveSelectMode {
@@ -29,7 +28,6 @@ namespace NES{
         EMPHASIZE_BLUE_NTSC = 0x80,
         EMPHASIZE_BLUE_PAL = 0x80
     };
-
 
     /**
     *   General PPU Registers mapped by memory to cpu.
@@ -89,10 +87,11 @@ namespace NES{
         void setVBlank(bool vblank);
 
         /**
+        *   PPUCTRL $2000 (Writable)
         *   Bit |    Function
         *   ==================
-        *   0   |   
-        *   1   |   Base nametable (0-3)
+        *   0   |   Base nametable (0-3) - x table bit 0, y scroll table bit 1 http://nesdev.com/2C02%20technical%20reference.TXT
+        *   1   |       (MSBit of X, Y scroll position respectively)
         *   2   |   VRAM increment per r/w of ppu data
         *   3   |   Sprite pattern table (8x8 only)
         *   4   |   Background pattern table
@@ -104,6 +103,7 @@ namespace NES{
         uint8_t control;
 
         /**
+        *   PPUMASK $2001  (Writable)
         *   Bit |   Function
         *   ================
         *   0   |   Grayscale
@@ -118,6 +118,7 @@ namespace NES{
         uint8_t mask;
 
         /**
+        *   PPUSTATUS $2002 (Read)
         *   Bit |   Function
         *   ================
         *   0   |   Least significant bits previously written into a ppu register
@@ -125,27 +126,41 @@ namespace NES{
         *   2   |
         *   3   |
         *   4   |
-        *   5   |   sprite overflow
+        *   5   |   sprite overflow (more than 8 sprites encountered when checking for objects in Y-range for next scan line
         *   6   |   Sprite 0 hit
         *   7   |   Vertical blank
+        *   
+        *   Read clears vblank flag on bit 7.
         */
         uint8_t status;
 
         /**
+        *   OAMADDR $2003 (Writable)
         *   Object Attribute Memory. 
         *   Writing to oamData increments oamAddr.
         */
         uint8_t oamAddr;
+        // OAMDATA $2004 (Writable)
         uint8_t oamData;
 
-        // scrolling position
+        /**
+        *   PPUSCROLL $2005 (Writable)
+        *   fine scrolling position set at start of frame
+        */
         uint8_t scroll;
 
-
-        uint8_t addr;
+        /**
+        *   CPU -> VRAM interface via address/data 
+        *   Access pattern is to addr (2 instr hsb, lsb) then repeatedly to data.
+        */
+        // PPUADDR $2006 (Writable)
+        uint8_t address;
+        // PPUDATA $2007 (Writable)
         uint8_t data;
+        // TODO do I need this to represent dummy reads with internal buffer?
+        uint8_t dataReadBuffer;
 
-        // MSB of 256 byte dma transfer starting location. 
+        // OAMDMA $4014 - MSB of 256 byte dma transfer starting location. 
         uint8_t oamDma;
     };
 
@@ -155,7 +170,7 @@ namespace NES{
     };
 
     /**
-    *   Single 4byte Object attribute memory details
+    *   Single 4byte Object attribute memory details (64 total)
     *   Attributes should always preserve bits 2-4 being zero.
     */
     struct ObjectAttributeMemory {
@@ -177,5 +192,37 @@ namespace NES{
         uint8_t attributes;
         // byte 3
         uint8_t spriteLeftX;
+    };
+
+    /**
+    *   Background tile context for a given line in the PPU.  
+    */
+    struct BackgroundLineContext {
+        // combined with other registers: vram address, temporary vram address, fine x scroll and first/second write toggle
+        
+        // Representativeof two 16-bit shift registers representing two background tiles used in a given scan line
+        uint8_t nextTile[2];
+        uint8_t curTile[2];
+
+        // Palette attributes for 8 pixels in curTile.
+        uint8_t paletteAttributes[2];
+
+    };
+
+    /*
+    *   Per-frame sprite context
+    */
+    struct SpriteLineContext {
+        // 64 on screen sprites for a given frame
+        ObjectAttributeMemory primaryOAM[64];
+
+        // 8 sprites for the current scanline
+        ObjectAttributeMemory secondaryOAM[8];
+        //bitmap data for 8 sprites (TODO split these out into pairs?)
+        uint8_t bitmapData[16];
+        // Attribute bytes for the 8 sprites
+        uint8_t attributes[8];
+        // Per-sprite x-positions
+        uint8_t counters[8];
     };
 }

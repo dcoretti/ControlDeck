@@ -126,6 +126,7 @@
     <ClInclude Include="CPU\InstructionSet.h" />
     <ClInclude Include="CPU\MemoryMapper.h" />
     <ClInclude Include="CPU\SystemComponents.h" />
+    <ClInclude Include="PPU\PPU2C02.h" />
     <ClInclude Include="PPU\PPUComponents.h" />
   </ItemGroup>
   <ItemGroup>

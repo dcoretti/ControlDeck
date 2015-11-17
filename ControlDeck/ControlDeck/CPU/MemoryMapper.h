@@ -1,7 +1,20 @@
 #pragma once
 #include "SystemComponents.h"
-
+#include "../PPU/PPUComponents.h"
 namespace NES {
+
+    enum PPURegisterMemoryMapping {
+        PPUCTRL = 0x2000,
+        PPUMASK = 0x2001,
+        PPUSTATUS = 0x2002,
+        OAMADDR = 0x2003,
+        OAMDATA = 0x2004,
+        PPUSCROLL = 0x2005,
+        PPUADDR = 0x2006,
+        PPUDATA = 0x2007,
+        OAMDMA = 0x4014
+    };
+
     /*
     Source :http://nesdev.com/NESDoc.pdf Appendix D for memory mapper functions
     $1000
@@ -26,14 +39,16 @@ namespace NES {
     */
     class MemoryMapper {
     public:
-        MemoryMapper(SystemRam * systemRam) : systemRam(systemRam) {}
+        MemoryMapper(SystemRam * systemRam, PPURegisters * ppuRegisters = nullptr) : systemRam(systemRam), ppuRegisters(ppuRegisters) {}
 
         void doMemoryOperation(SystemBus &systemBus);
 
     private:
         void systemRamHandler(SystemBus &systemBus);
+        void ppuRegisterHandler(SystemBus &systemBus);
 
-        SystemRam * systemRam;
+        PPURegisters * ppuRegisters{ nullptr };
+        SystemRam * systemRam{ nullptr };
     };
 
 
