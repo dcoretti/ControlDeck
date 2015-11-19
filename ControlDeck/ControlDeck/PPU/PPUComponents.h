@@ -30,7 +30,7 @@ namespace NES{
     };
 
     /**
-    *   General PPU Registers mapped by memory to cpu.
+    *   General exposed PPU Registers mapped by memory to cpu.
     *   Source:  http://wiki.nesdev.com/w/index.php/PPU_programmer_reference
     */
     struct PPURegisters {
@@ -109,8 +109,8 @@ namespace NES{
         *   0   |   Grayscale
         *   1   |   Show background for leftmost 8pixels (scrolling)
         *   2   |   Show sprites in  leftmost 8 pixels
-        *   3   |   Show background
-        *   4   |   Show sprites
+        *   3   |   Show background (enabling this turns on rendering)
+        *   4   |   Show sprites    (enabling this turnes on rendering)
         *   5   |   Emphasize red (ntsc)
         *   6   |   Emphasize green (ntsc)
         *   7   |   Emphasize blue (ntsc)
@@ -145,7 +145,16 @@ namespace NES{
 
         /**
         *   PPUSCROLL $2005 (Writable)
-        *   fine scrolling position set at start of frame
+        *   Scrolling position set at start of next frame (pulled into rendering context registers)
+        *   used for general scrolling capabilities by modifying over frames as new information is added to nametables
+        *   see: http://wiki.nesdev.com/w/index.php/PPU_programmer_reference#PPUSCROLL 
+        *   written to twice, X followed by Y to introduce x and y scrolling.
+        *
+        *   Scrolling split into two halves Fine scrolling (3  LSBits) and coarse, (upper 5 bits) during rendering.
+        *   See http://wiki.nesdev.com/w/index.php/PPU_scrolling summary diagram for how splitting ocrurs on writes 
+        *   to this register.
+        *
+        *   TODO handle upper values (240-255) properly to reflect -16-1? see ref
         */
         uint8_t scroll;
 
@@ -188,7 +197,20 @@ namespace NES{
         uint8_t spriteTopY;
         // byte 1
         uint8_t tileIndex;
-        // byte 2 - 
+        /**
+        *   byte 2 - Attributes
+        *   Bit |    Function
+        *   ==================
+        *   0   |   Palette number
+        *   1   |   Palette number
+        *   2   |   
+        *   3   |   Not Used
+        *   4   | 
+        *   5   |   Priority 0: in front of background, 1: behind
+        *   6   |   Horizontal flip
+        *   7   |   Vertical flip
+        *  
+        */
         uint8_t attributes;
         // byte 3
         uint8_t spriteLeftX;
@@ -281,6 +303,30 @@ namespace NES{
         uint8_t counters[8];
     };
 
+    /**
+    *   Registers used during a render loop for ouput pixel determination.  vramAddress composed to 
+    *   be used in data register to access vram.
+    *
+    *   ref: http://wiki.nesdev.com/w/index.php/PPU_scrolling
+    */
+    struct PPURenderingRegisters {
+        // Use "firstWrite" to determine if x or y is being written to.
+        
+        void scrollUpdated(uint8_t scroll);
+        void setVramAddress(uint8_t fineYScroll, uint8_t nametableSelect, uint8_t coarseY, uint8_t coarseX);
+        
 
+        // Both addresses formed by combining the fine Y scroll (3bits), nametable select (2bits), 
+        // coarse y scroll (5 bits), and coarse x scroll (5 bits). The MSBit is not used.
+        uint16_t vramAddress;
+        uint16_t tempVramAddress;
 
+        // Fine x scroll set via scroll register
+        uint8_t fineXScroll : 3;
+        
+        //Toggle to determine x vs y status update, __
+        // reset of this is latched to status register read 
+        bool firstWrite;
+
+    };
 }
