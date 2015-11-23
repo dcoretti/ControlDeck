@@ -1,7 +1,33 @@
 #pragma once
+#include "PPUComponents.h"
 
 namespace NES {
-    class ppu2c02 {
+    class PPU2C02 {
+    public:
+        // Memory mapped registers connected to CPU
+        uint8_t getStatus();
+        void setControl(uint8_t val);
+
+        void setMask(uint8_t val);
+
+        void setOamAddr(uint8_t val);
+
+        void setOamData(uint8_t val);
+        uint8_t getOamData();
+
+        void setScroll(uint8_t);
+
+        void setAddress(uint8_t);
+
+        void setData(uint8_t val);
+        uint8_t getData();
+
+        void setrOamDma(uint8_t val);
+
+
+
+    private:
+
         // http://nesdev.com/2C02%20technical%20reference.TXT
         // clock signal is main 6502 clock (21.48mhz / 4)'
         // 341 ppu clock cycles per scan line
@@ -64,5 +90,9 @@ namespace NES {
         * cycle 161-168
         */
         void populateBackgroundPatterns();
+
+
+        PPURegisters memoryMappedRegisters;
+        PPURenderingRegisters renderingRegisters;
     };
 }

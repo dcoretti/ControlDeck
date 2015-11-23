@@ -1,5 +1,6 @@
 #include "PPUMemoryMap.h"
 namespace NES {
+    /*
     uint8_t & PPUMemoryMap::getByte(uint16_t address) {
         // Addresses are mirrored from 0x4000 to 0x10000
         address = address % 0x4000; 
@@ -14,5 +15,7 @@ namespace NES {
         } else {    // pallet table
 
         }
+        // todo finish this.
     }
+    */
 }

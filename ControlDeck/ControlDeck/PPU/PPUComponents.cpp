@@ -122,6 +122,11 @@ namespace NES {
         return (mask & emphasis) > 0;
     }
 
+    // True if bits 3 or 4 are true in the mask register (show background or sprites)
+    bool PPURegisters::isRenderingEnabled() {
+        return (mask & 0x0c) > 0;
+    }
+
 
     /////////////////////////////////////////////////////////////////
     // Status register accessors
@@ -203,5 +208,82 @@ namespace NES {
             return (tileGroup[group] & (0x03 << tile)) >> tile;
         }
         return 0;
+    }
+
+    /////////////////////////////////////////////////////////////////
+    // CPU main register <-> Rendering register callbacks
+    //
+    // details: http://wiki.nesdev.com/w/index.php/PPU_scrolling#Register_controls
+
+
+    void PPURenderingRegisters::onControlWrite(PPURegisters &registers) {
+        tempVramAddress &= 0xf3ff;  // clear nametable bits (10-11)
+        uint8_t nameTable = registers.getNameTable();
+        tempVramAddress |= (uint16_t) nameTable << 10;
+    }
+
+    void PPURenderingRegisters::onScrollWrite(PPURegisters &registers) {
+        if (writeToggle) {
+            tempVramAddress &= 0xffe0;
+            tempVramAddress |= (registers.scroll >> 3);
+            fineXScroll = registers.scroll & 0x07;
+        } else {
+            tempVramAddress &= 0x031f;
+            tempVramAddress |= ((registers.scroll & 0x07) << 12);
+            tempVramAddress |= ((registers.scroll & 0x38) << 3);
+            tempVramAddress |= ((registers.scroll & 0xc0) << 2);
+          
+        }
+        writeToggle = !writeToggle;
+    }
+
+    void PPURenderingRegisters::onAddressWrite(PPURegisters &registers) {
+        if (writeToggle) {
+            tempVramAddress &= 0xff00;
+            tempVramAddress |= ((registers.address & 0x3f) << 8);
+        } else {
+            tempVramAddress &= 0xc0ff;
+            tempVramAddress |= registers.address;
+        }
+        writeToggle = !writeToggle;
+    }
+
+    void PPURenderingRegisters::onDataAccess(PPURegisters &registers) {
+        if (!registers.isRenderingEnabled()) {
+            if (registers.getIncrementMode() == IncrementMode::ADD_ONE) {
+                vramAddress++;
+            } else {
+                vramAddress += 32;
+            }
+        } else {
+            // increment x and y with wraparound 
+
+            // wrap around X and toggle next bit without further carry.
+            // Code from http://wiki.nesdev.com/w/index.php/PPU_scrolling#Wrapping_around
+            if ((vramAddress & 0x001f) == 31) {
+                vramAddress &= ~0x001f;
+                vramAddress ^= 0x0400;
+            } else {
+                vramAddress++;
+            }
+
+            // Y 
+            if ((vramAddress & 0x7000) == 0x7000) {
+                vramAddress &= ~0x7000;
+                uint16_t y = ((vramAddress & 0x03e0) >> 5);
+                if (y == 31) {
+                    y = 0;
+                } else if (y == 29) {
+                    // switch name table.
+                    y = 0;
+                    vramAddress ^= 0x0800;
+                } else {
+                    y++;
+                }
+                vramAddress = (vramAddress & ~0x03e0) | (y << 5);
+            } else {
+                vramAddress += 0x1000;
+            }
+        }
     }
 }

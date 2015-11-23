@@ -76,6 +76,8 @@ namespace NES{
         void setColorEmphasis(ColorEmphasis emphasis);
         bool getColorEmphasis(ColorEmphasis emphasis);
 
+        bool isRenderingEnabled();
+
         // Status register
         void setSpriteOverflow(bool overflow);
         bool getSpriteOverflow();
@@ -310,23 +312,35 @@ namespace NES{
     *   ref: http://wiki.nesdev.com/w/index.php/PPU_scrolling
     */
     struct PPURenderingRegisters {
-        // Use "firstWrite" to determine if x or y is being written to.
-        
-        void scrollUpdated(uint8_t scroll);
+        // Use "firstWrite" to determine if x or y is being written to.    
+        //??
         void setVramAddress(uint8_t fineYScroll, uint8_t nametableSelect, uint8_t coarseY, uint8_t coarseX);
         
-
-        // Both addresses formed by combining the fine Y scroll (3bits), nametable select (2bits), 
-        // coarse y scroll (5 bits), and coarse x scroll (5 bits). The MSBit is not used.
-        uint16_t vramAddress;
-        uint16_t tempVramAddress;
+        // Callbacks to handle linked behavior between CPU registers and rendering registers AFTER registers are updated
+        void onControlWrite(PPURegisters &registers);
+        void onScrollWrite(PPURegisters &registers);
+        void onAddressWrite(PPURegisters &registers);
+        void onDataAccess(PPURegisters &registers);
+        /**
+        *   Vram address and temp address composition
+        *   Bit   |    Function
+        *   ======================
+        *   0-4   |  coarse x scroll (upper X bits)  
+        *   5-9   |  coarse 9 scroll (upper Y bits)
+        *   10-11 |  nametable select
+        *   12-14 |  fine Y scroll
+        *   
+        */
+        uint16_t vramAddress: 15;
+        uint16_t tempVramAddress: 15;
 
         // Fine x scroll set via scroll register
         uint8_t fineXScroll : 3;
         
         //Toggle to determine x vs y status update, __
         // reset of this is latched to status register read 
-        bool firstWrite;
+        // False (0) is first write, True(1) is second write.
+        bool writeToggle{ false };
 
     };
 }

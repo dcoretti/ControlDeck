@@ -136,6 +136,7 @@
     <ClCompile Include="CPU\CPU2A03.cpp" />
     <ClCompile Include="CPU\InstructionDispatcher.cpp" />
     <ClCompile Include="CPU\MemoryMapper.cpp" />
+    <ClCompile Include="PPU\PPU2C02.cpp" />
     <ClCompile Include="PPU\PPUComponents.cpp" />
     <ClCompile Include="PPU\PPUMemoryMap.cpp" />
   </ItemGroup>
