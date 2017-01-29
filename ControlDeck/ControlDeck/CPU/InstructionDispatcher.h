@@ -5,6 +5,7 @@
 #include "MemoryMapper.h"
 #include "SystemComponents.h"
 #include <unordered_map>
+#include <cstdint>
 
 namespace NES {
     struct OpCode;

@@ -1,34 +1,34 @@
 #include "MemoryMapper.h"
 namespace NES {
 
-    void MemoryMapper::doMemoryOperation(SystemBus &systemBus) {
+    unsigned int MemoryMapper::doMemoryOperation(SystemBus &systemBus) {
+		// 2kb system ram, mirrored 3 additional times
         if (systemBus.addressBus < 0x2000) {
             // 0x0800-0x0FFF  mirror 1
-            // 0x1000-0x1FFF  mirror 2
+            // 0x1000-0x17FF  mirror 2
+			// 0x1800-0x1FFF  mirror 3
             systemRamHandler(systemBus);
         }
+		// $200-$3fff PPU registers (8bytes) mirrors of those 8 bytes for a total of 8kb
         else if (systemBus.addressBus < 0x4000) {
             //Eight bytes of memory mapped PPU registers mirrored
             ppuRegisterHandler(systemBus);
         }
-        // I/O registers
+        // I/O registers, APU registers
         else if (systemBus.addressBus < 0x4020) {
+			// https://wiki.nesdev.com/w/index.php/2A03
             if (systemBus.addressBus == OAMDMA) {
                 ppuRegisterHandler(systemBus);
             }
         }
-        // Expansion ROM
-        else if (systemBus.addressBus < 0x6000) {
-
-        }
-        // SRAM
-        else if (systemBus.addressBus < 0x8000) {
-
-        }
-        // up to $10000 is PRG-ROM
+		// General cartrige space including PRG ROM/RAM, mapper registers, etc.
+        // note that most documentation uses SRAM, WRAM, and PRG-RAM interchangeably. They are the same
+		// see: for disambiguation https://wiki.nesdev.com/w/index.php/INES_Mapper_DischDocs
         else {
-
+			// TODO cart memory mapper handler here
         }
+
+		return 0;
     }
 
     void MemoryMapper::ppuRegisterHandler(SystemBus &systemBus) {

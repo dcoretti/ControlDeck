@@ -568,7 +568,7 @@ namespace NES {
         registers.setFlagIfZero(val);
         registers.setFlagIfNegative(systemBus.dataBus);
         
-        if ((systemBus.dataBus & (1 << 6)) != 0) {
+        if ((systemBus.dataBus & 0x40) != 0) {
             registers.setFlag(ProcessorStatus::OverflowFlag);
         }
     }

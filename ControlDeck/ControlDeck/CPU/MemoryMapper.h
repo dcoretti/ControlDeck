@@ -1,8 +1,8 @@
 #pragma once
 #include "SystemComponents.h"
 #include "../PPU/PPUComponents.h"
+#include "../common.h"
 namespace NES {
-
     enum PPURegisterMemoryMapping {
         PPUCTRL = 0x2000,
         PPUMASK = 0x2001,
@@ -41,7 +41,11 @@ namespace NES {
     public:
         MemoryMapper(SystemRam * systemRam, PPURegisters * ppuRegisters = nullptr) : systemRam(systemRam), ppuRegisters(ppuRegisters) {}
 
-        void doMemoryOperation(SystemBus &systemBus);
+        /**
+        * returns number of cycles the memory operation costs.
+        * This allows functions such as DMA to be handled in one operation that the CPU simply waits out.
+        */
+        unsigned int doMemoryOperation(SystemBus &systemBus);
 
     private:
         void systemRamHandler(SystemBus &systemBus);
@@ -49,5 +53,7 @@ namespace NES {
 
         PPURegisters * ppuRegisters{ nullptr };
         SystemRam * systemRam{ nullptr };
+		//MmcHandler mmcHandler;	// active MMC memory access handler
     };
+
 }

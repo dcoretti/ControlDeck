@@ -2,6 +2,45 @@
 #include "PPUComponents.h"
 
 namespace NES {
+    /**
+    *   DMA state 
+    */
+    struct OamDmaState {
+        void activateDma(uint8_t pageAddr, bool oddCycle);
+        void doDmaAction();
+
+        // Copy one page (256 bytes)
+        static const int amountToCopy = 256;
+
+        bool isDmaActive{ false };
+        uint8_t curPageOffset{ 0 };
+        uint8_t pageAddr{ 0 };
+        // read/write toggle
+        bool isRead{ true };
+        // Add an extra cycle if DMA triggered on an odd cpu cycle
+        bool addOddCycle{ false };
+
+
+    };
+
+    // Starting cycle in scan line state
+    enum class ScanLineState {
+        Idle = 0,                 //0
+        TileFetch = 1,            //1-256
+        SpriteFetch = 257,        //257-320
+        FirstTwoTileFetch = 321,  //321-336
+        NameTableByteFetch = 337, //337-340
+    };
+
+    // Frame rendering state transitions between scan lines for a total of 262 scan lines per frame, 240 of which
+    // are visible.
+    enum class RenderState {
+        VisibleScanLines = 0,       //0-239
+        PostRenderScanLine = 240,   //240
+        VerticalBlank = 241,        //241-260
+        PreRenderScanLine = 261,    //261
+    };
+
     class PPU2C02 {
     public:
         // Memory mapped registers connected to CPU
@@ -22,7 +61,7 @@ namespace NES {
         void setData(uint8_t val);
         uint8_t getData();
 
-        void setrOamDma(uint8_t val);
+        void setOamDma(uint8_t val);
 
 
 
@@ -94,5 +133,7 @@ namespace NES {
 
         PPURegisters memoryMappedRegisters;
         PPURenderingRegisters renderingRegisters;
+
+        bool isDmaActive;
     };
 }

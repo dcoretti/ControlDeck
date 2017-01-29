@@ -121,11 +121,14 @@
   <ItemGroup>
     <ClInclude Include="CPU\AddressingModeHandler.h" />
     <ClInclude Include="CPU\AddressingMode.h" />
+    <ClInclude Include="cartridge.h" />
+    <ClInclude Include="common.h" />
     <ClInclude Include="CPU\cpu2A03.h" />
     <ClInclude Include="CPU\InstructionDispatcher.h" />
     <ClInclude Include="CPU\InstructionSet.h" />
     <ClInclude Include="CPU\MemoryMapper.h" />
     <ClInclude Include="CPU\SystemComponents.h" />
+    <ClInclude Include="ines.h" />
     <ClInclude Include="PPU\ColorPalette.h" />
     <ClInclude Include="PPU\PPU2C02.h" />
     <ClInclude Include="PPU\PPUComponents.h" />
@@ -134,6 +137,7 @@
   <ItemGroup>
     <ClCompile Include="CPU\AddressingModeHandler.cpp" />
     <ClCompile Include="CPU\CPU2A03.cpp" />
+    <ClCompile Include="ines.cpp" />
     <ClCompile Include="CPU\InstructionDispatcher.cpp" />
     <ClCompile Include="CPU\MemoryMapper.cpp" />
     <ClCompile Include="PPU\PPU2C02.cpp" />

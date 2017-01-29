@@ -95,11 +95,11 @@ namespace NES{
         *   0   |   Base nametable (0-3) - x table bit 0, y scroll table bit 1 http://nesdev.com/2C02%20technical%20reference.TXT
         *   1   |       (MSBit of X, Y scroll position respectively)
         *   2   |   VRAM increment per r/w of ppu data
-        *   3   |   Sprite pattern table (8x8 only)
+        *   3   |   Which sprite pattern table (8x8 only)
         *   4   |   Background pattern table
         *   5   |   Sprite Size
         *   6   |   PPU master/slave
-        *   7   |   Generate NMI on vblank
+        *   7   |   Generate NMI on vblank (Enabling this flag will output NMI to CPU when STATUS vblank flag is also set)
         *   source: http://wiki.nesdev.com/w/index.php/PPU_programmer_reference#Controller_.28.242000.29_.3E_write
         */
         uint8_t control;
@@ -130,7 +130,7 @@ namespace NES{
         *   4   |
         *   5   |   sprite overflow (more than 8 sprites encountered when checking for objects in Y-range for next scan line
         *   6   |   Sprite 0 hit
-        *   7   |   Vertical blank
+        *   7   |   Vertical blank (Used for generating NMI when CTRL bit 7 is also set)
         *   
         *   Read clears vblank flag on bit 7.
         */

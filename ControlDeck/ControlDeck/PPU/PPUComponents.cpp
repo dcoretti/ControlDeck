@@ -122,9 +122,9 @@ namespace NES {
         return (mask & emphasis) > 0;
     }
 
-    // True if bits 3 or 4 are true in the mask register (show background or sprites)
+    // True if bits 1-4 are true in the mask register (show background or sprites)
     bool PPURegisters::isRenderingEnabled() {
-        return (mask & 0x0c) > 0;
+        return (mask & 0x1e) > 0;
     }
 
 
@@ -198,7 +198,6 @@ namespace NES {
 
     /////////////////////////////////////////////////////////////////
     // Name/Pattern table
-
     /**
     *   Tile bit layout: 33221100 within each 4x4 tile sub-group
     *   Returns the 2bit number representing those bits.
@@ -249,16 +248,10 @@ namespace NES {
     }
 
     void PPURenderingRegisters::onDataAccess(PPURegisters &registers) {
-        if (!registers.isRenderingEnabled()) {
-            if (registers.getIncrementMode() == IncrementMode::ADD_ONE) {
-                vramAddress++;
-            } else {
-                vramAddress += 32;
-            }
-        } else {
+        if (registers.isRenderingEnabled()) {
+			// Scrolling register updates
             // increment x and y with wraparound 
-
-            // wrap around X and toggle next bit without further carry.
+            // wrap around coarse X and toggle next bit without further carry.
             // Code from http://wiki.nesdev.com/w/index.php/PPU_scrolling#Wrapping_around
             if ((vramAddress & 0x001f) == 31) {
                 vramAddress &= ~0x001f;
@@ -284,6 +277,12 @@ namespace NES {
             } else {
                 vramAddress += 0x1000;
             }
-        }
+		} else {
+			if (registers.getIncrementMode() == IncrementMode::ADD_ONE) {
+				vramAddress++;
+			} else {
+				vramAddress += 32;
+			}
+		}
     }
 }
