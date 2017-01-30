@@ -2,6 +2,7 @@
 #include "SystemComponents.h"
 #include "../PPU/PPUComponents.h"
 #include "../common.h"
+#include "../cartridge.h"
 namespace NES {
     enum PPURegisterMemoryMapping {
         PPUCTRL = 0x2000,
@@ -47,12 +48,14 @@ namespace NES {
         */
         unsigned int doMemoryOperation(SystemBus &systemBus);
 
+		Cartridge *cartridge;
     private:
         void systemRamHandler(SystemBus &systemBus);
         void ppuRegisterHandler(SystemBus &systemBus);
 
         PPURegisters * ppuRegisters{ nullptr };
         SystemRam * systemRam{ nullptr };
+
 		//MmcHandler mmcHandler;	// active MMC memory access handler
     };
 

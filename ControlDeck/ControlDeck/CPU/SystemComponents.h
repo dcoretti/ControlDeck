@@ -98,14 +98,14 @@ namespace NES {
         // Same as x but no ability to alter stack
         uint8_t y;
 
-        // can be stored/retrieved from memory or stack
+        // can be stored/retrieved from memory or stack (Commonly referred to as the A register)
         uint8_t acc;
 
         // Register holds low 8 bits of the next free location on the stack
         // Stack located between $0100 and $01FF. 
         uint8_t stackPointer;
 
-        // Program status flag register 
+        // Program status flag register  (Commonly referred to as P)
         uint8_t statusRegister;
 
         uint16_t programCounter;

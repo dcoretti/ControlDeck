@@ -21,11 +21,9 @@ namespace NES {
                 ppuRegisterHandler(systemBus);
             }
         }
-		// General cartrige space including PRG ROM/RAM, mapper registers, etc.
-        // note that most documentation uses SRAM, WRAM, and PRG-RAM interchangeably. They are the same
-		// see: for disambiguation https://wiki.nesdev.com/w/index.php/INES_Mapper_DischDocs
+		// General cartrige space including PRG ROM/RAM, SRAM/WRAM (save data), mapper registers, etc.
         else {
-			// TODO cart memory mapper handler here
+			cartridge->mmc->doMemoryOperation(systemBus, *cartridge);
         }
 
 		return 0;

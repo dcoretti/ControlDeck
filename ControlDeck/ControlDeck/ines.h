@@ -37,8 +37,6 @@ namespace NES {
 
 
 
-	const size_t prgRomBankSize = 16384;
-	const size_t chrRomBankSize = 8192;
 
 	Cartridge * loadINesFile(char * fname);
 	bool transferMemoryBankDataFromRom(char *nesFileData, INesHeader *header, Cartridge *cart);

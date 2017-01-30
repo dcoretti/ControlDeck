@@ -4,6 +4,11 @@
 #include "CPU/SystemComponents.h"
 
 namespace NES {
+	const size_t prgRomBankSize = 16384;
+	static const size_t prgRamBankSize = 8192;
+	const size_t chrRomBankSize = 8192;
+	static const size_t batteryBackedRamSize = 8192;
+
 	// TODO re-evaluate where this belongs
 	enum PPUMirroring {
 		PPU_HORIZONTAL = 0,
@@ -13,20 +18,23 @@ namespace NES {
 
 	// 8kb 
 	struct ChrRom {
-		uint8_t rom[8192];
+		uint8_t rom[chrRomBankSize];
 	};
 
 	// 16kb rom bank for program data
 	struct PrgRom {
-		uint8_t rom[16384];
+		uint8_t rom[prgRomBankSize];
 	};
 
 	// Individual page of PRG ram.
 	struct PrgRam {
-		uint8_t ram[8192];
+		uint8_t ram[prgRamBankSize];
 	};
-	const size_t batteryBackedRamSize = 8192;
+
+
 	class MemoryManagementController;
+
+	// Representation of NES Game Pak including ROM/RAM and MMC
 	struct Cartridge {
 		uint8_t numPrgRomBanks;
 		uint8_t numChrRomBanks;
@@ -43,6 +51,7 @@ namespace NES {
 		uint8_t *batteryBackedRam{ nullptr };	// 8192 if present
 
 		MemoryManagementController *mmc;
+
 	};
 
 
@@ -53,6 +62,7 @@ namespace NES {
 	class MemoryManagementController {
 	public:
 		virtual void doMemoryOperation(SystemBus &bus, Cartridge &cart) = 0;
+		virtual uint8_t doPPUReadOperation(uint16_t address, Cartridge &cart) = 0;
 	};
 
 	/*
@@ -66,8 +76,10 @@ namespace NES {
 				secondBankRomIndex = 1;
 			}
 		}
-
+		
+		// TODO move memory address adjustment constants to a common location (0x8000 being first bank, etc.)
 		void doMemoryOperation(SystemBus &bus, Cartridge &cart) override {
+			// No Save RAM so 0x4020-0x8000 are not valid
 			DBG_ASSERT(bus.addressBus >= 0x8000, "Invalid bus address range for NROM: %d.", bus.addressBus);
 			DBG_ASSERT(bus.read, "write operation detected to NROM.. not sure what to do here since there's no segfault");
 			
@@ -77,6 +89,11 @@ namespace NES {
 			} else {
 				bus.dataBus = cart.prgRom[0].rom[bus.addressBus - 0x8000];
 			}
+		}
+
+		uint8_t doPPUReadOperation(uint16_t address, Cartridge &cart) override {
+			DBG_ASSERT(address < 0x2000, "expected PPU address below 0x2000 in NROM mapper but got %d", address);
+			return cart.chrRom[0].rom[address];
 		}
 
 		// default to mirror first bank.  if 256 we switch this to reflect the presence of a second PRG bank

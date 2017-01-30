@@ -47,3 +47,13 @@ TEST(Cartridge_Test, testNRomMultiBank) {
 	nrom.doMemoryOperation(bus, cart);
 	EXPECT_EQ('b', bus.dataBus);
 }
+
+
+TEST(Cartridge_Test, testNROMPPURomLoad) {
+	NRom nrom(true);
+
+	Cartridge cart;
+	cart.chrRom = new ChrRom[1]();
+	cart.chrRom[0].rom[0] = 'a';
+	EXPECT_EQ('a', nrom.doPPUReadOperation(0x0, cart));
+}
