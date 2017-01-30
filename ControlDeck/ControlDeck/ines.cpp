@@ -54,14 +54,14 @@ namespace NES {
 		cart->numPrgRamBanks = header->numPrgRomBanks;
 		cart->prgRom = new PrgRom[header->numPrgRomBanks]();
 		for (int i = 0; i < header->numPrgRomBanks; i++) {
-			memcpy(&cart->prgRom[i], &nesFileData[16 + (i * 16384)], 16384);
+			memcpy(&cart->prgRom[i], &nesFileData[16 + (i * prgRomBankSize)], prgRomBankSize);
 		}
 
 		cart->numChrRomBanks = header->numChrRomBanks;
 		cart->chrRom = new ChrRom[header->numChrRomBanks]();
-		size_t start = 16 + (header->numPrgRomBanks * 16384);
+		size_t start = 16 + (header->numPrgRomBanks * prgRomBankSize);
 		for (int i = 0; i < header->numChrRomBanks; i++) {
-			memcpy(&cart->chrRom[i], &nesFileData[start + (i * 8192)], 8192);
+			memcpy(&cart->chrRom[i], &nesFileData[start + (i * chrRomBankSize)], chrRomBankSize);
 		}
 
 		cart->numPrgRamBanks = header->numPrgRomBanks;
@@ -95,7 +95,6 @@ namespace NES {
 	}
 
 	bool parseHeader(char *nesFileData, INesHeader * header) {
-		nesFileData[0] = 'a';
 		if (nesFileData == nullptr || header == nullptr ||
 			!(nesFileData[0] == 'N' && nesFileData[1] == 'E' && nesFileData[2] == 'S') ||
 			nesFileData[3] != 0x1a) {

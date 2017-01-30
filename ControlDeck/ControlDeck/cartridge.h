@@ -68,10 +68,15 @@ namespace NES {
 		}
 
 		void doMemoryOperation(SystemBus &bus, Cartridge &cart) override {
-			DBG_ASSERT(bus.addressBus > 0x8000 && bus.addressBus, "Invalid bus address range for NROM: %d.", bus.addressBus);
-
-
-
+			DBG_ASSERT(bus.addressBus >= 0x8000, "Invalid bus address range for NROM: %d.", bus.addressBus);
+			DBG_ASSERT(bus.read, "write operation detected to NROM.. not sure what to do here since there's no segfault");
+			
+			if (bus.addressBus >= 0xc000) {
+				// Handles mirroring in the case that there is only one prg rom bank
+				bus.dataBus = cart.prgRom[secondBankRomIndex].rom[bus.addressBus - 0xc000];
+			} else {
+				bus.dataBus = cart.prgRom[0].rom[bus.addressBus - 0x8000];
+			}
 		}
 
 		// default to mirror first bank.  if 256 we switch this to reflect the presence of a second PRG bank

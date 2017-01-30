@@ -33,11 +33,12 @@ namespace NES {
 		uint8_t numRamBanks;	// 1 by default unless overridden by byte 8
 		// TODO add functionality for INES0.7 and above, which utilize byte7 of the header and beyond.
 		// See spec at https://wiki.nesdev.com/w/index.php/INES
-
 	};
 
 
 
+	const size_t prgRomBankSize = 16384;
+	const size_t chrRomBankSize = 8192;
 
 	Cartridge * loadINesFile(char * fname);
 	bool transferMemoryBankDataFromRom(char *nesFileData, INesHeader *header, Cartridge *cart);

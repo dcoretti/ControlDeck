@@ -30,6 +30,12 @@
     <ClCompile Include="CPU\CPU2A03Test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="inesTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cartridgeTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CPU\CPUTestCommon.h">

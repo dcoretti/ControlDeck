@@ -133,11 +133,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="cartridgeTest.cpp" />
     <ClCompile Include="CPU\AddressingModeHandlerTest.cpp" />
     <ClCompile Include="CPU\CPU2A03Test.cpp" />
     <ClCompile Include="CPU\InstructionTest.cpp" />
     <ClCompile Include="CPU\MemoryMapperTest.cpp" />
     <ClCompile Include="CPU\SystemComponentsTest.cpp" />
+    <ClCompile Include="inesTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CPU\CPUTestCommon.h" />
