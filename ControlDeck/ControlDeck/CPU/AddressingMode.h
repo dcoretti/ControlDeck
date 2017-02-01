@@ -15,8 +15,8 @@ namespace NES {
         AbsoluteX,
         AbsoluteY,
         Indirect,
-        XIndexedIndirect,	// indexed indirect
-        IndirectYIndexed,	//indirect indexed
+        XIndexedIndirect,    // indexed indirect
+        IndirectYIndexed,    //indirect indexed
     };
 
 

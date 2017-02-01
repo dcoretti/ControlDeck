@@ -5,25 +5,25 @@
 namespace NES {
     // Bit location of processor status flags 
     enum ProcessorStatus {
-        CarryFlag = 0,			// Last operation caused overflow from bit 7.  
-        ZeroFlag = 1,			// Result of last operation was 0
-        InterruptDisable = 2,	// While set processor will not respond to interrupts from devices until cleared via CLI
-        DecimalMode = 3,		// Not used (make arithmetic use BCD)
-		// Bits 4 and 5 are never set on the physical status register but instead are set as part of pushing the status register to the stack
-		// to identify interrupt sources
-		// see: http://wiki.nesdev.com/w/index.php/CPU_ALL#The_B_flag
-        //BreakCommand = 4,		// Set after BRK and interrupt set to process
-		//Interrupt = 5,
-        OverflowFlag = 6,		// Look at carry between bit 6 and 7, 7 and carry flag to determine if result switched sign via overflow
-        NegativeFlag = 7		// If bit 7 set to 1 as a result of last operation
+        CarryFlag = 0,            // Last operation caused overflow from bit 7.  
+        ZeroFlag = 1,            // Result of last operation was 0
+        InterruptDisable = 2,    // While set processor will not respond to interrupts from devices until cleared via CLI
+        DecimalMode = 3,        // Not used (make arithmetic use BCD)
+        // Bits 4 and 5 are never set on the physical status register but instead are set as part of pushing the status register to the stack
+        // to identify interrupt sources
+        // see: http://wiki.nesdev.com/w/index.php/CPU_ALL#The_B_flag
+        //BreakCommand = 4,        // Set after BRK and interrupt set to process
+        //Interrupt = 5,
+        OverflowFlag = 6,        // Look at carry between bit 6 and 7, 7 and carry flag to determine if result switched sign via overflow
+        NegativeFlag = 7        // If bit 7 set to 1 as a result of last operation
     };
 
-	enum InterruptLevel {
-		NONE,
-		IRQ,
-		NMI,
-		RESET
-	};
+    enum InterruptLevel {
+        NONE,
+        IRQ,
+        NMI,
+        RESET
+    };
 
     // Sources:  http://nesdev.com/NESDoc.pdf
     struct Registers {
@@ -120,12 +120,12 @@ namespace NES {
 
         uint16_t programCounter;
 
-		// Status of interrupt pins on CPU.  Treated as an injected 00 op code (BRK) to be handled durin
-		InterruptLevel interruptStatus;
+        // Status of interrupt pins on CPU.  Treated as an injected 00 op code (BRK) to be handled durin
+        InterruptLevel interruptStatus;
     };
 
     /**
-    *	System bus represents the state of the 16bit address lines and 8 bit data bus lines connecting the CPU to RAM or mapped memory.
+    *    System bus represents the state of the 16bit address lines and 8 bit data bus lines connecting the CPU to RAM or mapped memory.
     *   Each cycle involves a memory operation (read or a write).  The general usage is to set the address/data bus state depending on read/write
     *   and tell the memory mapper to handle the bus state.
     *   Read operations overwrite dataBus with the value in mapped memory for retrieval.

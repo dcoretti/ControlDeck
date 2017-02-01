@@ -249,7 +249,7 @@ namespace NES {
 
     void PPURenderingRegisters::onDataAccess(PPURegisters &registers) {
         if (registers.isRenderingEnabled()) {
-			// Scrolling register updates
+            // Scrolling register updates
             // increment x and y with wraparound 
             // wrap around coarse X and toggle next bit without further carry.
             // Code from http://wiki.nesdev.com/w/index.php/PPU_scrolling#Wrapping_around
@@ -277,12 +277,12 @@ namespace NES {
             } else {
                 vramAddress += 0x1000;
             }
-		} else {
-			if (registers.getIncrementMode() == IncrementMode::ADD_ONE) {
-				vramAddress++;
-			} else {
-				vramAddress += 32;
-			}
-		}
+        } else {
+            if (registers.getIncrementMode() == IncrementMode::ADD_ONE) {
+                vramAddress++;
+            } else {
+                vramAddress += 32;
+            }
+        }
     }
 }

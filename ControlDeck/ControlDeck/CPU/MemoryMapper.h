@@ -19,21 +19,21 @@ namespace NES {
     /*
     Source :http://nesdev.com/NESDoc.pdf Appendix D for memory mapper functions
     $1000
-    $c000	PRG-ROM (upper)
-    $8000	PRG-ROM (lower)
-    $6000	Save RAM
-    $4020	Expansion ROM
-    $4000	I/O Registers
+    $c000    PRG-ROM (upper)
+    $8000    PRG-ROM (lower)
+    $6000    Save RAM
+    $4020    Expansion ROM
+    $4000    I/O Registers
     $2008
-    $2000	IO Registers
+    $2000    IO Registers
 
     mirrors of ram...
 
     -----------------------
 
-    $0200	Main RAM
-    $0100	Stack
-    $0000	Zero Page
+    $0200    Main RAM
+    $0100    Stack
+    $0000    Zero Page
 
 
 
@@ -48,7 +48,7 @@ namespace NES {
         */
         unsigned int doMemoryOperation(SystemBus &systemBus);
 
-		Cartridge *cartridge;
+        Cartridge *cartridge;
     private:
         void systemRamHandler(SystemBus &systemBus);
         void ppuRegisterHandler(SystemBus &systemBus);
@@ -56,7 +56,7 @@ namespace NES {
         PPURegisters * ppuRegisters{ nullptr };
         SystemRam * systemRam{ nullptr };
 
-		//MmcHandler mmcHandler;	// active MMC memory access handler
+        //MmcHandler mmcHandler;    // active MMC memory access handler
     };
 
 }

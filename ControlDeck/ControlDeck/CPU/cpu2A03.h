@@ -15,16 +15,16 @@ namespace NES {
 
         void processInstruction();
 
-		void setPowerUpState();
-		
-		// hardware interrupt signals
-		void reset();
-		void setIrq();
-		void setNmi();
+        void setPowerUpState();
+        
+        // hardware interrupt signals
+        void reset();
+        void setIrq();
+        void setNmi();
     protected:
         void waitForNextInstruction();
 
-		// Fetch next op code or handle interrupt
+        // Fetch next op code or handle interrupt
         void fetchOpCode();
 
         SystemBus *systemBus;

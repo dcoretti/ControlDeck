@@ -34,7 +34,7 @@ std::vector<ProcessorStatus> statusFlags = {
 };
 
 TEST(RegistersTest, flagSetTest) {
-    NES::Registers reg;	
+    NES::Registers reg;    
     for (unsigned int i = 0; i < statusFlags.size(); i++) {
         reg.statusRegister = 1 << statusFlags[i];
         EXPECT_TRUE(reg.flagSet(statusFlags[i]));

@@ -12,7 +12,7 @@ namespace NES {
 
         uint8_t getByte(uint16_t address);
 
-		Cartridge *cartridge;
+        Cartridge *cartridge;
     private:
         PatternTable * patternTables[2];
         AttributeTable * attributeTables[4];
