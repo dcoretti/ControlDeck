@@ -9,11 +9,20 @@ namespace NES {
         ZeroFlag = 1,			// Result of last operation was 0
         InterruptDisable = 2,	// While set processor will not respond to interrupts from devices until cleared via CLI
         DecimalMode = 3,		// Not used (make arithmetic use BCD)
-        BreakCommand = 4,		// Set after BRK and interrupt set to process
-                                // 5 is an ignored bit (always 1?) see http://www.fceux.com/web/help/fceux.html?6502CPU.html under "P Processor status"
+		// Bits 4 and 5 are never set on the physical status register but instead are set as part of pushing the status register to the stack
+		// to identify interrupt sources
+		// see: http://wiki.nesdev.com/w/index.php/CPU_ALL#The_B_flag
+        //BreakCommand = 4,		// Set after BRK and interrupt set to process
+		//Interrupt = 5,
         OverflowFlag = 6,		// Look at carry between bit 6 and 7, 7 and carry flag to determine if result switched sign via overflow
         NegativeFlag = 7		// If bit 7 set to 1 as a result of last operation
     };
+
+	enum InterruptLevel {
+		NONE,
+		IRQ,
+		NMI,
+	};
 
     // Sources:  http://nesdev.com/NESDoc.pdf
     struct Registers {
@@ -109,6 +118,9 @@ namespace NES {
         uint8_t statusRegister;
 
         uint16_t programCounter;
+
+		// Status of interrupt pins on CPU.  Treated as an injected 00 op code (BRK) to be handled durin
+		InterruptLevel interruptStatus;
     };
 
     /**

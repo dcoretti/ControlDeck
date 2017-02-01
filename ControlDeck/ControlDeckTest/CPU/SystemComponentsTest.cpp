@@ -29,7 +29,6 @@ std::vector<ProcessorStatus> statusFlags = {
     ProcessorStatus::ZeroFlag,
     ProcessorStatus::InterruptDisable,
     ProcessorStatus::DecimalMode,
-    ProcessorStatus::BreakCommand,
     ProcessorStatus::OverflowFlag,
     ProcessorStatus::NegativeFlag,
 };

@@ -15,12 +15,16 @@ namespace NES {
 
         void processInstruction();
 
-        // $4011 set to 0
-        // reset preserves all registers except pc
-        // reset vector is at FFFC,FFFD (usually ROM)
-        void reset();
+		void setPowerUpState();
+		
+		// hardware interrupt signals
+		void reset();
+		void setIrq();
+		void setNmi();
     protected:
         void waitForNextInstruction();
+
+		// Fetch next op code or handle interrupt
         void fetchOpCode();
 
         SystemBus *systemBus;

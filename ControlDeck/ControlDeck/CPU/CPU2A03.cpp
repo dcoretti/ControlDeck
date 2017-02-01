@@ -9,10 +9,16 @@ namespace NES {
     }
 
     void Cpu2a03::fetchOpCode() {
-        systemBus->addressBus = registers->programCounter;
-        systemBus->read = true;
-        memoryMapper->doMemoryOperation(*systemBus);
-        registers->programCounter++;
+		// Treat an interrupt as an injected "0" op code (BRK).  
+		// Interrupt level will determine the treatment of that op code in the instruction dispatcher
+		if (registers->interruptStatus != InterruptLevel::NONE) {
+			systemBus->dataBus = 0;
+		} else {
+			systemBus->addressBus = registers->programCounter;
+			systemBus->read = true;
+			memoryMapper->doMemoryOperation(*systemBus);
+			registers->programCounter++;
+		}
     }
 
     void Cpu2a03::processInstruction() {

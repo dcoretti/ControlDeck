@@ -636,15 +636,20 @@ namespace NES {
         popStackToDataBus(systemBus, registers, memoryMapper);
         registers.x = systemBus.dataBus;
     }
+
     // Pop accumulator from stack
     void InstructionDispatcher::PLA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         popStackToDataBus(systemBus, registers, memoryMapper);
         registers.acc = systemBus.dataBus;
     }
+
     // Pop processor status from stack
     void InstructionDispatcher::PLP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         popStackToDataBus(systemBus, registers, memoryMapper);
         registers.statusRegister = systemBus.dataBus;
+		// Ignore bits 4/5 when pulling from the stack since they are never physically represented in the status register.
+		// These indicate the type of irq
+		registers.statusRegister &= 0xcf;
     }
 
     void InstructionDispatcher::BCC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
@@ -699,36 +704,67 @@ namespace NES {
         registers.programCounter = systemBus.addressBus;
     }
 
+	/**
+		BRK handles general software interrupts as well as level/edge-triggered hardware interrupts (IRQ, NMI). 
+		
+	*/
     void InstructionDispatcher::BRK(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-        // push program counter
+        // 1. push program counter
         systemBus.dataBus = registers.pch();
         pushDataBusToStack(systemBus, registers, memoryMapper);
         systemBus.dataBus = registers.pcl();
         pushDataBusToStack(systemBus, registers, memoryMapper);
-        // push status register
+        // 2. push status register
         systemBus.dataBus = registers.statusRegister;
+
+		// The pushed status register reflects the source of the interrupt.
+		// Usually the interrupt handler would read this value and test bit 4 to see if the interrupt was software (1) or
+		// hardware (0) to then determine the vector address for the handler.
+		if (registers.interruptStatus == InterruptLevel::IRQ || registers.interruptStatus == InterruptLevel::NMI) {
+			// set bit 4/5 to 10
+			systemBus.dataBus &= 0xef;	// clear bit 4
+			systemBus.dataBus |= (uint8_t)0x20;	// set bit 5
+		} else {
+			// bit 4/5 set to 1
+			systemBus.dataBus |= (uint8_t)0x30;
+		}
+
         pushDataBusToStack(systemBus, registers, memoryMapper);
 
-        // fetch interrupt vector from 0xfffe/f
-        systemBus.addressBus = (uint16_t)0xffffe;
+        // fetch interrupt vector depending on the type of interrupt
+		if (registers.interruptStatus == InterruptLevel::NONE ||
+			registers.interruptStatus == InterruptLevel::IRQ) {
+			// Pin-level IRQ or software triggered BRK
+			systemBus.addressBus = (uint16_t)0xfffe;
+		} else {
+			// NMI
+			systemBus.addressBus = (uint16_t)0xfffa;
+		}
         systemBus.read = true;
         memoryMapper.doMemoryOperation(systemBus);
         uint8_t adl = systemBus.dataBus;
-
-        systemBus.addressBus = (uint16_t)0xfffff;
+		if (registers.interruptStatus == InterruptLevel::NONE ||
+			registers.interruptStatus == InterruptLevel::IRQ) {
+			systemBus.addressBus = (uint16_t)0xffff;
+		} else {
+			systemBus.addressBus = (uint16_t)0xfffb;
+		}
         systemBus.read = true;
         memoryMapper.doMemoryOperation(systemBus);
+
+		// jump to interrupt vector
         registers.programCounter = (systemBus.dataBus << 8) + adl;
-
-        registers.setFlag(ProcessorStatus::BreakCommand);
     }
-
 
     void InstructionDispatcher::RTI(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         // pop stack to processor flags
         popStackSetup(systemBus, registers);
         memoryMapper.doMemoryOperation(systemBus);
         registers.statusRegister = systemBus.dataBus;
+		// Ignore bits 4/5  since they should never be set on the physical status register.  They only indicate IRQ source when the 
+		// status register was pushed to the stack in the first place.
+		registers.statusRegister &= 0xcf;
+
         // pop program counter
         popStackSetup(systemBus, registers);
         memoryMapper.doMemoryOperation(systemBus);
@@ -737,7 +773,6 @@ namespace NES {
         memoryMapper.doMemoryOperation(systemBus);
         registers.setPch(systemBus.dataBus);
     }
-
 
     void InstructionDispatcher::JSR(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
         registers.programCounter = systemBus.addressBus;
