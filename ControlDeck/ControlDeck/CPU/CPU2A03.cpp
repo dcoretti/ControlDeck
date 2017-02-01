@@ -9,15 +9,18 @@ namespace NES {
     }
 
     void Cpu2a03::fetchOpCode() {
-		// Treat an interrupt as an injected "0" op code (BRK).  
-		// Interrupt level will determine the treatment of that op code in the instruction dispatcher
-		if (registers->interruptStatus != InterruptLevel::NONE) {
-			systemBus->dataBus = 0;
-		} else {
+		if (registers->interruptStatus == InterruptLevel::NONE) {
 			systemBus->addressBus = registers->programCounter;
 			systemBus->read = true;
 			memoryMapper->doMemoryOperation(*systemBus);
 			registers->programCounter++;
+		} else {
+			// If an interrupt is currently in process, only a NMI can get through
+			if (!registers->flagSet(ProcessorStatus::InterruptDisable) || registers->interruptStatus != InterruptLevel::IRQ) {
+				// Treat an interrupt as an injected "0" op code (BRK).  
+				// Interrupt level will determine the treatment of that op code in the instruction dispatcher
+				systemBus->dataBus = 0;
+			}
 		}
     }
 
@@ -25,6 +28,9 @@ namespace NES {
         fetchOpCode();
         // This will need to return some information for the cpu to handle timing, etc.
         InstructionDispatcher::dispatchInstruction(*systemBus, *registers, *memoryMapper);
+
+		// clear interrupt source flag set by hardware pins if any.
+		registers->interruptStatus = InterruptLevel::NONE;
     }
 
     void Cpu2a03::waitForNextInstruction() {
@@ -50,4 +56,10 @@ namespace NES {
 		registers->programCounter = 0xfffc;
 	}
 
+	void Cpu2a03::setIrq() {
+		registers->interruptStatus = InterruptLevel::IRQ;
+	}
+	void Cpu2a03::setNmi() {
+		registers->interruptStatus = InterruptLevel::NMI;
+	}
 }

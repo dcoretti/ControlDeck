@@ -22,6 +22,7 @@ namespace NES {
 		NONE,
 		IRQ,
 		NMI,
+		RESET
 	};
 
     // Sources:  http://nesdev.com/NESDoc.pdf

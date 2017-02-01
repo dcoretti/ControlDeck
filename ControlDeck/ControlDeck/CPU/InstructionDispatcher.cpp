@@ -708,47 +708,52 @@ namespace NES {
 		BRK handles general software interrupts as well as level/edge-triggered hardware interrupts (IRQ, NMI). 
 		
 	*/
-    void InstructionDispatcher::BRK(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-        // 1. push program counter
-        systemBus.dataBus = registers.pch();
-        pushDataBusToStack(systemBus, registers, memoryMapper);
-        systemBus.dataBus = registers.pcl();
-        pushDataBusToStack(systemBus, registers, memoryMapper);
-        // 2. push status register
-        systemBus.dataBus = registers.statusRegister;
+	void InstructionDispatcher::BRK(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+		// Technically RESET does these operations but with the data bus set to read instead of write.  Leaving them out 
+		// unless I feel like accuracy of the reset operation is important later.
+		// See: http://www.pagetable.com/?p=410
+		if (registers.interruptStatus != InterruptLevel::RESET) {
+			// 1. push program counter
+			systemBus.dataBus = registers.pch();
+			pushDataBusToStack(systemBus, registers, memoryMapper);
+			systemBus.dataBus = registers.pcl();
+			pushDataBusToStack(systemBus, registers, memoryMapper);
+			// 2. push status register
+			systemBus.dataBus = registers.statusRegister;
 
-		// The pushed status register reflects the source of the interrupt.
-		// Usually the interrupt handler would read this value and test bit 4 to see if the interrupt was software (1) or
-		// hardware (0) to then determine the vector address for the handler.
-		if (registers.interruptStatus == InterruptLevel::IRQ || registers.interruptStatus == InterruptLevel::NMI) {
-			// set bit 4/5 to 10
-			systemBus.dataBus &= 0xef;	// clear bit 4
-			systemBus.dataBus |= (uint8_t)0x20;	// set bit 5
-		} else {
-			// bit 4/5 set to 1
-			systemBus.dataBus |= (uint8_t)0x30;
+			// The pushed status register reflects the source of the interrupt.
+			// Usually the interrupt handler would read this value and test bit 4 to see if the interrupt was software (1) or
+			// hardware (0) to then determine the vector address for the handler.
+			if (registers.interruptStatus == InterruptLevel::IRQ || registers.interruptStatus == InterruptLevel::NMI) {
+				// set bit 4/5 to 10
+				systemBus.dataBus &= 0xef;	// clear bit 4
+				systemBus.dataBus |= (uint8_t)0x20;	// set bit 5
+			} else {
+				// bit 4/5 set to 1
+				systemBus.dataBus |= (uint8_t)0x30;
+			}
+			pushDataBusToStack(systemBus, registers, memoryMapper);
 		}
 
-        pushDataBusToStack(systemBus, registers, memoryMapper);
 
-        // fetch interrupt vector depending on the type of interrupt
-		if (registers.interruptStatus == InterruptLevel::NONE ||
-			registers.interruptStatus == InterruptLevel::IRQ) {
-			// Pin-level IRQ or software triggered BRK
-			systemBus.addressBus = (uint16_t)0xfffe;
-		} else {
-			// NMI
-			systemBus.addressBus = (uint16_t)0xfffa;
+		static uint16_t interruptVector[3][2] = {
+			{0xfffe, 0xffff},	// IRQ, BRK
+			{0xfffa, 0xfffb},	// NMI
+			{0xfffc, 0xfffd}	// RESET
+		};
+		int vector = 0;
+		if (registers.interruptStatus == InterruptLevel::NMI) {
+			vector = 1;
+		} else if (registers.interruptStatus == InterruptLevel::RESET) {
+			vector = 2;
 		}
+
+		systemBus.addressBus = interruptVector[vector][0];
         systemBus.read = true;
         memoryMapper.doMemoryOperation(systemBus);
         uint8_t adl = systemBus.dataBus;
-		if (registers.interruptStatus == InterruptLevel::NONE ||
-			registers.interruptStatus == InterruptLevel::IRQ) {
-			systemBus.addressBus = (uint16_t)0xffff;
-		} else {
-			systemBus.addressBus = (uint16_t)0xfffb;
-		}
+
+		systemBus.addressBus = interruptVector[vector][1];
         systemBus.read = true;
         memoryMapper.doMemoryOperation(systemBus);
 
