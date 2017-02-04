@@ -1,7 +1,6 @@
 #pragma once
 
 namespace NES {
-
     // Sourced from http://e-tradition.net/bytes/6502/6502_instruction_set.html and
     // http://web.archive.org/web/20020820122913/http://www.obelisk.demon.co.uk/6502/reference.html#EOR
     enum Instruction {
@@ -85,4 +84,6 @@ namespace NES {
 
         UNK,    // Unknown (not a real instruction)
     };
+
+    extern const char* instructionNames[];
 }

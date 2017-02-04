@@ -2,13 +2,13 @@
 #include "gtest/gtest.h"
 #include "CPU\SystemComponents.h"
 #include "CPU\MemoryMapper.h"
+#include "CPU/AddressingMode.h"
 #include "CPU\InstructionDispatcher.h"
 
 using NES::SystemBus;
 using NES::SystemRam;
 using NES::Registers;
 using NES::MemoryMapper;
-using NES::AddressingModeHandler;
 
 class CPUTest : public testing::Test {
 protected:
@@ -39,7 +39,6 @@ protected:
     SystemBus bus;
     SystemRam ram;
     Registers registers;
-    AddressingModeHandler addrHandler;
 
     MemoryMapper * memoryMapper;
 };

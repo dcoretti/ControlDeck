@@ -1,7 +1,8 @@
 #include "gtest/gtest.h"
 #include "CPUTestCommon.h"
-
+#include "CPU/AddressingModeHandler.h"
 using NES::AddressingMode;
+using namespace NES::AddressingModeHandler;
 
 class AddressingModeHandlerTest : public CPUTest {
 
@@ -11,7 +12,7 @@ class AddressingModeHandlerTest : public CPUTest {
 TEST_F(AddressingModeHandlerTest, immediateAddressTest) {
     getSequentialMemory();
     uint16_t pc = registers.programCounter;
-    addrHandler.handleAddressingMode(AddressingMode::Immediate, bus, registers, *memoryMapper);
+    handleAddressingMode(AddressingMode::Immediate, bus, registers, *memoryMapper);
     EXPECT_EQ(ram.ram[pc], bus.dataBus);
     EXPECT_EQ(pc + 1, registers.programCounter);
 }
@@ -21,7 +22,7 @@ TEST_F(AddressingModeHandlerTest, immediateaddressReadTest) {
     getSequentialMemory();
     uint16_t pc = registers.programCounter;
 
-    addrHandler.handleAddressingMode(AddressingMode::Immediate, bus, registers, *memoryMapper);
+    handleAddressingMode(AddressingMode::Immediate, bus, registers, *memoryMapper);
     EXPECT_EQ(ram.ram[pc], bus.dataBus);
     EXPECT_EQ(pc + 1, registers.programCounter);
 }
@@ -29,13 +30,13 @@ TEST_F(AddressingModeHandlerTest, immediateaddressReadTest) {
 TEST_F(AddressingModeHandlerTest, zeroPageAddressTest) {
     ram.ram[0] = 123;   // program counter
     ram.ram[123] = 0xFF;
-    addrHandler.handleAddressingMode(AddressingMode::ZeroPage, bus, registers, *memoryMapper);
+    handleAddressingMode(AddressingMode::ZeroPage, bus, registers, *memoryMapper);
     EXPECT_EQ(0xff, bus.dataBus);
 
     bus.dataBus = 0;
     registers.programCounter = 300; // past byte size
     ram.ram[300] = 123;   // program counter
-    addrHandler.handleAddressingMode(AddressingMode::ZeroPage, bus, registers, *memoryMapper);
+    handleAddressingMode(AddressingMode::ZeroPage, bus, registers, *memoryMapper);
     EXPECT_EQ(0xff, bus.dataBus);
 }
 
@@ -44,7 +45,7 @@ TEST_F(AddressingModeHandlerTest, xZeroPageAddressTest) {
     ram.ram[0] = 123;   // program counter
     ram.ram[123] = 0xFF;
     ram.ram[123 + 2] = 0xEE;
-    addrHandler.handleAddressingMode(AddressingMode::ZeroPageX, bus, registers, *memoryMapper);
+    handleAddressingMode(AddressingMode::ZeroPageX, bus, registers, *memoryMapper);
     EXPECT_EQ(0xEE, bus.dataBus);
 }
 
@@ -53,7 +54,7 @@ TEST_F(AddressingModeHandlerTest, xZeroPageAddressWrapTest) {
     ram.ram[0] = 0xFF;   // program counter
     ram.ram[0xFF + 2] = 0xFF;   
     ram.ram[1] = 0xEE; // wrap around expected at 0xFF to 2
-    addrHandler.handleAddressingMode(AddressingMode::ZeroPageX, bus, registers, *memoryMapper);
+    handleAddressingMode(AddressingMode::ZeroPageX, bus, registers, *memoryMapper);
     EXPECT_EQ(0x0001, bus.addressBus);
     EXPECT_EQ(0xEE, bus.dataBus);
 }
@@ -64,7 +65,7 @@ TEST_F(AddressingModeHandlerTest, yZeroPageAddressTest) {
     ram.ram[0] = 123;   // program counter
     ram.ram[123] = 0xFF;
     ram.ram[123 + 2] = 0xEE;
-    addrHandler.handleAddressingMode(AddressingMode::ZeroPageY, bus, registers, *memoryMapper);
+    handleAddressingMode(AddressingMode::ZeroPageY, bus, registers, *memoryMapper);
     EXPECT_EQ(0xEE, bus.dataBus);
 }
 
@@ -73,7 +74,7 @@ TEST_F(AddressingModeHandlerTest, yZeroPageAddressWrapTest) {
     ram.ram[0] = 0xFF;   // program counter
     ram.ram[0xFF + 2] = 0xFF;
     ram.ram[1] = 0xEE; // wrap around expected at 0xFF to 2
-    addrHandler.handleAddressingMode(AddressingMode::ZeroPageY, bus, registers, *memoryMapper);
+    handleAddressingMode(AddressingMode::ZeroPageY, bus, registers, *memoryMapper);
     EXPECT_EQ(0x0001, bus.addressBus);
     EXPECT_EQ(0xEE, bus.dataBus);
 }
@@ -82,7 +83,7 @@ TEST_F(AddressingModeHandlerTest, absoluteAddressTest) {
     ram.ram[0] = 0x23;
     ram.ram[1] = 0x01;
     ram.ram[0x0123] = 0xDD;
-    addrHandler.handleAddressingMode(AddressingMode::Absolute, bus, registers, *memoryMapper);
+    handleAddressingMode(AddressingMode::Absolute, bus, registers, *memoryMapper);
     EXPECT_EQ(0x0123, bus.addressBus);
     EXPECT_EQ(0xDD, bus.dataBus);
 }
@@ -94,7 +95,7 @@ TEST_F(AddressingModeHandlerTest, absoluteAddressXTest) {
     ram.ram[0x0123] = 0xDD;
     ram.ram[0x0125] = 0xEE;
     registers.x = 2;
-    addrHandler.handleAddressingMode(AddressingMode::AbsoluteX, bus, registers, *memoryMapper);
+    handleAddressingMode(AddressingMode::AbsoluteX, bus, registers, *memoryMapper);
     EXPECT_EQ(0x0125, bus.addressBus);
     EXPECT_EQ(0xEE, bus.dataBus);
 }
@@ -105,7 +106,7 @@ TEST_F(AddressingModeHandlerTest, absoluteAddressYTest) {
     ram.ram[0x0123] = 0xDD;
     ram.ram[0x0125] = 0xEE;
     registers.y = 2;
-    addrHandler.handleAddressingMode(AddressingMode::AbsoluteY, bus, registers, *memoryMapper);
+    handleAddressingMode(AddressingMode::AbsoluteY, bus, registers, *memoryMapper);
     EXPECT_EQ(0x0125, bus.addressBus);
     EXPECT_EQ(0xEE, bus.dataBus);
 }
@@ -116,7 +117,7 @@ TEST_F(AddressingModeHandlerTest, indirectAddressTest) {
     ram.ram[0x0123] = 0x12;
     ram.ram[0x12] = 0xEE;
 
-    addrHandler.handleAddressingMode(AddressingMode::Indirect, bus, registers, *memoryMapper);
+    handleAddressingMode(AddressingMode::Indirect, bus, registers, *memoryMapper);
     EXPECT_EQ(0x0012, bus.addressBus);
     EXPECT_EQ(0xEE, bus.dataBus);
 }
@@ -128,7 +129,7 @@ TEST_F(AddressingModeHandlerTest, xIndexedIndirectTest) {
     ram.ram[0x0123] = 0xEE;
     registers.x = 2;
 
-    addrHandler.handleAddressingMode(AddressingMode::XIndexedIndirect, bus, registers, *memoryMapper);
+    handleAddressingMode(AddressingMode::XIndexedIndirect, bus, registers, *memoryMapper);
     EXPECT_EQ(0x0123, bus.addressBus);
     EXPECT_EQ(0xEE, bus.dataBus);
 }
@@ -140,7 +141,7 @@ TEST_F(AddressingModeHandlerTest, indirectYIndexedTest) {
     ram.ram[0x0124] = 0xEE;
     registers.y = 1;
 
-    addrHandler.handleAddressingMode(AddressingMode::IndirectYIndexed, bus, registers, *memoryMapper);
+    handleAddressingMode(AddressingMode::IndirectYIndexed, bus, registers, *memoryMapper);
     EXPECT_EQ(0x0124, bus.addressBus);
     EXPECT_EQ(0xEE, bus.dataBus);
 }

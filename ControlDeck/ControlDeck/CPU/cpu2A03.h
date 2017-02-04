@@ -2,6 +2,7 @@
 
 #include "MemoryMapper.h"
 #include "SystemComponents.h"
+#include "InstructionDispatcher.h"
 
 // http://users.telenet.be/kim1-6502/6502/hwman.html - general hardware manual source
 namespace NES {
@@ -22,12 +23,11 @@ namespace NES {
         void setIrq();
         void setNmi();
 
-        void printState();
     protected:
         void waitForNextInstruction();
 
         // Fetch next op code or handle interrupt
-        void fetchOpCode();
+        OpCode fetchOpCode();
 
         SystemBus *systemBus;
         SystemRam *ram;

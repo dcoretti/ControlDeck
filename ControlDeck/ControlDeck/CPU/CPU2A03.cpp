@@ -1,5 +1,5 @@
 #include "cpu2A03.h"
-#include "InstructionDispatcher.h"
+#include "AddressingModeHandler.h"
 namespace NES {
     /**
     *    CPU
@@ -8,7 +8,7 @@ namespace NES {
         memoryMapper(memoryMapper), ram(ram), registers(registers), systemBus(systemBus) {
     }
 
-    void Cpu2a03::fetchOpCode() {
+    OpCode Cpu2a03::fetchOpCode() {
         if (registers->interruptStatus == InterruptLevel::NONE) {
             systemBus->addressBus = registers->programCounter;
             systemBus->read = true;
@@ -22,12 +22,37 @@ namespace NES {
                 systemBus->dataBus = 0;
             }
         }
+        return InstructionSet::opCodes[systemBus->dataBus];
     }
 
-    void Cpu2a03::processInstruction() {
-        fetchOpCode();
+    struct DebugState {
+        OpCode opCode;
+        SystemBus systemBusBefore;
+        Registers registersBefore;
+        SystemBus systemBusAfter;
+        Registers registersAfter;
 
-        OpCode opCode = InstructionSet::opCodes[systemBus->dataBus];
+        void print() {
+            printf("[%s (%02x), addrMode: %s]:\n",
+                instructionNames[opCode.instruction], opCode.opCode, addressingModeNames[opCode.addressingMode]);
+            printf("B: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, sp:$%02x, p: $%02x, pc: $%04x}\n",
+                systemBusBefore.addressBus, systemBusBefore.dataBus, systemBusBefore.read,
+                registersBefore.acc, registersBefore.x, registersBefore.y, registersBefore.stackPointer, registersBefore.statusRegister, registersBefore.programCounter);
+            printf("A: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, sp:$%02x, p: $%02x, pc: $%04x}\n",
+                systemBusAfter.addressBus, systemBusAfter.dataBus, systemBusAfter.read,
+                registersAfter.acc, registersAfter.x, registersAfter.y, registersAfter.stackPointer, registersAfter.statusRegister, registersAfter.programCounter);
+        }
+    };
+
+    void Cpu2a03::processInstruction() {
+        DebugState debugState;
+
+        // Read the next op code from memory (or interrupt)
+        OpCode opCode = fetchOpCode();
+        debugState.opCode = opCode;
+        debugState.registersBefore = *registers;
+        debugState.systemBusBefore = *systemBus;
+
         // Set up system bus to contain relevant memory data for a particular instruction.
         AddressingModeHandler::handleAddressingMode(opCode.addressingMode, *systemBus, *registers, *memoryMapper);
         // Call the instruction handler
@@ -37,10 +62,10 @@ namespace NES {
 
         // clear interrupt source flag set by hardware pins if any.
         registers->interruptStatus = InterruptLevel::NONE;
-    }
 
-    void Cpu2a03::printState() {
-
+        debugState.registersAfter = *registers;
+        debugState.systemBusAfter = *systemBus;
+        debugState.print();
     }
 
     void Cpu2a03::waitForNextInstruction() {

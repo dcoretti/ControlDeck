@@ -136,8 +136,10 @@
     <ClInclude Include="PPU\PPUMemoryMap.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CPU\AddressingMode.cpp" />
     <ClCompile Include="CPU\AddressingModeHandler.cpp" />
     <ClCompile Include="CPU\CPU2A03.cpp" />
+    <ClCompile Include="CPU\InstructionSet.cpp" />
     <ClCompile Include="ines.cpp" />
     <ClCompile Include="CPU\InstructionDispatcher.cpp" />
     <ClCompile Include="CPU\MemoryMapper.cpp" />

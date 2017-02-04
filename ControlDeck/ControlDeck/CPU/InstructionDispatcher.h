@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AddressingModeHandler.h"
+#include "AddressingMode.h"
 #include "InstructionSet.h"
 #include "MemoryMapper.h"
 #include "SystemComponents.h"

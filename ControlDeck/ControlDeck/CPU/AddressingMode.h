@@ -19,6 +19,9 @@ namespace NES {
         IndirectYIndexed,    //indirect indexed
     };
 
+    // for debug printing
+    extern const char* addressingModeNames[];
+
 
     /**
     *   Table of how much to increment the program counter by for addressing mode operations.
