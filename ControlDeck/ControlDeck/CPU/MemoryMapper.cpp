@@ -29,6 +29,11 @@ namespace NES {
         return 0;
     }
 
+    void MemoryMapper::ioRegisterHandler(SystemBus &systemBus) {
+        DBG_ASSERT(systemBus.addressBus < 0x4020 && systemBus.addressBus > 0x4000, "invalid address for io handler %d", systemBus.addressBus);
+
+    }
+
     void MemoryMapper::ppuRegisterHandler(SystemBus &systemBus) {
         // todo handle read-only situations?
 

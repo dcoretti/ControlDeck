@@ -52,6 +52,7 @@ namespace NES {
     private:
         void systemRamHandler(SystemBus &systemBus);
         void ppuRegisterHandler(SystemBus &systemBus);
+        void ioRegisterHandler(SystemBus &systemBus);
 
         PPURegisters * ppuRegisters{ nullptr };
         SystemRam * systemRam{ nullptr };

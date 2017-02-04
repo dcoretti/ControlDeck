@@ -21,6 +21,8 @@ namespace NES {
         void reset();
         void setIrq();
         void setNmi();
+
+        void printState();
     protected:
         void waitForNextInstruction();
 

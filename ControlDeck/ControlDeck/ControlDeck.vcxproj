@@ -129,6 +129,7 @@
     <ClInclude Include="CPU\MemoryMapper.h" />
     <ClInclude Include="CPU\SystemComponents.h" />
     <ClInclude Include="ines.h" />
+    <ClInclude Include="joypad.h" />
     <ClInclude Include="PPU\ColorPalette.h" />
     <ClInclude Include="PPU\PPU2C02.h" />
     <ClInclude Include="PPU\PPUComponents.h" />

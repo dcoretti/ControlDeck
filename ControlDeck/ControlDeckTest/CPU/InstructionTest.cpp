@@ -4,7 +4,7 @@
 
 using NES::ProcessorStatus;
 using NES::InstructionFnPtr;
-using NES::InstructionDispatcher;
+using namespace NES::InstructionSet;
 
 class InstructionTest : public CPUTest {
 protected:
@@ -14,14 +14,14 @@ protected:
 
     void assertDecrement(uint8_t &val, InstructionFnPtr instructionPtr) {
         val = 2;
-        instructionPtr(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+        instructionPtr(opCodes[0xFF], bus, registers, *memoryMapper);
         EXPECT_EQ(0, registers.statusRegister);
 
-        instructionPtr(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+        instructionPtr(opCodes[0xFF], bus, registers, *memoryMapper);
         EXPECT_EQ(0, val);
         testOnlyOneFlagSet(ProcessorStatus::ZeroFlag);
 
-        instructionPtr(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+        instructionPtr(opCodes[0xFF], bus, registers, *memoryMapper);
         EXPECT_EQ(-1, (int8_t)val);
         testOnlyOneFlagSet(ProcessorStatus::NegativeFlag);
     }
@@ -33,15 +33,15 @@ protected:
 
     void assertIncrement(uint8_t &val, InstructionFnPtr instructionPtr) {
         val = -2;
-        instructionPtr(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+        instructionPtr(opCodes[0xFF], bus, registers, *memoryMapper);
         EXPECT_EQ(-1, (int8_t)val);
         testOnlyOneFlagSet(ProcessorStatus::NegativeFlag);
 
-        instructionPtr(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+        instructionPtr(opCodes[0xFF], bus, registers, *memoryMapper);
         EXPECT_EQ(0, val);
         testOnlyOneFlagSet(ProcessorStatus::ZeroFlag);
 
-        instructionPtr(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+        instructionPtr(opCodes[0xFF], bus, registers, *memoryMapper);
         EXPECT_EQ(1, val);
         EXPECT_EQ(0, registers.statusRegister);
     }
@@ -54,103 +54,103 @@ protected:
 
 TEST_F(InstructionTest, decTest) {
     bus.addressBus = 0x0123;
-    assertDecrementWithDataBus(ram.ram[0x0123], &InstructionDispatcher::DEC);
+    assertDecrementWithDataBus(ram.ram[0x0123], &DEC);
 }
 
 TEST_F(InstructionTest, incTest) {
     bus.addressBus = 0x0123;
-    assertIncrementWithDataBus(ram.ram[0x0123], &InstructionDispatcher::INC);
+    assertIncrementWithDataBus(ram.ram[0x0123], &INC);
 }
 
 TEST_F(InstructionTest, dexTest) {
-    assertDecrement(registers.x, &InstructionDispatcher::DEX);
+    assertDecrement(registers.x, &DEX);
 }
 
 TEST_F(InstructionTest, deyTest) {
-    assertDecrement(registers.y, &InstructionDispatcher::DEY);
+    assertDecrement(registers.y, &DEY);
 }
 
 TEST_F(InstructionTest, inxTest) {
-    assertIncrement(registers.x, &InstructionDispatcher::INX);
+    assertIncrement(registers.x, &INX);
 }
 
 TEST_F(InstructionTest, inyTest) {
-    assertIncrement(registers.y, &InstructionDispatcher::INY);
+    assertIncrement(registers.y, &INY);
 }
 
 TEST_F(InstructionTest, taxTest) {
     registers.acc = 1;
     registers.x = 2;
-    InstructionDispatcher::TAX(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+    TAX(opCodes[0xFF], bus, registers, *memoryMapper);
     EXPECT_EQ(1, registers.x);
 }
 
 TEST_F(InstructionTest, tayTest) {
     registers.acc = 1;
     registers.y = 2;
-    InstructionDispatcher::TAY(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+    TAY(opCodes[0xFF], bus, registers, *memoryMapper);
     EXPECT_EQ(1, registers.y);
 }
 
 TEST_F(InstructionTest, txaTest) {
     registers.acc = 1;
     registers.x = 2;
-    InstructionDispatcher::TXA(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+    TXA(opCodes[0xFF], bus, registers, *memoryMapper);
     EXPECT_EQ(2, registers.acc);
 }
 
 TEST_F(InstructionTest, tyaTest) {
     registers.acc = 1;
     registers.y = 2;
-    InstructionDispatcher::TYA(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+    TYA(opCodes[0xFF], bus, registers, *memoryMapper);
     EXPECT_EQ(2, registers.acc);
 }
 
 TEST_F(InstructionTest, clcTest) {
     registers.setFlag(ProcessorStatus::CarryFlag);
-    InstructionDispatcher::CLC(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+    CLC(opCodes[0xFF], bus, registers, *memoryMapper);
     EXPECT_EQ(0, registers.statusRegister);
 
-    InstructionDispatcher::CLC(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+    CLC(opCodes[0xFF], bus, registers, *memoryMapper);
     EXPECT_EQ(0, registers.statusRegister);
 }
 
 TEST_F(InstructionTest, cldTest) {
     registers.setFlag(ProcessorStatus::DecimalMode);
-    InstructionDispatcher::CLD(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+    CLD(opCodes[0xFF], bus, registers, *memoryMapper);
     EXPECT_EQ(0, registers.statusRegister);
 
-    InstructionDispatcher::CLD(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+    CLD(opCodes[0xFF], bus, registers, *memoryMapper);
     EXPECT_EQ(0, registers.statusRegister);
 }
 
 TEST_F(InstructionTest, cliTest) {
     registers.setFlag(ProcessorStatus::InterruptDisable);
-    InstructionDispatcher::CLI(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+    CLI(opCodes[0xFF], bus, registers, *memoryMapper);
     EXPECT_EQ(0, registers.statusRegister);
 
-    InstructionDispatcher::CLI(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+    CLI(opCodes[0xFF], bus, registers, *memoryMapper);
     EXPECT_EQ(0, registers.statusRegister);
 }
 TEST_F(InstructionTest, clvTest) {
     registers.setFlag(ProcessorStatus::OverflowFlag);
-    InstructionDispatcher::CLV(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+    CLV(opCodes[0xFF], bus, registers, *memoryMapper);
     EXPECT_EQ(0, registers.statusRegister);
 
-    InstructionDispatcher::CLV(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+    CLV(opCodes[0xFF], bus, registers, *memoryMapper);
     EXPECT_EQ(0, registers.statusRegister);
 }
 TEST_F(InstructionTest, secTest) {
-    InstructionDispatcher::SEC(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+    SEC(opCodes[0xFF], bus, registers, *memoryMapper);
     testOnlyOneFlagSet(ProcessorStatus::CarryFlag);
 }
 
 TEST_F(InstructionTest, sedTest) {
-    InstructionDispatcher::SED(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+    SED(opCodes[0xFF], bus, registers, *memoryMapper);
     testOnlyOneFlagSet(ProcessorStatus::DecimalMode);
 }
 
 TEST_F(InstructionTest, seiTest) {
-    InstructionDispatcher::SEI(InstructionDispatcher::opCodes[0xFF], bus, registers, *memoryMapper);
+    SEI(opCodes[0xFF], bus, registers, *memoryMapper);
     testOnlyOneFlagSet(ProcessorStatus::InterruptDisable);
 }

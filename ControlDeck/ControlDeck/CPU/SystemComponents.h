@@ -121,7 +121,7 @@ namespace NES {
         uint16_t programCounter;
 
         // Status of interrupt pins on CPU.  Treated as an injected 00 op code (BRK) to be handled durin
-        InterruptLevel interruptStatus;
+        InterruptLevel interruptStatus{ InterruptLevel::NONE };
     };
 
     /**
