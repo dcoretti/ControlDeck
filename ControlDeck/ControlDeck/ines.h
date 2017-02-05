@@ -38,7 +38,7 @@ namespace NES {
 
 
 
-    Cartridge * loadINesFile(char * fname);
+    Cartridge * loadINesFile(char * fname, Cartridge *cart);
     bool transferMemoryBankDataFromRom(char *nesFileData, INesHeader *header, Cartridge *cart);
     bool parseHeader(char *nesFileData, INesHeader * header);
 

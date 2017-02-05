@@ -40,6 +40,7 @@ namespace NES {
     */
     class MemoryMapper {
     public:
+		MemoryMapper() = default;
         MemoryMapper(SystemRam * systemRam, PPURegisters * ppuRegisters = nullptr) : systemRam(systemRam), ppuRegisters(ppuRegisters) {}
 
         /**
@@ -49,13 +50,13 @@ namespace NES {
         unsigned int doMemoryOperation(SystemBus &systemBus);
 
         Cartridge *cartridge;
+
+		PPURegisters * ppuRegisters{ nullptr };
+		SystemRam * systemRam{ nullptr };
     private:
         void systemRamHandler(SystemBus &systemBus);
         void ppuRegisterHandler(SystemBus &systemBus);
         void ioRegisterHandler(SystemBus &systemBus);
-
-        PPURegisters * ppuRegisters{ nullptr };
-        SystemRam * systemRam{ nullptr };
 
         //MmcHandler mmcHandler;    // active MMC memory access handler
     };

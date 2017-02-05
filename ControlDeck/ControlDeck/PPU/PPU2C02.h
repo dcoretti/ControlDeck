@@ -41,7 +41,7 @@ namespace NES {
         PreRenderScanLine = 261,    //261
     };
 
-    class PPU2C02 {
+    class Ppu2C02 {
     public:
         // Memory mapped registers connected to CPU
         uint8_t getStatus();
@@ -63,7 +63,10 @@ namespace NES {
 
         void setOamDma(uint8_t val);
 
+		void setPowerUpState();
 
+		PPURegisters memoryMappedRegisters;
+		PPURenderingRegisters renderingRegisters;
 
     private:
 
@@ -130,9 +133,6 @@ namespace NES {
         */
         void populateBackgroundPatterns();
 
-
-        PPURegisters memoryMappedRegisters;
-        PPURenderingRegisters renderingRegisters;
 
         bool isDmaActive;
     };

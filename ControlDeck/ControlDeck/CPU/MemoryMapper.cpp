@@ -26,6 +26,7 @@ namespace NES {
             cartridge->mmc->doMemoryOperation(systemBus, *cartridge);
         }
 
+		// TODO memory cycles cost by memory op? 
         return 0;
     }
 

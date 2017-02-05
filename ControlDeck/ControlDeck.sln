@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ControlDeck", "ControlDeck\ControlDeck.vcxproj", "{64060819-C482-40FF-ADEF-FD45A83E5FE7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ControlDeckTest", "ControlDeckTest\ControlDeckTest.vcxproj", "{0AEE1B59-0C91-44BD-9D22-0A090C38F224}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ControlDeckNES", "ControlDeckNES\ControlDeckNES.vcxproj", "{A4AE1B02-DE2C-4070-A608-430F18725269}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +33,14 @@ Global
 		{0AEE1B59-0C91-44BD-9D22-0A090C38F224}.Release|x64.Build.0 = Release|x64
 		{0AEE1B59-0C91-44BD-9D22-0A090C38F224}.Release|x86.ActiveCfg = Release|Win32
 		{0AEE1B59-0C91-44BD-9D22-0A090C38F224}.Release|x86.Build.0 = Release|Win32
+		{A4AE1B02-DE2C-4070-A608-430F18725269}.Debug|x64.ActiveCfg = Debug|x64
+		{A4AE1B02-DE2C-4070-A608-430F18725269}.Debug|x64.Build.0 = Debug|x64
+		{A4AE1B02-DE2C-4070-A608-430F18725269}.Debug|x86.ActiveCfg = Debug|Win32
+		{A4AE1B02-DE2C-4070-A608-430F18725269}.Debug|x86.Build.0 = Debug|Win32
+		{A4AE1B02-DE2C-4070-A608-430F18725269}.Release|x64.ActiveCfg = Release|x64
+		{A4AE1B02-DE2C-4070-A608-430F18725269}.Release|x64.Build.0 = Release|x64
+		{A4AE1B02-DE2C-4070-A608-430F18725269}.Release|x86.ActiveCfg = Release|Win32
+		{A4AE1B02-DE2C-4070-A608-430F18725269}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

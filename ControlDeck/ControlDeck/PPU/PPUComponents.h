@@ -102,7 +102,7 @@ namespace NES{
         *   7   |   Generate NMI on vblank (Enabling this flag will output NMI to CPU when STATUS vblank flag is also set)
         *   source: http://wiki.nesdev.com/w/index.php/PPU_programmer_reference#Controller_.28.242000.29_.3E_write
         */
-        uint8_t control;
+		uint8_t control{ 0 };
 
         /**
         *   PPUMASK $2001  (Writable)
@@ -117,7 +117,7 @@ namespace NES{
         *   6   |   Emphasize green (ntsc)
         *   7   |   Emphasize blue (ntsc)
         */
-        uint8_t mask;
+		uint8_t mask{ 0 };
 
         /**
         *   PPUSTATUS $2002 (Read)
@@ -134,16 +134,16 @@ namespace NES{
         *   
         *   Read clears vblank flag on bit 7.
         */
-        uint8_t status;
+		uint8_t status{ 0 };
 
         /**
         *   OAMADDR $2003 (Writable)
         *   Object Attribute Memory. 
         *   Writing to oamData increments oamAddr.
         */
-        uint8_t oamAddr;
+		uint8_t oamAddr{ 0 };
         // OAMDATA $2004 (Writable)
-        uint8_t oamData;
+		uint8_t oamData{ 0 };
 
         /**
         *   PPUSCROLL $2005 (Writable)
@@ -158,21 +158,21 @@ namespace NES{
         *
         *   TODO handle upper values (240-255) properly to reflect -16-1? see ref
         */
-        uint8_t scroll;
+		uint8_t scroll{ 0 };
 
         /**
         *   CPU -> VRAM interface via address/data 
         *   Access pattern is to addr (2 instr hsb, lsb) then repeatedly to data.
         */
         // PPUADDR $2006 (Writable)
-        uint8_t address;
+		uint8_t address{ 0 };
         // PPUDATA $2007 (Writable)
-        uint8_t data;
+		uint8_t data{ 0 };
         // TODO do I need this to represent dummy reads with internal buffer?
-        uint8_t dataReadBuffer;
+		uint8_t dataReadBuffer{ 0 };
 
         // OAMDMA $4014 - MSB of 256 byte dma transfer starting location. 
-        uint8_t oamDma;
+		uint8_t oamDma{ 0 };
     };
 
     enum class SpritePriority {
@@ -196,9 +196,9 @@ namespace NES{
         bool getVerticalFlip();
 
         // byte 0
-        uint8_t spriteTopY;
+		uint8_t spriteTopY{ 0 };
         // byte 1
-        uint8_t tileIndex;
+		uint8_t tileIndex{ 0 };
         /**
         *   byte 2 - Attributes
         *   Bit |    Function
@@ -213,9 +213,9 @@ namespace NES{
         *   7   |   Vertical flip
         *  
         */
-        uint8_t attributes;
+		uint8_t attributes{ 0 };
         // byte 3
-        uint8_t spriteLeftX;
+		uint8_t spriteLeftX{ 0 };
     };
 
     /**

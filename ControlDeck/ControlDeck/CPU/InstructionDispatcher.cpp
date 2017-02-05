@@ -1,9 +1,12 @@
 #include "InstructionDispatcher.h"
 #include <cstdint>
-
+#include "../common.h"
 
 namespace NES {
     namespace InstructionSet {
+		const uint16_t stackBaseAddress = 0x100;
+
+
         void NOP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             // do nothing
         }
@@ -527,11 +530,12 @@ namespace NES {
             memoryMapper.doMemoryOperation(systemBus);
         }
 
-
         void UNK(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-            // TODO do something to stop execution if we get here?
-        }
-
+			DBG_CRASH("Unknown instruction encountered %02x: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, sp:$%02x, p: $%02x, pc: $%04x}\n",
+				opCode.opCode,
+				systemBus.addressBus, systemBus.dataBus, systemBus.read,
+				registers.acc, registers.x, registers.y, registers.stackPointer, registers.statusRegister, registers.programCounter);
+		}
 
         //////////////////////////////////////////////////////
         // Utility methods
@@ -539,15 +543,13 @@ namespace NES {
         // No overflow detection just like the NES
 
         void pushStackSetup(SystemBus &systemBus, Registers &registers) {
-            systemBus.addressBus = (uint16_t)(0x100 + registers.stackPointer);
-            registers.stackPointer += 8;
+            systemBus.addressBus = (uint16_t)(stackBaseAddress + registers.stackPointer--);
             systemBus.read = false;
         }
 
         // TODO a bit confusing where push knows about register x -> addr  whereas this one only knows where to read.  Does that matter?
         void popStackSetup(SystemBus &systemBus, Registers &registers) {
-            systemBus.addressBus = (uint16_t)(0x100 + registers.stackPointer);
-            registers.stackPointer -= 8;
+            systemBus.addressBus = (uint16_t)(stackBaseAddress + ++registers.stackPointer);
             systemBus.read = true;
         }
 

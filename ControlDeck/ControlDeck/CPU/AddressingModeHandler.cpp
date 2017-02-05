@@ -14,13 +14,13 @@ namespace NES {
             break;
         case AddressingMode::Accumulator:
             // no memory access used
-            break;
+            return;
         case AddressingMode::Immediate:
             getImmediateAddress(systemBus, registers, memoryMapper);
             break;
         case AddressingMode::Implicit:
             // no memory access used
-            break;
+			return;
         case AddressingMode::Indirect:
             getIndirectAddress(systemBus, registers, memoryMapper);
             break;
@@ -44,8 +44,7 @@ namespace NES {
             break;
         case AddressingMode::Undefined:
         default:
-            // TODO do some actual handling here.
-            systemBus.addressBus = 0xDDDD;
+			DBG_CRASH("Invalid address mode encountered for instruction %d", addressingMode);
             return;
         }
 

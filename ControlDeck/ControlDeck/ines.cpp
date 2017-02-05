@@ -6,8 +6,9 @@
 // Disable warnings for fopen
 #pragma warning(disable:4996)
 #endif
+
 namespace NES {
-    Cartridge * loadINesFile(char * fname) {
+    Cartridge * loadINesFile(char * fname, Cartridge * cart) {
         FILE *fp = fopen(fname, "r");
         // TODO what kind of error handling should be done here?
         fseek(fp, 0, SEEK_END);
@@ -21,7 +22,6 @@ namespace NES {
         INesHeader header;
         DBG_ASSERT(parseHeader(data, &header), "Unable to parse INES header data");
 
-        Cartridge *cart = new Cartridge();
         DBG_ASSERT(transferMemoryBankDataFromRom(data, &header, cart), "Unable to build cartridge from header and file data");
         return cart;
     }

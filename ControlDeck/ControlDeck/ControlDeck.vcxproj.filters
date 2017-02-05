@@ -63,6 +63,9 @@
     <ClInclude Include="joypad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CPU\MemoryMapper.cpp">
@@ -93,6 +96,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CPU\InstructionSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
