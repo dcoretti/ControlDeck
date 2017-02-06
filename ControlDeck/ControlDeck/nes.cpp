@@ -14,7 +14,7 @@ namespace NES {
 		controlDeck.cpu.memoryMapper = &controlDeck.memoryMapper;
 		controlDeck.cpu.memoryMapper->ppuRegisters = &controlDeck.ppu.memoryMappedRegisters;
 		controlDeck.cpu.setPowerUpState();
-		controlDeck.cpu.reset();
+		//controlDeck.cpu.reset();
 	}
 
 	void nesLoop(NesControlDeck &nes, int numInstructions) {

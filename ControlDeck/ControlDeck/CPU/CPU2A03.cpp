@@ -59,13 +59,13 @@ namespace NES {
 
     //https://wiki.nesdev.com/w/index.php/CPU_power_up_state#cite_note-1
     void Cpu2a03::setPowerUpState() {
-        registers->statusRegister = 0x24;   // interrupt enabled with B/unused flag also set (though not used)
+        registers->statusRegister = 0x34;   // interrupt enabled with B/unused flag also set (though not used)
         registers->acc = 0;
         registers->x = 0;
         registers->y = 0;
         registers->stackPointer = 0xfd;
-        registers->programCounter = 0x8000;  // will do reset vector following
-
+        registers->programCounter = 0xffed;  // will do reset vector following
+		registers->interruptStatus = InterruptLevel::POWER_ON;
         memset(ram->ram, 0, SystemRam::systemRAMBytes);
 
     }

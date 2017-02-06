@@ -22,7 +22,8 @@ namespace NES {
         NONE,
         IRQ,
         NMI,
-        RESET
+        RESET, 
+		POWER_ON	// same as reset but without changing status flags, etc
     };
 
     // Sources:  http://nesdev.com/NESDoc.pdf

@@ -20,9 +20,12 @@ namespace NES {
 
             if ((arg & 0x80) != 0) {
                 registers.setFlag(ProcessorStatus::CarryFlag);
-            }
+            } else {
+				registers.clearFlag(ProcessorStatus::CarryFlag);
+			}
             arg = (int8_t)arg << 1;
-
+			registers.setFlagIfZero(arg);
+			registers.setFlagIfNegative(arg);
             if (opCode.addressingMode == AddressingMode::Accumulator) {
                 registers.acc = arg;
             } else {
@@ -42,7 +45,9 @@ namespace NES {
             bool carrySet = registers.flagSet(ProcessorStatus::CarryFlag);
             if ((arg & 0x80) != 0) {
                 registers.setFlag(ProcessorStatus::CarryFlag);
-            }
+            } else {
+				registers.clearFlag(ProcessorStatus::CarryFlag);
+			}
             arg = arg << (uint8_t)1;
             arg += carrySet ? 1 : 0;
 
@@ -66,7 +71,10 @@ namespace NES {
             uint8_t carryMask = registers.flagSet(ProcessorStatus::CarryFlag) ? 0x80 : 0x00;
             if ((arg & 0x01) != 0) {
                 registers.setFlag(ProcessorStatus::CarryFlag);
-            }
+			} else {
+				registers.clearFlag(ProcessorStatus::CarryFlag);
+			}
+
             arg = arg >> (uint8_t)1;
             // old carry flag is brought in as bit 7;
             arg &= carryMask;
@@ -90,9 +98,11 @@ namespace NES {
                 arg = registers.acc;
             }
 
-            if ((arg & 0x01) != 0) {
+            if ((arg & 0x1) != 0) {
                 registers.setFlag(ProcessorStatus::CarryFlag);
-            }
+			} else {
+				registers.clearFlag(ProcessorStatus::CarryFlag);
+			}
             arg = arg >> (uint8_t)1;
             registers.setFlagIfZero(arg);
             registers.setFlagIfNegative(arg);
@@ -153,21 +163,33 @@ namespace NES {
         // Transfer accumulator to x
         void TAX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.x = registers.acc;
+
+			registers.setFlagIfZero(registers.x);
+			registers.setFlagIfNegative(registers.x);
         }
 
         // Transfer x to accumulator
         void TXA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.acc = registers.x;
+
+			registers.setFlagIfZero(registers.acc);
+			registers.setFlagIfNegative(registers.acc);
         }
 
         // Transfer y to accumulator
         void TYA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.acc = registers.y;
+
+			registers.setFlagIfZero(registers.acc);
+			registers.setFlagIfNegative(registers.acc);
         }
 
         // Transfer accumulator to y
         void TAY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.y = registers.acc;
+
+			registers.setFlagIfZero(registers.y);
+			registers.setFlagIfNegative(registers.y);
         }
 
         // Clear carry flag
@@ -283,15 +305,18 @@ namespace NES {
 
             if ((systemBus.dataBus & 0x40) != 0) {
                 registers.setFlag(ProcessorStatus::OverflowFlag);
-            }
+			} else {
+				registers.clearFlag(ProcessorStatus::OverflowFlag);
+			}
+			registers.setFlagIfNegative(systemBus.dataBus);
         }
 
         void CMP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             int8_t sub = (int8_t)registers.acc - (int8_t)systemBus.dataBus;
-            if (sub == 0) {
+			if (registers.acc == systemBus.dataBus) {
                 registers.setFlag(ProcessorStatus::ZeroFlag);
             }
-            if (sub >= 0) {
+            if (registers.acc >= systemBus.dataBus) {
                 registers.setFlag(ProcessorStatus::CarryFlag);
             }
 
@@ -300,12 +325,12 @@ namespace NES {
 
         void CPY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             int8_t sub = (int8_t)registers.y - (int8_t)systemBus.dataBus;
-            if (sub == 0) {
-                registers.setFlag(ProcessorStatus::ZeroFlag);
-            }
-            if (sub >= 0) {
-                registers.setFlag(ProcessorStatus::CarryFlag);
-            }
+			if (registers.y == systemBus.dataBus) {
+				registers.setFlag(ProcessorStatus::ZeroFlag);
+			}
+			if (registers.y >= systemBus.dataBus) {
+				registers.setFlag(ProcessorStatus::CarryFlag);
+			}
 
             registers.setFlagIfNegative((uint8_t)sub);
         }
@@ -313,12 +338,12 @@ namespace NES {
 
         void CPX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             int8_t sub = (int8_t)registers.x - (int8_t)systemBus.dataBus;
-            if (sub == 0) {
-                registers.setFlag(ProcessorStatus::ZeroFlag);
-            }
-            if (sub >= 0) {
-                registers.setFlag(ProcessorStatus::CarryFlag);
-            }
+			if (registers.x == systemBus.dataBus) {
+				registers.setFlag(ProcessorStatus::ZeroFlag);
+			}
+			if (registers.x >= systemBus.dataBus) {
+				registers.setFlag(ProcessorStatus::CarryFlag);
+			}
 
             registers.setFlagIfNegative((uint8_t)sub);
         }
@@ -328,11 +353,11 @@ namespace NES {
         /////////////////////////////////////////////////
         //    Stack instructions
 
-        // Push x to stack pointer
+		// Copy X to S
         void TXS(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-            systemBus.dataBus = registers.x;
-            pushDataBusToStack(systemBus, registers, memoryMapper);
+            registers.stackPointer = registers.x;
         }
+
         // Push accumulator on stack
         void PHA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             systemBus.dataBus = registers.acc;
@@ -344,16 +369,21 @@ namespace NES {
             pushDataBusToStack(systemBus, registers, memoryMapper);
         }
 
-        // Pop stack pointer to x
+        // copy stack pointer register to x
         void TSX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-            popStackToDataBus(systemBus, registers, memoryMapper);
-            registers.x = systemBus.dataBus;
+			registers.x = registers.stackPointer;
+
+			registers.setFlagIfZero(registers.x);
+			registers.setFlagIfNegative(registers.x);
         }
 
         // Pop accumulator from stack
         void PLA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             popStackToDataBus(systemBus, registers, memoryMapper);
             registers.acc = systemBus.dataBus;
+
+			registers.setFlagIfZero(registers.acc);
+			registers.setFlagIfNegative(registers.acc);
         }
 
         // Pop processor status from stack
@@ -362,8 +392,11 @@ namespace NES {
             registers.statusRegister = systemBus.dataBus;
             // Ignore bits 4/5 when pulling from the stack since they are never physically represented in the status register.
             // These indicate the type of irq
-            registers.statusRegister &= 0xcf;
+            //registers.statusRegister |= 0x30; // just always set.
         }
+
+		/////////////////////////////////////////////////
+		// branching
 
         void BCC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (!registers.flagSet(ProcessorStatus::CarryFlag)) {
@@ -425,7 +458,12 @@ namespace NES {
             // Technically RESET does these operations but with the data bus set to read instead of write.  Leaving them out 
             // unless I feel like accuracy of the reset operation is important later.
             // See: http://www.pagetable.com/?p=410
-            if (registers.interruptStatus != InterruptLevel::RESET) {
+			if (registers.interruptStatus == InterruptLevel::RESET) {
+				registers.stackPointer -= 3;
+				registers.setFlag(ProcessorStatus::InterruptDisable);
+			} else if (registers.interruptStatus == InterruptLevel::POWER_ON) {
+
+			} else {
                 // 1. push program counter
                 systemBus.dataBus = registers.pch();
                 pushDataBusToStack(systemBus, registers, memoryMapper);
@@ -441,10 +479,11 @@ namespace NES {
                     // set bit 4/5 to 10
                     systemBus.dataBus &= 0xef;    // clear bit 4
                     systemBus.dataBus |= (uint8_t)0x20;    // set bit 5
-                } else {
-                    // bit 4/5 set to 1
-                    systemBus.dataBus |= (uint8_t)0x30;
-                }
+                } 
+				//else {//???????
+    //                // bit 4/5 set to 1
+    //                systemBus.dataBus |= (uint8_t)0x30;
+    //            }
                 pushDataBusToStack(systemBus, registers, memoryMapper);
             }
 
@@ -458,7 +497,7 @@ namespace NES {
             int vector = 0;
             if (registers.interruptStatus == InterruptLevel::NMI) {
                 vector = 1;
-            } else if (registers.interruptStatus == InterruptLevel::RESET) {
+            } else if (registers.interruptStatus == InterruptLevel::RESET || registers.interruptStatus == InterruptLevel::POWER_ON) {
                 vector = 2;
             }
 
