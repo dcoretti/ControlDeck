@@ -24,6 +24,6 @@ namespace NES {
 
 
 	void initNes(char * nesFile, NesControlDeck &nesControlDeck);
-	void nesLoop(NesControlDeck &nes, int numInstructions);
+	void nesLoop(NesControlDeck &nes, int numInstructions = -1);
 
 }

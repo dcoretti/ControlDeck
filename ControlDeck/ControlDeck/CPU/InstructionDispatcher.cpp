@@ -4,7 +4,7 @@
 
 namespace NES {
     namespace InstructionSet {
-		const uint16_t stackBaseAddress = 0x100;
+        const uint16_t stackBaseAddress = 0x100;
 
 
         void NOP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
@@ -21,11 +21,11 @@ namespace NES {
             if ((arg & 0x80) != 0) {
                 registers.setFlag(ProcessorStatus::CarryFlag);
             } else {
-				registers.clearFlag(ProcessorStatus::CarryFlag);
-			}
+                registers.clearFlag(ProcessorStatus::CarryFlag);
+            }
             arg = (int8_t)arg << 1;
-			registers.setFlagIfZero(arg);
-			registers.setFlagIfNegative(arg);
+            registers.setFlagIfZero(arg);
+            registers.setFlagIfNegative(arg);
             if (opCode.addressingMode == AddressingMode::Accumulator) {
                 registers.acc = arg;
             } else {
@@ -46,8 +46,8 @@ namespace NES {
             if ((arg & 0x80) != 0) {
                 registers.setFlag(ProcessorStatus::CarryFlag);
             } else {
-				registers.clearFlag(ProcessorStatus::CarryFlag);
-			}
+                registers.clearFlag(ProcessorStatus::CarryFlag);
+            }
             arg = arg << (uint8_t)1;
             arg += carrySet ? 1 : 0;
 
@@ -71,9 +71,9 @@ namespace NES {
             uint8_t carryMask = registers.flagSet(ProcessorStatus::CarryFlag) ? 0x80 : 0x00;
             if ((arg & 0x01) != 0) {
                 registers.setFlag(ProcessorStatus::CarryFlag);
-			} else {
-				registers.clearFlag(ProcessorStatus::CarryFlag);
-			}
+            } else {
+                registers.clearFlag(ProcessorStatus::CarryFlag);
+            }
 
             arg = arg >> (uint8_t)1;
             // old carry flag is brought in as bit 7;
@@ -100,9 +100,9 @@ namespace NES {
 
             if ((arg & 0x1) != 0) {
                 registers.setFlag(ProcessorStatus::CarryFlag);
-			} else {
-				registers.clearFlag(ProcessorStatus::CarryFlag);
-			}
+            } else {
+                registers.clearFlag(ProcessorStatus::CarryFlag);
+            }
             arg = arg >> (uint8_t)1;
             registers.setFlagIfZero(arg);
             registers.setFlagIfNegative(arg);
@@ -164,32 +164,32 @@ namespace NES {
         void TAX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.x = registers.acc;
 
-			registers.setFlagIfZero(registers.x);
-			registers.setFlagIfNegative(registers.x);
+            registers.setFlagIfZero(registers.x);
+            registers.setFlagIfNegative(registers.x);
         }
 
         // Transfer x to accumulator
         void TXA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.acc = registers.x;
 
-			registers.setFlagIfZero(registers.acc);
-			registers.setFlagIfNegative(registers.acc);
+            registers.setFlagIfZero(registers.acc);
+            registers.setFlagIfNegative(registers.acc);
         }
 
         // Transfer y to accumulator
         void TYA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.acc = registers.y;
 
-			registers.setFlagIfZero(registers.acc);
-			registers.setFlagIfNegative(registers.acc);
+            registers.setFlagIfZero(registers.acc);
+            registers.setFlagIfNegative(registers.acc);
         }
 
         // Transfer accumulator to y
         void TAY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.y = registers.acc;
 
-			registers.setFlagIfZero(registers.y);
-			registers.setFlagIfNegative(registers.y);
+            registers.setFlagIfZero(registers.y);
+            registers.setFlagIfNegative(registers.y);
         }
 
         // Clear carry flag
@@ -305,15 +305,15 @@ namespace NES {
 
             if ((systemBus.dataBus & 0x40) != 0) {
                 registers.setFlag(ProcessorStatus::OverflowFlag);
-			} else {
-				registers.clearFlag(ProcessorStatus::OverflowFlag);
-			}
-			registers.setFlagIfNegative(systemBus.dataBus);
+            } else {
+                registers.clearFlag(ProcessorStatus::OverflowFlag);
+            }
+            registers.setFlagIfNegative(systemBus.dataBus);
         }
 
         void CMP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             int8_t sub = (int8_t)registers.acc - (int8_t)systemBus.dataBus;
-			if (registers.acc == systemBus.dataBus) {
+            if (registers.acc == systemBus.dataBus) {
                 registers.setFlag(ProcessorStatus::ZeroFlag);
             }
             if (registers.acc >= systemBus.dataBus) {
@@ -325,12 +325,12 @@ namespace NES {
 
         void CPY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             int8_t sub = (int8_t)registers.y - (int8_t)systemBus.dataBus;
-			if (registers.y == systemBus.dataBus) {
-				registers.setFlag(ProcessorStatus::ZeroFlag);
-			}
-			if (registers.y >= systemBus.dataBus) {
-				registers.setFlag(ProcessorStatus::CarryFlag);
-			}
+            if (registers.y == systemBus.dataBus) {
+                registers.setFlag(ProcessorStatus::ZeroFlag);
+            }
+            if (registers.y >= systemBus.dataBus) {
+                registers.setFlag(ProcessorStatus::CarryFlag);
+            }
 
             registers.setFlagIfNegative((uint8_t)sub);
         }
@@ -338,12 +338,12 @@ namespace NES {
 
         void CPX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             int8_t sub = (int8_t)registers.x - (int8_t)systemBus.dataBus;
-			if (registers.x == systemBus.dataBus) {
-				registers.setFlag(ProcessorStatus::ZeroFlag);
-			}
-			if (registers.x >= systemBus.dataBus) {
-				registers.setFlag(ProcessorStatus::CarryFlag);
-			}
+            if (registers.x == systemBus.dataBus) {
+                registers.setFlag(ProcessorStatus::ZeroFlag);
+            }
+            if (registers.x >= systemBus.dataBus) {
+                registers.setFlag(ProcessorStatus::CarryFlag);
+            }
 
             registers.setFlagIfNegative((uint8_t)sub);
         }
@@ -353,7 +353,7 @@ namespace NES {
         /////////////////////////////////////////////////
         //    Stack instructions
 
-		// Copy X to S
+        // Copy X to S
         void TXS(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.stackPointer = registers.x;
         }
@@ -366,17 +366,17 @@ namespace NES {
         // Push processor status on stack
         void PHP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             systemBus.dataBus = registers.statusRegister;
-			// Set BRK and unused bit ALWAYs with PHP https://wiki.nesdev.com/w/index.php/Status_flags
-			systemBus.dataBus |= 0x30;	
+            // Set BRK and unused bit ALWAYs with PHP https://wiki.nesdev.com/w/index.php/Status_flags
+            systemBus.dataBus |= 0x30;    
             pushDataBusToStack(systemBus, registers, memoryMapper);
         }
 
         // copy stack pointer register to x
         void TSX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-			registers.x = registers.stackPointer;
+            registers.x = registers.stackPointer;
 
-			registers.setFlagIfZero(registers.x);
-			registers.setFlagIfNegative(registers.x);
+            registers.setFlagIfZero(registers.x);
+            registers.setFlagIfNegative(registers.x);
         }
 
         // Pop accumulator from stack
@@ -384,8 +384,8 @@ namespace NES {
             popStackToDataBus(systemBus, registers, memoryMapper);
             registers.acc = systemBus.dataBus;
 
-			registers.setFlagIfZero(registers.acc);
-			registers.setFlagIfNegative(registers.acc);
+            registers.setFlagIfZero(registers.acc);
+            registers.setFlagIfNegative(registers.acc);
         }
 
         // Pop processor status from stack
@@ -397,8 +397,8 @@ namespace NES {
             //registers.statusRegister |= 0x30; // just always set.
         }
 
-		/////////////////////////////////////////////////
-		// branching
+        /////////////////////////////////////////////////
+        // branching
 
         void BCC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (!registers.flagSet(ProcessorStatus::CarryFlag)) {
@@ -460,12 +460,12 @@ namespace NES {
             // Technically RESET does these operations but with the data bus set to read instead of write.  Leaving them out 
             // unless I feel like accuracy of the reset operation is important later.
             // See: http://www.pagetable.com/?p=410
-			if (registers.interruptStatus == InterruptLevel::RESET) {
-				registers.stackPointer -= 3;
-				registers.setFlag(ProcessorStatus::InterruptDisable);
-			} else if (registers.interruptStatus == InterruptLevel::POWER_ON) {
-				// n/a
-			} else {
+            if (registers.interruptStatus == InterruptLevel::RESET) {
+                registers.stackPointer -= 3;
+                registers.setFlag(ProcessorStatus::InterruptDisable);
+            } else if (registers.interruptStatus == InterruptLevel::POWER_ON) {
+                // n/a
+            } else {
 
                 // 1. push program counter
                 systemBus.dataBus = registers.pch();
@@ -483,7 +483,7 @@ namespace NES {
                     systemBus.dataBus &= 0xef;    // clear bit 4
                     systemBus.dataBus |= (uint8_t)0x20;    // set bit 5
                 } 
-				//else {//???????
+                //else {//???????
     //                // bit 4/5 set to 1
     //                systemBus.dataBus |= (uint8_t)0x30;
     //            }
@@ -515,13 +515,13 @@ namespace NES {
 
             // jump to interrupt vector
             registers.programCounter = (systemBus.dataBus << 8) + adl;
-			registers.setFlag(ProcessorStatus::InterruptDisable);
+            registers.setFlag(ProcessorStatus::InterruptDisable);
 
-			if (registers.interruptStatus != InterruptLevel::NONE) {
-				// General interrupt vectoring (anything but BRK) clears bit 4
-				// https://wiki.nesdev.com/w/index.php/Status_flags
-				registers.clearFlag(ProcessorStatus::BreakCommand);
-			}
+            if (registers.interruptStatus != InterruptLevel::NONE) {
+                // General interrupt vectoring (anything but BRK) clears bit 4
+                // https://wiki.nesdev.com/w/index.php/Status_flags
+                registers.clearFlag(ProcessorStatus::BreakCommand);
+            }
         }
 
         void RTI(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
@@ -557,8 +557,7 @@ namespace NES {
             registers.setPcl(systemBus.dataBus);
             popStackToDataBus(systemBus, registers, memoryMapper);
             registers.setPch(systemBus.dataBus);
-
-            // PC needs to be incremented by 1 to get next isntruction
+            registers.programCounter--;
         }
 
         void STA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
@@ -580,11 +579,11 @@ namespace NES {
         }
 
         void UNK(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-			DBG_CRASH("Unknown instruction encountered %02x: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, sp:$%02x, p: $%02x, pc: $%04x}\n",
-				opCode.opCode,
-				systemBus.addressBus, systemBus.dataBus, systemBus.read,
-				registers.acc, registers.x, registers.y, registers.stackPointer, registers.statusRegister, registers.programCounter);
-		}
+            DBG_CRASH("Unknown instruction encountered %02x: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, sp:$%02x, p: $%02x, pc: $%04x}\n",
+                opCode.opCode,
+                systemBus.addressBus, systemBus.dataBus, systemBus.read,
+                registers.acc, registers.x, registers.y, registers.stackPointer, registers.statusRegister, registers.programCounter);
+        }
 
         //////////////////////////////////////////////////////
         // Utility methods

@@ -21,9 +21,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	NES::NesControlDeck controlDeck;
 	initNes("C:\\Users\\dc\\Desktop\\nestest\\cpu_reset\\registers.nes", controlDeck);
 
-	nesLoop(controlDeck, 100);
+	nesLoop(controlDeck, 6200);
 
 	int tmp;
 	scanf("%d", &tmp);
 	return 0;
-}
+} 
