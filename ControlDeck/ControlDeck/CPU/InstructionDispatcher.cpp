@@ -402,43 +402,43 @@ namespace NES {
 
         void BCC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (!registers.flagSet(ProcessorStatus::CarryFlag)) {
-                registers.programCounter += systemBus.dataBus;
+                registers.programCounter += (int8_t)systemBus.dataBus;
             }
         }
 
         void BCS(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (registers.flagSet(ProcessorStatus::CarryFlag)) {
-                registers.programCounter += systemBus.dataBus;
+                registers.programCounter += (int8_t)systemBus.dataBus;
             }
         }
 
         void BEQ(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (registers.flagSet(ProcessorStatus::ZeroFlag)) {
-                registers.programCounter += systemBus.dataBus;
+                registers.programCounter += (int8_t)systemBus.dataBus;
             }
         }
 
         void BPL(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (!registers.flagSet(ProcessorStatus::NegativeFlag)) {
-                registers.programCounter += systemBus.dataBus;
+                registers.programCounter += (int8_t)systemBus.dataBus;
             }
         }
 
         void BMI(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (registers.flagSet(ProcessorStatus::NegativeFlag)) {
-                registers.programCounter += systemBus.dataBus;
+                registers.programCounter += (int8_t)systemBus.dataBus;
             }
         }
 
         void BNE(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (!registers.flagSet(ProcessorStatus::ZeroFlag)) {
-                registers.programCounter += systemBus.dataBus;
+                registers.programCounter += (int8_t)systemBus.dataBus;
             }
         }
 
         void BVC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (!registers.flagSet(ProcessorStatus::OverflowFlag)) {
-                registers.programCounter += systemBus.dataBus;
+                registers.programCounter += (int8_t)systemBus.dataBus;
             }
         }
 
