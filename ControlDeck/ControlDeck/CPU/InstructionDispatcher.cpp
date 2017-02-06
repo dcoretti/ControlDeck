@@ -366,6 +366,8 @@ namespace NES {
         // Push processor status on stack
         void PHP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             systemBus.dataBus = registers.statusRegister;
+			// Set BRK and unused bit ALWAYs with PHP https://wiki.nesdev.com/w/index.php/Status_flags
+			systemBus.dataBus |= 0x30;	
             pushDataBusToStack(systemBus, registers, memoryMapper);
         }
 
@@ -417,7 +419,7 @@ namespace NES {
         }
 
         void BPL(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-            if (!registers.flagSet(ProcessorStatus::ZeroFlag)) {
+            if (!registers.flagSet(ProcessorStatus::NegativeFlag)) {
                 registers.programCounter += systemBus.dataBus;
             }
         }
@@ -429,7 +431,7 @@ namespace NES {
         }
 
         void BNE(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-            if (!registers.flagSet(ProcessorStatus::NegativeFlag)) {
+            if (!registers.flagSet(ProcessorStatus::ZeroFlag)) {
                 registers.programCounter += systemBus.dataBus;
             }
         }
@@ -462,8 +464,9 @@ namespace NES {
 				registers.stackPointer -= 3;
 				registers.setFlag(ProcessorStatus::InterruptDisable);
 			} else if (registers.interruptStatus == InterruptLevel::POWER_ON) {
-
+				// n/a
 			} else {
+
                 // 1. push program counter
                 systemBus.dataBus = registers.pch();
                 pushDataBusToStack(systemBus, registers, memoryMapper);
@@ -512,6 +515,13 @@ namespace NES {
 
             // jump to interrupt vector
             registers.programCounter = (systemBus.dataBus << 8) + adl;
+			registers.setFlag(ProcessorStatus::InterruptDisable);
+
+			if (registers.interruptStatus != InterruptLevel::NONE) {
+				// General interrupt vectoring (anything but BRK) clears bit 4
+				// https://wiki.nesdev.com/w/index.php/Status_flags
+				registers.clearFlag(ProcessorStatus::BreakCommand);
+			}
         }
 
         void RTI(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {

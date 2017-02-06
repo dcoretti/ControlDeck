@@ -157,11 +157,11 @@ TEST_F(InstructionTest, seiTest) {
 
 
 TEST_F(InstructionTest, phpTest) {
-	registers.statusRegister = 0xdd;
+	registers.statusRegister = 0x04;
 	registers.stackPointer = 0xfd;
 	PHP(opCodes[0x08], bus, registers, *memoryMapper);
-	EXPECT_EQ(0xdd, ram.ram[stackBaseAddress + 0xfd]);
-	EXPECT_EQ(0xdd, registers.statusRegister);	// didn't get cleared
+	EXPECT_EQ(0x34, ram.ram[stackBaseAddress + 0xfd]);
+	EXPECT_EQ(0x04, registers.statusRegister);	// didn't get cleared
 	EXPECT_EQ(0xfc, registers.stackPointer);
 }
 

@@ -12,7 +12,7 @@ namespace NES {
         // Bits 4 and 5 are never set on the physical status register but instead are set as part of pushing the status register to the stack
         // to identify interrupt sources
         // see: http://wiki.nesdev.com/w/index.php/CPU_ALL#The_B_flag
-        //BreakCommand = 4,        // Set after BRK and interrupt set to process
+        BreakCommand = 4,        // Set after BRK and interrupt set to process
         //Interrupt = 5,
         OverflowFlag = 6,        // Look at carry between bit 6 and 7, 7 and carry flag to determine if result switched sign via overflow
         NegativeFlag = 7        // If bit 7 set to 1 as a result of last operation
