@@ -63,17 +63,25 @@ namespace NES {
 
         void setOamDma(uint8_t val);
 
-		void setPowerUpState();
+        void setPowerUpState();
 
-		PPURegisters memoryMappedRegisters;
-		PPURenderingRegisters renderingRegisters;
+        void doPpuCycle();
+        void handleVisibleScanLine();
 
+        // Registers accessible to CPU through memory mapper
+        PPUMemoryComponents ppuMemory;
+
+        // Internal rendering state registers (not directly connected to memory mapper)
+        PPURenderingRegisters renderingRegisters;
     private:
+        uint16_t scanLine;
+        uint32_t cycle;
+        uint16_t scanLineCycle;     // convenience counter
 
         // http://nesdev.com/2C02%20technical%20reference.TXT
         // clock signal is main 6502 clock (21.48mhz / 4)'
         // 341 ppu clock cycles per scan line
-        // 240 scan lines per frame + 20 pre-render + 1 dummy + 1 post-render = 262
+        // 240 scan lines per frame + 20 pre-render + 1 dummy + 1 post-render = 262 total scan lines per frame
         // Memory access is 2 cycles long
 
         /*

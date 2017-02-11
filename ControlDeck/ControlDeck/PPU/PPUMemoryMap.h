@@ -4,7 +4,6 @@
 #include "../cartridge.h"
 
 namespace NES {
-
     class PPUMemoryMap {
     public:
         static const uint16_t patternTableBoundary = 0x4000;
@@ -12,12 +11,8 @@ namespace NES {
 
         uint8_t getByte(uint16_t address);
 
-        Cartridge *cartridge;
-    private:
-        PatternTable * patternTables[2];
-        AttributeTable * attributeTables[4];
-        NameTable * nameTables[4];
-        SystemColorPalette * colorPalettes;
-    };
 
+        Cartridge *cartridge;
+        PPUMemoryComponents *ppuComponents;
+    };
 }

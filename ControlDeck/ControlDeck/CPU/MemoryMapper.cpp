@@ -16,6 +16,8 @@ namespace NES {
         }
         // I/O registers, APU registers
         else if (systemBus.addressBus < 0x4020) {
+            // TODO add APU etc
+
             // https://wiki.nesdev.com/w/index.php/2A03
             if (systemBus.addressBus == OAMDMA) {
                 ppuRegisterHandler(systemBus);
@@ -26,7 +28,7 @@ namespace NES {
             cartridge->mmc->doMemoryOperation(systemBus, *cartridge);
         }
 
-		// TODO memory cycles cost by memory op? 
+        // TODO memory cycles cost by memory op? 
         return 0;
     }
 

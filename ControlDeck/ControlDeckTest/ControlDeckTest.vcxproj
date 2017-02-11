@@ -140,6 +140,7 @@
     <ClCompile Include="CPU\MemoryMapperTest.cpp" />
     <ClCompile Include="CPU\SystemComponentsTest.cpp" />
     <ClCompile Include="inesTest.cpp" />
+    <ClCompile Include="ppu\ppuMemoryMapperTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CPU\CPUTestCommon.h" />

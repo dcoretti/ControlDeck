@@ -157,20 +157,20 @@ TEST_F(InstructionTest, seiTest) {
 
 
 TEST_F(InstructionTest, phpTest) {
-	registers.statusRegister = 0x04;
-	registers.stackPointer = 0xfd;
-	PHP(opCodes[0x08], bus, registers, *memoryMapper);
-	EXPECT_EQ(0x34, ram.ram[stackBaseAddress + 0xfd]);
-	EXPECT_EQ(0x04, registers.statusRegister);	// didn't get cleared
-	EXPECT_EQ(0xfc, registers.stackPointer);
+    registers.statusRegister = 0x04;
+    registers.stackPointer = 0xfd;
+    PHP(opCodes[0x08], bus, registers, *memoryMapper);
+    EXPECT_EQ(0x34, ram.ram[stackBaseAddress + 0xfd]);
+    EXPECT_EQ(0x04, registers.statusRegister);    // didn't get cleared
+    EXPECT_EQ(0xfc, registers.stackPointer);
 }
 
 TEST_F(InstructionTest, plpTest) {
-	registers.statusRegister = 0x00;
-	registers.stackPointer = 0xfc;
-	ram.ram[stackBaseAddress + 0xfd] = 0xcf;
-	PLP(opCodes[0x08], bus, registers, *memoryMapper);
-	EXPECT_EQ(0xcf, ram.ram[stackBaseAddress + 0xfd]);
-	EXPECT_EQ(0xcf, registers.statusRegister);	
-	EXPECT_EQ(0xfd, registers.stackPointer);
+    registers.statusRegister = 0x00;
+    registers.stackPointer = 0xfc;
+    ram.ram[stackBaseAddress + 0xfd] = 0xcf;
+    PLP(opCodes[0x08], bus, registers, *memoryMapper);
+    EXPECT_EQ(0xcf, ram.ram[stackBaseAddress + 0xfd]);
+    EXPECT_EQ(0xcf, registers.statusRegister);    
+    EXPECT_EQ(0xfd, registers.stackPointer);
 }

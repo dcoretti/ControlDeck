@@ -40,7 +40,7 @@ namespace NES {
     */
     class MemoryMapper {
     public:
-		MemoryMapper() = default;
+        MemoryMapper() = default;
         MemoryMapper(SystemRam * systemRam, PPURegisters * ppuRegisters = nullptr) : systemRam(systemRam), ppuRegisters(ppuRegisters) {}
 
         /**
@@ -51,8 +51,8 @@ namespace NES {
 
         Cartridge *cartridge;
 
-		PPURegisters * ppuRegisters{ nullptr };
-		SystemRam * systemRam{ nullptr };
+        PPURegisters * ppuRegisters{ nullptr };     // TODO remove this in favor of PPU memory mapper handling everything...
+        SystemRam * systemRam{ nullptr };
     private:
         void systemRamHandler(SystemBus &systemBus);
         void ppuRegisterHandler(SystemBus &systemBus);

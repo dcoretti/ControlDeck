@@ -386,8 +386,8 @@ namespace NES {
             { 0xfe, 3, 7, 0, Instruction::INC, AddressingMode::AbsoluteX, &INC },
             { 0xff, 0, 0, 0, Instruction::UNK, AddressingMode::Undefined, &UNK }
         };
-		// constants
-		extern const uint16_t stackBaseAddress;
+        // constants
+        extern const uint16_t stackBaseAddress;
 
 
         //utilities

@@ -28,6 +28,7 @@ namespace NES {
 
 
     DebugState Cpu2a03::processInstruction() {
+        cycle++;
         DebugState debugState;
 
         // Read the next op code from memory (or interrupt)
@@ -35,7 +36,7 @@ namespace NES {
         debugState.opCode = opCode;
         debugState.registersBefore = *registers;
         debugState.systemBusBefore = *systemBus;
-		DBG_ASSERT(opCode.instruction != Instruction::UNK, "Unknown instruction encountered %d", opCode.opCode);
+        DBG_ASSERT(opCode.instruction != Instruction::UNK, "Unknown instruction encountered %d", opCode.opCode);
 
 
         // Set up system bus to contain relevant memory data for a particular instruction.
@@ -50,7 +51,7 @@ namespace NES {
 
         debugState.registersAfter = *registers;
         debugState.systemBusAfter = *systemBus;
-		return debugState;
+        return debugState;
     }
 
     void Cpu2a03::waitForNextInstruction() {
@@ -65,7 +66,7 @@ namespace NES {
         registers->y = 0;
         registers->stackPointer = 0xfd;
         registers->programCounter = 0xffed;  // will do reset vector following
-		registers->interruptStatus = InterruptLevel::POWER_ON;
+        registers->interruptStatus = InterruptLevel::POWER_ON;
         memset(ram->ram, 0, SystemRam::systemRAMBytes);
 
     }
@@ -82,6 +83,6 @@ namespace NES {
     // reset vector is at FFFC,FFFD (usually ROM)
     // https://wiki.nesdev.com/w/index.php/CPU_power_up_state#cite_note-1
     void Cpu2a03::reset() {
-		registers->interruptStatus = InterruptLevel::RESET;
+        registers->interruptStatus = InterruptLevel::RESET;
     }
 }

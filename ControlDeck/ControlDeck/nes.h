@@ -11,19 +11,19 @@
 
 // APU
 namespace NES {
-	struct NesControlDeck {
-		Cpu2a03 cpu;
-		Ppu2C02 ppu;
-		Cartridge cart;
+    struct NesControlDeck {
+        Cpu2a03 cpu;
+        Ppu2C02 ppu;
+        Cartridge cart;
 
-		MemoryMapper memoryMapper;
-		SystemRam systemRam{};
-		SystemBus systemBus{};
-		Registers registers{};
-	};
+        MemoryMapper memoryMapper;
+        SystemRam systemRam{};
+        SystemBus systemBus{};
+        Registers registers{};
+    };
 
 
-	void initNes(char * nesFile, NesControlDeck &nesControlDeck);
-	void nesLoop(NesControlDeck &nes, int numInstructions = -1);
+    void initNes(char * nesFile, NesControlDeck &nesControlDeck);
+    void nesLoop(NesControlDeck &nes, int numInstructions = -1);
 
 }

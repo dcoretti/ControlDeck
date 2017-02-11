@@ -20,7 +20,7 @@ namespace NES {
             break;
         case AddressingMode::Implicit:
             // no memory access used
-			return;
+            return;
         case AddressingMode::Indirect:
             getIndirectAddress(systemBus, registers, memoryMapper);
             break;
@@ -44,7 +44,7 @@ namespace NES {
             break;
         case AddressingMode::Undefined:
         default:
-			DBG_CRASH("Invalid address mode encountered for instruction %d", addressingMode);
+            DBG_CRASH("Invalid address mode encountered for instruction %d", addressingMode);
             return;
         }
 

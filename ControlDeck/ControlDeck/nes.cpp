@@ -12,7 +12,7 @@ namespace NES {
         controlDeck.cpu.ram = &controlDeck.systemRam;
         controlDeck.cpu.systemBus = &controlDeck.systemBus;
         controlDeck.cpu.memoryMapper = &controlDeck.memoryMapper;
-        controlDeck.cpu.memoryMapper->ppuRegisters = &controlDeck.ppu.memoryMappedRegisters;
+        controlDeck.cpu.memoryMapper->ppuRegisters = &controlDeck.ppu.ppuMemory.memoryMappedRegisters;
         controlDeck.cpu.setPowerUpState();
         //controlDeck.cpu.reset();
     }

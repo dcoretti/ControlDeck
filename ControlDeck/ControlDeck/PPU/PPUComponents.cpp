@@ -4,6 +4,12 @@ namespace NES {
     /////////////////////////////////////////////////////////////////
     // Control Register Accessors
 
+    uint16_t PPURegisters::getNameTableBaseAddr() {
+        // http://wiki.nesdev.com/w/index.php/PPU_registers#PPUCTRL
+        return 0x2000 + (uint16_t)(getNameTable() * 0x400);
+    }
+
+
     uint8_t PPURegisters::getNameTable() {
         return (uint8_t)(control & 0x03);
     }
@@ -122,10 +128,13 @@ namespace NES {
         return (mask & emphasis) > 0;
     }
 
-    // True if bits 1-4 are true in the mask register (show background or sprites)
-    bool PPURegisters::isRenderingEnabled() {
-        return (mask & 0x1e) > 0;
-    }
+
+    // TODO take a look at this again... 1E means ALL rendering enabled, only bits 3/4 enable rendering
+    // $00 means ALL disabled. I'm not sure this accessor is useful overall since only 0 means disabled.
+    //// True if bits 1-4 are true in the mask register (show background or sprites)
+    //bool PPURegisters::isRenderingEnabled() {
+    //    return (mask & 0x1e) > 0;
+    //}
 
 
     /////////////////////////////////////////////////////////////////
@@ -193,6 +202,14 @@ namespace NES {
 
     bool ObjectAttributeMemory::getVerticalFlip() {
         return (attributes & 0x80) > 0;
+    }
+
+    uint8_t ObjectAttributeMemory::getTileIndex(bool is8x16) {
+        return is8x16 ? tileIndex >> 1 : tileIndex;
+    }
+
+    uint8_t ObjectAttributeMemory::getPatternTableFor8x16() {
+        return tileIndex & 0x01;
     }
 
 
