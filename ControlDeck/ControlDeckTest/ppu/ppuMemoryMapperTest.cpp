@@ -2,18 +2,35 @@
 
 #include "PPU/PPUComponents.h"
 #include "PPU/PPUMemoryMap.h"
+#include "cartridge.h"
+#include "common.h"
 
 using NES::PPUMemoryMap;
 using NES::PPUMemoryComponents;
+using NES::Cartridge;
+using NES::PPUMirroring;
 
 class PPUMemoryMapperTest : public testing::Test {
 protected:
     virtual void SetUp() {
         ppuMemoryComponents = PPUMemoryComponents();
+        cart = Cartridge();
+
         ppuMemoryMap.ppuComponents = &ppuMemoryComponents;
+        ppuMemoryMap.cartridge = &cart;
     }
+
+    void setNameTableData() {
+        memset(ppuMemoryComponents.nameTables[0].nameTable, 0xAB, arrSizeof(ppuMemoryComponents.nameTables[0].nameTable));
+        memset(ppuMemoryComponents.nameTables[0].attributeTable.tileGroup, 0xCD, arrSizeof(ppuMemoryComponents.nameTables[0].attributeTable.tileGroup));
+
+        memset(ppuMemoryComponents.nameTables[1].nameTable, 0x12, arrSizeof(ppuMemoryComponents.nameTables[1].nameTable));
+        memset(ppuMemoryComponents.nameTables[1].attributeTable.tileGroup, 0x34, arrSizeof(ppuMemoryComponents.nameTables[1].attributeTable.tileGroup));
+    }
+
     PPUMemoryMap ppuMemoryMap;
     PPUMemoryComponents ppuMemoryComponents;
+    Cartridge cart;
 };
 
 
@@ -62,6 +79,57 @@ TEST_F(PPUMemoryMapperTest, testColorPalette) {
                     EXPECT_EQ(10 + i, res1);    // unused components
                 } else {
                     EXPECT_EQ(100 + (i * 4 + j), res1);    // main palette
+                }
+            }
+        }
+    }
+}
+
+
+TEST_F(PPUMemoryMapperTest, testNameTableMapperVertical) {
+    cart.mirroring = PPUMirroring::PPU_VERTICAL;
+    setNameTableData();
+    for (int table = 0; table < 4; table++) {
+        uint16_t base = 0x2000 + table*0x400;
+        // steps of 0x100 since the tests compile overly slow otherwise
+        for (uint16_t i = 0; i < (uint16_t)0x400; i+= 0x100) {
+            uint8_t res = ppuMemoryMap.getByte(base + i);
+            if (i < 0x3c0) {
+                if (table == 0 || table == 2) {
+                    EXPECT_EQ(0xAB, res);
+                } else {
+                    EXPECT_EQ(0x12, res);
+                }
+            } else {
+                if (table == 0 || table == 2) {
+                    EXPECT_EQ(0xCD, res);
+                } else {
+                    EXPECT_EQ(0x34, res);
+                }
+            }
+        }
+    }
+}
+
+TEST_F(PPUMemoryMapperTest, testNameTableMapperHorizontal) {
+    cart.mirroring = PPUMirroring::PPU_HORIZONTAL;
+    setNameTableData();
+    for (int table = 0; table < 4; table++) {
+        uint16_t base = 0x2000 + table * 0x400;
+        // steps of 0x100 since the tests compile overly slow otherwise
+        for (uint16_t i = 0; i < (uint16_t)0x400; i += 0x100) {
+            uint8_t res = ppuMemoryMap.getByte(base + i);
+            if (table < 2) {
+                if (i < 0x3c0) {
+                    EXPECT_EQ(0xAB, res);
+                } else {
+                    EXPECT_EQ(0xCD, res);
+                }
+            } else {
+                if (i < 0x3c0) {
+                    EXPECT_EQ(0x12, res);
+                } else {
+                    EXPECT_EQ(0x34, res);
                 }
             }
         }

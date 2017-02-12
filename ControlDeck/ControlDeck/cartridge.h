@@ -13,7 +13,10 @@ namespace NES {
     enum PPUMirroring {
         PPU_HORIZONTAL = 0,
         PPU_VERTICAL,
-        PPU_FOUR_SCREEN    // indicated by ROM control bit 3 to override bit 0 to use four-screen mirroring
+        PPU_FOUR_SCREEN,    // indicated by ROM control bit 3 to override bit 0 to use four-screen mirroring
+                            // Ignore 2k ram on PPU (CIRAM) and use the cartridge exclusively.
+
+        PPU_ONE_SCREEN,     // All name tables refer to the same memory at the same time (AxROM)
     };
 
     // 8kb 
@@ -62,7 +65,7 @@ namespace NES {
     class MemoryManagementController {
     public:
         virtual void doMemoryOperation(SystemBus &bus, Cartridge &cart) = 0;
-        virtual uint8_t doPPUReadOperation(uint16_t address, Cartridge &cart) = 0;
+        virtual uint8_t doCHRReadOperation(uint16_t address, Cartridge &cart) = 0;
     };
 
     /*
@@ -91,7 +94,7 @@ namespace NES {
             }
         }
 
-        uint8_t doPPUReadOperation(uint16_t address, Cartridge &cart) override {
+        uint8_t doCHRReadOperation(uint16_t address, Cartridge &cart) override {
             DBG_ASSERT(address < 0x2000, "expected PPU address below 0x2000 in NROM mapper but got %d", address);
             return cart.chrRom[0].rom[address];
         }
