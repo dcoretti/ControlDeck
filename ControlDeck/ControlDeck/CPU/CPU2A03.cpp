@@ -85,4 +85,15 @@ namespace NES {
     void Cpu2a03::reset() {
         registers->interruptStatus = InterruptLevel::RESET;
     }
+
+    void DebugState::print(){
+        printf("[%s (%02x), addrMode: %s]:\n",
+            instructionNames[opCode.instruction], opCode.opCode, addressingModeNames[opCode.addressingMode]);
+        printf("B: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, p: $%02x, sp:$%02x, pc: $%04x}\n",
+            systemBusBefore.addressBus, systemBusBefore.dataBus, systemBusBefore.read,
+            registersBefore.acc, registersBefore.x, registersBefore.y, registersBefore.statusRegister, registersBefore.stackPointer, registersBefore.programCounter);
+        printf("A: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, p: $%02x, sp: $%02x, pc: $%04x}\n",
+            systemBusAfter.addressBus, systemBusAfter.dataBus, systemBusAfter.read,
+            registersAfter.acc, registersAfter.x, registersAfter.y, registersAfter.statusRegister, registersAfter.stackPointer, registersAfter.programCounter);
+    }
 }

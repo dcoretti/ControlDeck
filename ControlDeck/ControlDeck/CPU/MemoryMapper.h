@@ -16,28 +16,10 @@ namespace NES {
         OAMDMA = 0x4014
     };
 
-    /*
-    Source :http://nesdev.com/NESDoc.pdf Appendix D for memory mapper functions
-    $1000
-    $c000    PRG-ROM (upper)
-    $8000    PRG-ROM (lower)
-    $6000    Save RAM
-    $4020    Expansion ROM
-    $4000    I/O Registers
-    $2008
-    $2000    IO Registers
 
-    mirrors of ram...
-
-    -----------------------
-
-    $0200    Main RAM
-    $0100    Stack
-    $0000    Zero Page
-
-
-
-    */
+    /**
+    *   Map memory from the CPU address space, to RAM, PPU, APU, and cartridge components.
+    **/
     class MemoryMapper {
     public:
         MemoryMapper() = default;

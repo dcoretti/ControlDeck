@@ -1,10 +1,11 @@
 #include "PPUMemoryMap.h"
 namespace NES {
-
-    // FIXME.. this needs to enable writes too
+    /**
+    *   General map of address space on PPU including cartridge-supplied memory
+    *   ref: http://wiki.nesdev.com/w/index.php/PPU_memory_map
+    **/
     uint8_t PPUMemoryMap::doMemoryOperation(uint16_t address, uint8_t write, bool read) {
         uint8_t *opAddr;
-
         address = address % 0x4000;
 
         // Cartridge-backed CHR-ROM is mapped here and bank-switched(if needed) via CPU memory
@@ -62,7 +63,7 @@ namespace NES {
                 }
             }
         } else {
-            DBG_CRASH("Unsupported memory operation on address %04x\n", address);
+            DBG_CRASH("Unsupported memory operation on address %04x isRead %d write value %02x\n", address, read, write);
             return 0;   // for compiler warnings
         }
 

@@ -389,7 +389,6 @@ namespace NES {
         // constants
         extern const uint16_t stackBaseAddress;
 
-
         //utilities
         void pushStackSetup(SystemBus &systemBus, Registers &registers);
         void popStackSetup(SystemBus &systemBus, Registers &registers);
