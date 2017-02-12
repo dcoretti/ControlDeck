@@ -2,10 +2,14 @@
 namespace NES {
 
     // FIXME.. this needs to enable writes too
-    uint8_t PPUMemoryMap::getByte(uint16_t address) {
+    uint8_t PPUMemoryMap::doMemoryOperation(uint16_t address, uint8_t write, bool read) {
+        uint8_t *opAddr;
+
+        address = address % 0x4000;
+
         // Cartridge-backed CHR-ROM is mapped here and bank-switched(if needed) via CPU memory
         if (address < 0x2000) {
-            return cartridge->mmc->doCHRReadOperation(address, *cartridge);
+            return cartridge->mmc->doCHRMemoryOperationOperation(*cartridge, address, write, read);
         } 
         // either internal vram or cart ram to enable 4 nametables
         else if (address < 0x3f00) {
@@ -27,9 +31,9 @@ namespace NES {
                 DBG_CRASH("Unsupported mirroring mode found %d", cartridge->mirroring);
             };
             if (base % 0x400 < 0x3c0) {
-                return ppuComponents->nameTables[table].nameTable[offset];
+                opAddr = &ppuComponents->nameTables[table].nameTable[offset];
             } else {
-                return ppuComponents->nameTables[table].attributeTable.tileGroup[offset - 0x3c0];
+                opAddr = &ppuComponents->nameTables[table].attributeTable.tileGroup[offset - 0x3c0];
             }
         }
         // Palette memory ($3f00-$3f20 mirrored up to $4000)
@@ -37,29 +41,36 @@ namespace NES {
             uint8_t base = (address - 0x3f00) % 0x20;   // 32 bits mirrored
             if (base == 0 || base == 0x10) {
                 // universal background'
-                return ppuComponents->colorPalette.universalBackgroundColor;
+                opAddr = &ppuComponents->colorPalette.universalBackgroundColor;
             } 
             // unused in rendering normally and mirrored
             else if (base == 0x04 || base == 0x14) {
-                return ppuComponents->colorPalette.unusedPaletteData[0];
+                opAddr = &ppuComponents->colorPalette.unusedPaletteData[0];
             } else if (base == 0x08 || base == 0x18) {
-                return ppuComponents->colorPalette.unusedPaletteData[1];
+                opAddr = &ppuComponents->colorPalette.unusedPaletteData[1];
             } else if (base == 0x0c || base == 0x1c) {
-                return ppuComponents->colorPalette.unusedPaletteData[2];
-            }
-
-            int paletteNum = (base - 1) / 4;
-            int colorIndexNum = (base - 1) % 4;
-            if (base < 0x10) {
-                // Background palettes
-                return ppuComponents->colorPalette.backgroundPalettes[paletteNum].colorIndex[colorIndexNum];
+                opAddr = &ppuComponents->colorPalette.unusedPaletteData[2];
             } else {
-                // Sprite palettes
-                return ppuComponents->colorPalette.spritePalette[paletteNum - 4].colorIndex[colorIndexNum];
+                int paletteNum = (base - 1) / 4;
+                int colorIndexNum = (base - 1) % 4;
+                if (base < 0x10) {
+                    // Background palettes
+                    opAddr = &ppuComponents->colorPalette.backgroundPalettes[paletteNum].colorIndex[colorIndexNum];
+                } else {
+                    // Sprite palettes
+                    opAddr = &ppuComponents->colorPalette.spritePalette[paletteNum - 4].colorIndex[colorIndexNum];
+                }
             }
+        } else {
+            DBG_CRASH("Unsupported memory operation on address %04x\n", address);
+            return 0;   // for compiler warnings
         }
 
-        return 0;
+        uint8_t readResult = *opAddr;
+        if (!read) {
+            *opAddr = write;
+        }
+        return readResult;
     }
 
 }

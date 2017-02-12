@@ -65,7 +65,7 @@ namespace NES {
     class MemoryManagementController {
     public:
         virtual void doMemoryOperation(SystemBus &bus, Cartridge &cart) = 0;
-        virtual uint8_t doCHRReadOperation(uint16_t address, Cartridge &cart) = 0;
+        virtual uint8_t doCHRMemoryOperationOperation(Cartridge &cart, uint16_t address, uint8_t write, bool isRead = true) = 0;
     };
 
     /*
@@ -94,8 +94,9 @@ namespace NES {
             }
         }
 
-        uint8_t doCHRReadOperation(uint16_t address, Cartridge &cart) override {
+        uint8_t doCHRMemoryOperationOperation(Cartridge &cart, uint16_t address, uint8_t write, bool isRead = true) override {
             DBG_ASSERT(address < 0x2000, "expected PPU address below 0x2000 in NROM mapper but got %d", address);
+            // Skip any write action.
             return cart.chrRom[0].rom[address];
         }
 
