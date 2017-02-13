@@ -83,12 +83,16 @@ namespace NES {
         PPUMemoryMap *memoryMap;
 
     private:
-        uint16_t scanLine{ 0 };
+        uint16_t curScanLine{ 0 };
         uint32_t cycle{ 0 };
         uint16_t scanLineCycle{ 0 };    // one cycle per pixel
 
+        // Scan line produced data pending load into registers for rendering
         uint16_t currentNameTable{ 0 };
-        
+        uint8_t patternL{ 0 };
+        uint8_t patternH{ 0 };
+        uint8_t attrTableEntry{ 0 };
+
 
         /**
         *   Iterate primary OAM to determine which objects are in Y-range for the NEXT scan line from highest priority (0)

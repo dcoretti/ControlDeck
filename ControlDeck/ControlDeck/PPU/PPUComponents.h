@@ -310,20 +310,26 @@ namespace NES{
         // combined with other registers: vram address, temporary vram address, fine x scroll and first/second write toggle
 
         // Representative of two 16-bit shift registers representing two background tiles used in a given scan line
-        // 
-        uint16_t bitmapTileData[2]{};
+        // Comprised of the Left and Right pattern table entry for the current and next tile
+        uint16_t curPatternData;
+        uint16_t nextPatternData;
+        //uint16_t bitmapTileData[2]{};
 
         // Palette attributes for 8 pixels in curTile.
-        uint8_t paletteAttributes[2]{};
+        // Current and next attribute table entry
+        uint8_t curAttributeData;
+        uint8_t nextAttributeData;
 
-        void setNexTileBitmapData(size_t registerNum, uint8_t data) {
-            bitmapTileData[registerNum] &= 0x00ff;
-            bitmapTileData[registerNum] |= (data << 8);
-        }
+        //uint8_t paletteAttributes[2]{};
 
-        uint8_t getPixelToRender(size_t registerNum) {
-            return (uint8_t)bitmapTileData[registerNum] & 0x00ff;
-        }
+        //void setNexTileBitmapData(size_t registerNum, uint8_t data) {
+        //    bitmapTileData[registerNum] &= 0x00ff;
+        //    bitmapTileData[registerNum] |= (data << 8);
+        //}
+
+        //uint8_t getPixelToRender(size_t registerNum) {
+        //    return (uint8_t)bitmapTileData[registerNum] & 0x00ff;
+        //}
     };
 
     /*
@@ -409,6 +415,7 @@ namespace NES{
         uint16_t tempVramAddress: 15;   // T register
 
         // Fine x scroll set via scroll register
+        // Controls shift on given tile being rendered per scan line on pixel output
         uint8_t fineXScroll : 3;        // X register
         
         //Toggle to determine x vs y status update, __

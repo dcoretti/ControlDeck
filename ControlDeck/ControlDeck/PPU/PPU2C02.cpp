@@ -136,8 +136,12 @@ namespace NES {
     void Ppu2C02::doPpuCycle() {
         // scan line is 341 ppu clock cycles (113.667 cpu cycles with a 3x multiplier of clock from cpu to ppu)
         // 260 scan lines visible, +2  (-1, 261) which are pre-render scanlines.
-        if (scanLine == 0 || scanLine == 262) {
+        if (curScanLine == 0 || curScanLine == 262) {
             // Pre-Render Cycle
+        }
+        
+        else if (curScanLine < 241) {
+            // Visible scan line rendering (240 scan lines)
             // visible scan line
             if (scanLineCycle == 0) {
                 // Idle cycle
@@ -151,36 +155,34 @@ namespace NES {
                 } else if (state == 1) {
                     currentNameTable = memoryMap->getByte(ppuAddr);
 
-                } 
+                }
                 // Fetch Attribute table byte
                 else if (state == 2) {
                     // Attribute address in form 110 NN 1111 YYY XXX (attrTableBase + 1024 * nameTable + x-yRowOffsets)
                     ppuAddr = attributeTableBaseAddr |
-                        (renderingRegisters.getNameTableSelect() << 10) | 
+                        (renderingRegisters.getNameTableSelect() << 10) |
                         ((renderingRegisters.getCoarseYScroll() >> 2) << 3) |
                         (renderingRegisters.getCoarseXScroll() >> 2);
                 } else if (state == 3) {
-                    ppuData = memoryMap->getByte(ppuAddr);
-                } 
+                    attrTableEntry = memoryMap->getByte(ppuAddr);
+                }
                 // Fetch pattern table left half (high bit)
                 else if (state == 4) {
                     ppuAddr = (uint16_t)ppuMemory.memoryMappedRegisters.getBackgroundPatternTable() * sizeof(PatternTable) + currentNameTable * sizeof(PatternTableEntry)
                         + renderingRegisters.getFineYScroll();
                 } else if (state == 5) {
-                    ppuData = memoryMap->getByte(ppuAddr);
+                    patternH = memoryMap->getByte(ppuAddr);
 
-                } 
+                }
                 // Fetch pattern table right half (low bit)
                 else if (state == 6) {
                     ppuAddr = (uint16_t)ppuMemory.memoryMappedRegisters.getBackgroundPatternTable() * sizeof(PatternTable) + currentNameTable * sizeof(PatternTableEntry)
                         + renderingRegisters.getFineYScroll() + 8;
                 } else {
-                    ppuData = memoryMap->getByte(ppuAddr);
+                    patternL = memoryMap->getByte(ppuAddr);
                 }
             } else if (scanLineCycle < 321) {
-
                 // Fetch tile data for the next scan line
-
             } else if (scanLineCycle < 337) {
 
             }
@@ -188,10 +190,7 @@ namespace NES {
             else {
                 // fetch nametableByte twice
             }
-            
-        } else if (scanLine < 241) {
-            // Visible scan line rendering (240 scan lines)
-        } else if (scanLine == 241) {
+        } else if (curScanLine == 241) {
             // Post-render scan line
         } else {
             // Vblank period (20 scan lines) # 242-261
@@ -210,7 +209,7 @@ namespace NES {
 
         cycle++;
         if (cycle % cyclesPerScanLine == 0) {
-            scanLine = (scanLine + 1) % scanLines;
+            curScanLine = (curScanLine + 1) % scanLines;
         }
         scanLineCycle = cycle % cyclesPerScanLine;
     }
