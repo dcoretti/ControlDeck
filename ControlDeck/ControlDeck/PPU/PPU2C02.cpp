@@ -1,5 +1,5 @@
 #include "ppu2c02.h"
-
+#include "../common.h"
 
 namespace NES {
     void Ppu2C02::setPowerUpState() {
@@ -80,6 +80,8 @@ namespace NES {
 
     }
 
+    const uint32_t cyclesPerScanLine = 341;
+    const uint32_t scanLines = 262; // some documentation starts at -1 but this starts at 0
 
     // http://nesdev.com/2C02%20technical%20reference.TXT
     // clock signal is main 6502 clock (21.48mhz / 4)'
@@ -112,50 +114,107 @@ namespace NES {
     *
     *   Memory fetch - PPU retrieves appropriate pattern table data for the objects to be drawn on the next scan line
     */
-    const uint32_t cyclesPerScanLine = 341;
-    const uint32_t scanLines = 262;
-    void Ppu2C02::doPpuCycle() {
 
+    void Ppu2C02::fetchNameTableByte() {
+        int state = scanLineCycle % 8;
+        if (state == 1) {
+
+        } else if (state == 2) {
+
+        } else {
+            DBG_CRASH("Somehow got called to fetchNameTableByte on cycle other than 1,2 scanLineCycle: %d", scanLineCycle);
+        }
+    } 
+    ////////////////////////////////////////////////////////////
+    // TODO put ppuData value in the correct shift register  for bkrndTileMemory/spriteMemory
+    // I think fetches will always happen for the NEXT draw so pixels are shifted off existing data while the next register is filled in??
+    // from wiki: The data fetched from these accesses is placed into internal latches, and then fed to the appropriate shift registers when it's time to do so (every 8 cycles).
+    // The shifters are reloaded during ticks 9, 17, 25, ..., 257. 
+
+    static const uint16_t nameTableBaseAddr = 0x2000;
+    static const uint16_t attributeTableBaseAddr = 0x23c0;
+    void Ppu2C02::doPpuCycle() {
         // scan line is 341 ppu clock cycles (113.667 cpu cycles with a 3x multiplier of clock from cpu to ppu)
         // 260 scan lines visible, +2  (-1, 261) which are pre-render scanlines.
+        if (scanLine == 0 || scanLine == 262) {
+            // Pre-Render Cycle
+            // visible scan line
+            if (scanLineCycle == 0) {
+                // Idle cycle
+            } else if (scanLineCycle < 257) {
+                int state = (scanLineCycle - 1) % 8;
+                // Fetch Name table byte
+                if (state == 0) {
+                    // see: http://wiki.nesdev.com/w/index.php/PPU_scrolling#Tile_and_attribute_fetching
+                    // $2000 base addr + nameTable,x,yoffset
+                    ppuAddr = nameTableBaseAddr | 0xfff;
+                } else if (state == 1) {
+                    currentNameTable = memoryMap->getByte(ppuAddr);
 
-        // 0 - pre-render dummy scan line 
-        // 1 first visible
-        //240 first last visible
-        // 241 post-render scan line
-        // 242-261 vblank
-        // 262 - pre-render dummy scan line
+                } 
+                // Fetch Attribute table byte
+                else if (state == 2) {
+                    // Attribute address in form 110 NN 1111 YYY XXX (attrTableBase + 1024 * nameTable + x-yRowOffsets)
+                    ppuAddr = attributeTableBaseAddr |
+                        (renderingRegisters.getNameTableSelect() << 10) | 
+                        ((renderingRegisters.getCoarseYScroll() >> 2) << 3) |
+                        (renderingRegisters.getCoarseXScroll() >> 2);
+                } else if (state == 3) {
+                    ppuData = memoryMap->getByte(ppuAddr);
+                } 
+                // Fetch pattern table left half (high bit)
+                else if (state == 4) {
+                    ppuAddr = (uint16_t)ppuMemory.memoryMappedRegisters.getBackgroundPatternTable() * sizeof(PatternTable) + currentNameTable * sizeof(PatternTableEntry)
+                        + renderingRegisters.getFineYScroll();
+                } else if (state == 5) {
+                    ppuData = memoryMap->getByte(ppuAddr);
 
+                } 
+                // Fetch pattern table right half (low bit)
+                else if (state == 6) {
+                    ppuAddr = (uint16_t)ppuMemory.memoryMappedRegisters.getBackgroundPatternTable() * sizeof(PatternTable) + currentNameTable * sizeof(PatternTableEntry)
+                        + renderingRegisters.getFineYScroll() + 8;
+                } else {
+                    ppuData = memoryMap->getByte(ppuAddr);
+                }
+            } else if (scanLineCycle < 321) {
 
-        // scan lines 0- 
+                // Fetch tile data for the next scan line
 
-        if (cycle> 0 &&cycle % cyclesPerScanLine == 0) {
-            scanLine++;
-            if (scanLine >= scanLines) {
-                scanLine = 0;
+            } else if (scanLineCycle < 337) {
+
+            }
+            // 337-340
+            else {
+                // fetch nametableByte twice
+            }
+            
+        } else if (scanLine < 241) {
+            // Visible scan line rendering (240 scan lines)
+        } else if (scanLine == 241) {
+            // Post-render scan line
+        } else {
+            // Vblank period (20 scan lines) # 242-261
+            if (scanLineCycle == 1 && ppuMemory.memoryMappedRegisters.getVBlank()) {
+                // Second cycle enables vblank NMI!
             }
         }
-        cycle++;
 
+
+
+
+
+
+    
+
+
+        cycle++;
+        if (cycle % cyclesPerScanLine == 0) {
+            scanLine = (scanLine + 1) % scanLines;
+        }
+        scanLineCycle = cycle % cyclesPerScanLine;
     }
 
-
     void Ppu2C02::handleVisibleScanLine() {
-        if (scanLineCycle == 0) {
-            // idle cycle
-        } else if (scanLineCycle < 257) {
-            // fetch tiles
-
-            // get nametable byte
-            ppuMemory.memoryMappedRegisters.getNameTableBaseAddr();// +increment for nametable ? ? ;
-            // get attribut table byte
-            //tile bitmap low
-            // tile bitmap high (low+8bytes)
-
-        } else if (scanLineCycle <= 320) {
-
-        } else if (scanLineCycle < 337)
-
-
     }
 }

@@ -9,6 +9,9 @@ namespace NES{
         USE_SLAVE = 1   // Use secondary picture generator to replace background
     };
 
+    /**
+    *   Increment mode set by 
+    */
     enum class IncrementMode {
         ADD_ONE = 0,
         ADD_32 = 1
@@ -95,7 +98,7 @@ namespace NES{
         *   ==================
         *   0   |   Base nametable (0-3) - x table bit 0, y scroll table bit 1 http://nesdev.com/2C02%20technical%20reference.TXT
         *   1   |       (MSBit of X, Y scroll position respectively)
-        *   2   |   VRAM increment per r/w of ppu data
+        *   2   |   VRAM increment per r/w of ppu data (add one or add 32)
         *   3   |   Which sprite pattern table (8x8 only)
         *   4   |   Background pattern table
         *   5   |   Sprite Size
@@ -353,10 +356,16 @@ namespace NES{
     *   be used in data register to access vram.
     *
     *   ref: http://wiki.nesdev.com/w/index.php/PPU_scrolling
+    *       http://wiki.nesdev.com/w/index.php/PPU_rendering#Preface
     *
     * TODO combine with backgroundTileMemory?
     */
     struct PPURenderingRegisters {
+        static const uint16_t coarseYMask = 0x03e0;
+        static const uint16_t fineYMask = 0x7000;
+        static const uint16_t coarseXMask = 0x001f;
+        static const uint16_t nameTableSelectMask = 0x0c00;
+
         // TODO consider dropping bit fields due to initialization
         PPURenderingRegisters() {
             vramAddress = 0;
@@ -373,8 +382,21 @@ namespace NES{
         void onScrollWrite(PPURegisters &registers);
         void onAddressWrite(PPURegisters &registers);
         void onDataAccess(PPURegisters &registers);
+
+        // General bitmask accessors for VRAM
+        uint16_t getCoarseXScroll();
+        uint16_t getCoarseYScroll();
+        uint16_t getNameTableSelect();
+        uint16_t getFineYScroll();
+
+        void setCoarseY(uint16_t coarseY);
+        void setFineY(uint16_t fineY);
+        //void setNameTableSelect(uint16_t nameTableSelect);
+        //void setCoarseXScroll();
+
         /**
-        *   Vram address and temp address composition
+        *   
+            Vram address and temp address composition
         *   Bit   |    Function
         *   ======================
         *   0-4   |  coarse x scroll (upper X bits)  
@@ -383,16 +405,16 @@ namespace NES{
         *   12-14 |  fine Y scroll
         *   
         */
-        uint16_t vramAddress: 15;
-        uint16_t tempVramAddress: 15;
+        uint16_t vramAddress: 15;       // V register
+        uint16_t tempVramAddress: 15;   // T register
 
         // Fine x scroll set via scroll register
-        uint8_t fineXScroll : 3;
+        uint8_t fineXScroll : 3;        // X register
         
         //Toggle to determine x vs y status update, __
         // reset of this is latched to status register read 
         // False (0) is first write, True(1) is second write.
-        bool writeToggle{ false };
+        bool writeToggle{ false };      // W register
     };
 
 
@@ -400,10 +422,6 @@ namespace NES{
     // All memory components accessible to the CPU through PPU memory mapped registers
     struct PPUMemoryComponents{
         PPURegisters memoryMappedRegisters{};
-
-        // memory used to render sprites in a given frame/scanline
-        SpriteMemory spriteMemory{};
-        BackgroundTileMemory backgroundTileMemory{};
 
         // left and right pattern tables to be combined with attributes in the nametable table data to get color value
         PatternTable patternTables[2]{};

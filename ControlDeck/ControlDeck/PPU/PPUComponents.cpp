@@ -1,4 +1,5 @@
 #include "PPUComponents.h"
+#include "../common.h"
 
 namespace NES {
     /////////////////////////////////////////////////////////////////
@@ -264,35 +265,49 @@ namespace NES {
         writeToggle = !writeToggle;
     }
 
+    static const uint16_t coarseYMask = 0x03e0;
+    static const uint16_t fineYMask = 0x7000;
+    static const uint16_t coarseXMask = 0x001f;
+    static const uint16_t nameTableSelectMask = 0x0c00;
+
     void PPURenderingRegisters::onDataAccess(PPURegisters &registers) {
         if (registers.isRenderingEnabled()) {
-            // Scrolling register updates
-            // increment x and y with wraparound 
-            // wrap around coarse X and toggle next bit without further carry.
-            // Code from http://wiki.nesdev.com/w/index.php/PPU_scrolling#Wrapping_around
-            if ((vramAddress & 0x001f) == 31) {
+            // Code edge cases on increment from http://wiki.nesdev.com/w/index.php/PPU_scrolling#Wrapping_around
+            // Coarse X increment / wraparound
+            uint16_t coarseX = getCoarseXScroll();
+
+            if (coarseX == coarseXMask) {
                 vramAddress &= ~0x001f;
+                // switch horizontal nametable
                 vramAddress ^= 0x0400;
             } else {
                 vramAddress++;
             }
 
-            // Y 
-            if ((vramAddress & 0x7000) == 0x7000) {
-                vramAddress &= ~0x7000;
-                uint16_t y = ((vramAddress & 0x03e0) >> 5);
-                if (y == 31) {
-                    y = 0;
-                } else if (y == 29) {
-                    // switch name table.
-                    y = 0;
-                    vramAddress ^= 0x0800;
-                } else {
-                    y++;
-                }
-                vramAddress = (vramAddress & ~0x03e0) | (y << 5);
+            // Fine and Coarse Y increment / wraparound
+            // decompose V
+            uint16_t coarseY = getCoarseYScroll();
+            uint16_t fineY = getFineYScroll();
+            if (fineY < 7) {
+                fineY++;
             } else {
-                vramAddress += 0x1000;
+                fineY = 0;
+                // wrap coarse Y since name tables only have 30 rows (0-29)
+                if (coarseY == 29) {
+                    coarseY = 0;
+                    // switch vertical name table
+                    vramAddress ^= 0x0800;
+                } else if (coarseY == 31) {
+                    // This can happen if coarse Y is set out of bounds through $2005 scroll register
+                    // Don't switch name table.
+                    coarseY = 0;
+                } else {
+                    coarseY++;
+                }
+
+                // put coarse / fine Y back.
+                setCoarseY(coarseY);
+                setFineY(fineY);
             }
         } else {
             if (registers.getIncrementMode() == IncrementMode::ADD_ONE) {
@@ -301,5 +316,32 @@ namespace NES {
                 vramAddress += 32;
             }
         }
+    }
+
+    void PPURenderingRegisters::setCoarseY(uint16_t coarseY) {
+        DBG_ASSERT(coarseY < 32, "Invalid coarse Y of %d found.  Expected to fit within 5 bits", coarseY);
+        vramAddress = (vramAddress & ~coarseYMask) | (coarseY << 5);
+    }
+
+    void PPURenderingRegisters::setFineY(uint16_t fineY) {
+        DBG_ASSERT(fineY < 8, "Invalid coarse Y of %d found.  Expected to fit within 5 bits", fineY);
+        vramAddress = (vramAddress & ~fineYMask) | (fineY << 12);
+    }
+
+
+    uint16_t PPURenderingRegisters::getCoarseXScroll() {
+        return (vramAddress & coarseXMask);
+    }
+
+    uint16_t PPURenderingRegisters::getCoarseYScroll() {
+        return (vramAddress & coarseYMask) >> 5;
+    }
+
+    uint16_t PPURenderingRegisters::getNameTableSelect() {
+        return (vramAddress & nameTableSelectMask) >> 10;
+    }
+
+    uint16_t PPURenderingRegisters::getFineYScroll() {
+        return (vramAddress & fineYMask) >> 12;
     }
 }

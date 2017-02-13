@@ -1,5 +1,6 @@
 #pragma once
 #include "PPUComponents.h"
+#include "PPUMemoryMap.h"
 
 namespace NES {
     /**
@@ -65,22 +66,29 @@ namespace NES {
 
         void setPowerUpState();
 
-
-
-
         void doPpuCycle();
         void handleVisibleScanLine();
 
         // Registers accessible to CPU through memory mapper
-        PPUMemoryComponents ppuMemory;
+        PPUMemoryComponents ppuMemory{};
 
-        // Internal rendering state registers (not directly connected to memory mapper)
-        PPURenderingRegisters renderingRegisters;
+        // Internal rendering state registers/memory (not directly connected to memory mapper)
+        // used to render sprites in a given frame/scanline
+        PPURenderingRegisters renderingRegisters{};
+        SpriteMemory spriteMemory{};
+        BackgroundTileMemory bkrndTileMemory{};
+
+        uint16_t ppuAddr;
+        uint8_t ppuData;
+        PPUMemoryMap *memoryMap;
 
     private:
-        uint16_t scanLine;
-        uint32_t cycle;
-        uint16_t scanLineCycle;     // convenience counter
+        uint16_t scanLine{ 0 };
+        uint32_t cycle{ 0 };
+        uint16_t scanLineCycle{ 0 };    // one cycle per pixel
+
+        uint16_t currentNameTable{ 0 };
+        
 
         /**
         *   Iterate primary OAM to determine which objects are in Y-range for the NEXT scan line from highest priority (0)
@@ -112,6 +120,8 @@ namespace NES {
         */
         void populateBackgroundPatterns();
 
+
+        void fetchNameTableByte();
 
         bool isDmaActive;
     };
