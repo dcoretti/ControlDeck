@@ -146,6 +146,11 @@ namespace NES {
             if (scanLineCycle == 0) {
                 // Idle cycle
             } else if (scanLineCycle < 257) {
+                // move shift registers here after first write cycle, meaning scanLineCycle >1
+                if (scanLineCycle > 1) {
+                    handleScrolling();
+                }
+
                 int state = (scanLineCycle - 1) % 8;
                 // Fetch Name table byte
                 if (state == 0) {
@@ -158,7 +163,7 @@ namespace NES {
                 }
                 // Fetch Attribute table byte
                 else if (state == 2) {
-                    // Attribute address in form 110 NN 1111 YYY XXX (attrTableBase + 1024 * nameTable + x-yRowOffsets)
+                    // Attribute table address in form 110 NN 1111 YYY XXX (attrTableBase + 1024 * nameTable + x-yRowOffsets)
                     ppuAddr = attributeTableBaseAddr |
                         (renderingRegisters.getNameTableSelect() << 10) |
                         ((renderingRegisters.getCoarseYScroll() >> 2) << 3) |
@@ -171,7 +176,7 @@ namespace NES {
                     ppuAddr = (uint16_t)ppuMemory.memoryMappedRegisters.getBackgroundPatternTable() * sizeof(PatternTable) + currentNameTable * sizeof(PatternTableEntry)
                         + renderingRegisters.getFineYScroll();
                 } else if (state == 5) {
-                    patternH = memoryMap->getByte(ppuAddr);
+                    patternR = memoryMap->getByte(ppuAddr);
 
                 }
                 // Fetch pattern table right half (low bit)
@@ -182,12 +187,18 @@ namespace NES {
                     patternL = memoryMap->getByte(ppuAddr);
                 }
             } else if (scanLineCycle < 321) {
-                // Fetch tile data for the next scan line
-            } else if (scanLineCycle < 337) {
+                // sprite data for next scan line fetched here
 
+            } else if (scanLineCycle < 337) {
+                // Fetch background data for the next scan line
+                handleScrolling();
             }
             // 337-340
             else {
+                if (scanLineCycle == 337) {
+                    handleScrolling();
+                }
+
                 // fetch nametableByte twice
             }
         } else if (curScanLine == 241) {
@@ -214,6 +225,35 @@ namespace NES {
         scanLineCycle = cycle % cyclesPerScanLine;
     }
 
-    void Ppu2C02::handleVisibleScanLine() {
+    void Ppu2C02::handleScrolling() {
+        if (scanLineCycle > 1 && scanLineCycle < 258 || scanLineCycle > 321 && scanLineCycle < 338) {
+            bkrndTileMemory.patternTableL = bkrndTileMemory.patternTableL << 1;
+            bkrndTileMemory.patternTableR = bkrndTileMemory.patternTableR << 1;
+
+            // Reload registers with data loaded during the last 8 cycles
+            if (scanLineCycle % 8 == 1) {
+                DBG_ASSERT((bkrndTileMemory.patternTableL & 0x00ff) == 0, "expected background shift register L to be 0 on lsb at this point. Instead was $%04x", bkrndTileMemory.patternTableL);
+                DBG_ASSERT((bkrndTileMemory.patternTableR & 0x00ff) == 0, "expected background shift register R to be 0 on lsb at this point. Instead was $%04x", bkrndTileMemory.patternTableR);
+                bkrndTileMemory.patternTableL |= patternL;
+                bkrndTileMemory.patternTableR |= patternR;
+
+                // assemble attribute register from coarse x, y
+                // Gets the 2 bits associated with a 2x2 region of an at block representing 4x4 tiles of 8x8pixels each. This means the 2x2 tile is a 16x16px
+                // region of the screen which has to have the same most significant bits of the palette color.  The lower 2 bits of the coarseX/Y represent a 2x2 region.
+                // I don't really understand why some sources show a -1 on the coarseX scroll here... Others do something closer to below
+                //uint8_t atSubTile = attrTableEntry >> ((renderingRegisters.getCoarseYScroll() & 2) << 1) | ((renderingRegisters.getCoarseXScroll()) & 2);
+                uint8_t atSubTile = attrTableEntry;
+                if (renderingRegisters.getCoarseYScroll() & 2) {
+                    atSubTile >> 4;
+                }
+                if (renderingRegisters.getCoarseXScroll & 2) {
+                    atSubTile >> 2;
+                }
+                bkrndTileMemory.attrTile = atSubTile;
+
+                // TODO sprite portion
+            }
+
+        }
     }
 }

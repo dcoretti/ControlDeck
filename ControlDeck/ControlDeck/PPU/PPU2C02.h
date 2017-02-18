@@ -67,7 +67,8 @@ namespace NES {
         void setPowerUpState();
 
         void doPpuCycle();
-        void handleVisibleScanLine();
+
+        void handleScrolling();
 
         // Registers accessible to CPU through memory mapper
         PPUMemoryComponents ppuMemory{};
@@ -89,8 +90,8 @@ namespace NES {
 
         // Scan line produced data pending load into registers for rendering
         uint16_t currentNameTable{ 0 };
-        uint8_t patternL{ 0 };
-        uint8_t patternH{ 0 };
+        uint8_t patternL{ 0 };  // current high bit pattern table entry
+        uint8_t patternR{ 0 };  // current low bit pattern table entry
         uint8_t attrTableEntry{ 0 };
 
 

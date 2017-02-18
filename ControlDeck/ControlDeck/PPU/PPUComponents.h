@@ -293,15 +293,9 @@ namespace NES{
     */
     struct NameTable {
         // 32 tile wide (* 8 = 256) 30 tiles height (* 8 = 240) for 256x240 screen.
-       
-//        uint8_t tileIndices[32][30];
         uint8_t nameTable[32 * 30]{};
         AttributeTable attributeTable{};
     };
-
-
-
-    // Context structures representing the current memory being used in a given scan line
 
     /**
     *   Background tile context for a given line in the PPU.
@@ -309,27 +303,12 @@ namespace NES{
     struct BackgroundTileMemory {
         // combined with other registers: vram address, temporary vram address, fine x scroll and first/second write toggle
 
-        // Representative of two 16-bit shift registers representing two background tiles used in a given scan line
-        // Comprised of the Left and Right pattern table entry for the current and next tile
-        uint16_t curPatternData;
-        uint16_t nextPatternData;
-        //uint16_t bitmapTileData[2]{};
+        // Two 16-bit shift registers one for each pattern table relevant to the portion of the current scan line
+        uint16_t patternTableL; // high bit
+        uint16_t patternTableR; // low bit
 
-        // Palette attributes for 8 pixels in curTile.
-        // Current and next attribute table entry
-        uint8_t curAttributeData;
-        uint8_t nextAttributeData;
-
-        //uint8_t paletteAttributes[2]{};
-
-        //void setNexTileBitmapData(size_t registerNum, uint8_t data) {
-        //    bitmapTileData[registerNum] &= 0x00ff;
-        //    bitmapTileData[registerNum] |= (data << 8);
-        //}
-
-        //uint8_t getPixelToRender(size_t registerNum) {
-        //    return (uint8_t)bitmapTileData[registerNum] & 0x00ff;
-        //}
+        // Palette attributes for 8 pixels in curTile. Only two bits are used
+        uint8_t attrTile;
     };
 
     /*
@@ -436,4 +415,5 @@ namespace NES{
 
         SystemColorPalette colorPalette{};
     };
+
 }
