@@ -136,22 +136,28 @@ namespace NES {
     void Ppu2C02::doPpuCycle() {
         // scan line is 341 ppu clock cycles (113.667 cpu cycles with a 3x multiplier of clock from cpu to ppu)
         // 260 scan lines visible, +2  (-1, 261) which are pre-render scanlines.
+
         if (curScanLine == 0 || curScanLine == 262) {
             // Pre-Render Cycle
+            // Do scan line reads based on even / odd frames
+            // Read operations still occur (can be read externally?)
         }
         
         else if (curScanLine < 241) {
+
             // Visible scan line rendering (240 scan lines)
             // visible scan line
             if (scanLineCycle == 0) {
                 // Idle cycle
-            } else if (scanLineCycle < 257) {
+            } 
+            // Load a tile
+            else if (scanLineCycle < 257 || scanLineCycle >= 321 && scanLineCycle < 337) {
+                int state = (scanLineCycle - 1) % 8;
                 // move shift registers here after first write cycle, meaning scanLineCycle >1
                 if (scanLineCycle > 1) {
                     handleScrolling();
                 }
 
-                int state = (scanLineCycle - 1) % 8;
                 // Fetch Name table byte
                 if (state == 0) {
                     // see: http://wiki.nesdev.com/w/index.php/PPU_scrolling#Tile_and_attribute_fetching
@@ -171,35 +177,40 @@ namespace NES {
                 } else if (state == 3) {
                     attrTableEntry = memoryMap->getByte(ppuAddr);
                 }
-                // Fetch pattern table left half (high bit)
+                // Fetch pattern table left half (low bit)
                 else if (state == 4) {
                     ppuAddr = (uint16_t)ppuMemory.memoryMappedRegisters.getBackgroundPatternTable() * sizeof(PatternTable) + currentNameTable * sizeof(PatternTableEntry)
                         + renderingRegisters.getFineYScroll();
                 } else if (state == 5) {
-                    patternR = memoryMap->getByte(ppuAddr);
+                    patternL |= (uint16_t)memoryMap->getByte(ppuAddr) << 8;
 
                 }
-                // Fetch pattern table right half (low bit)
+                // Fetch pattern table right half (high bit)
                 else if (state == 6) {
                     ppuAddr = (uint16_t)ppuMemory.memoryMappedRegisters.getBackgroundPatternTable() * sizeof(PatternTable) + currentNameTable * sizeof(PatternTableEntry)
                         + renderingRegisters.getFineYScroll() + 8;
                 } else {
-                    patternL = memoryMap->getByte(ppuAddr);
+                    patternR |= (uint16_t)memoryMap->getByte(ppuAddr) << 8;
                 }
             } else if (scanLineCycle < 321) {
                 // sprite data for next scan line fetched here
 
-            } else if (scanLineCycle < 337) {
-                // Fetch background data for the next scan line
-                handleScrolling();
             }
             // 337-340
             else {
+                // fetch nametableByte twice
                 if (scanLineCycle == 337) {
                     handleScrolling();
                 }
-
-                // fetch nametableByte twice
+                int state = 337 - scanLineCycle;
+                // Fetch Name table byte
+                if (state % 2 == 0) {
+                    // see: http://wiki.nesdev.com/w/index.php/PPU_scrolling#Tile_and_attribute_fetching
+                    // $2000 base addr + nameTable,x,yoffset
+                    ppuAddr = nameTableBaseAddr | 0xfff;
+                } else {
+                    currentNameTable = memoryMap->getByte(ppuAddr);
+                }
             }
         } else if (curScanLine == 241) {
             // Post-render scan line
@@ -207,22 +218,20 @@ namespace NES {
             // Vblank period (20 scan lines) # 242-261
             if (scanLineCycle == 1 && ppuMemory.memoryMappedRegisters.getVBlank()) {
                 // Second cycle enables vblank NMI!
+                ppuMemory.memoryMappedRegisters.setVBlank(true);
             }
         }
-
-
-
-
-
-
-    
-
 
         cycle++;
         if (cycle % cyclesPerScanLine == 0) {
             curScanLine = (curScanLine + 1) % scanLines;
         }
         scanLineCycle = cycle % cyclesPerScanLine;
+    }
+
+
+    void loadTile() {
+
     }
 
     void Ppu2C02::handleScrolling() {
@@ -244,10 +253,10 @@ namespace NES {
                 //uint8_t atSubTile = attrTableEntry >> ((renderingRegisters.getCoarseYScroll() & 2) << 1) | ((renderingRegisters.getCoarseXScroll()) & 2);
                 uint8_t atSubTile = attrTableEntry;
                 if (renderingRegisters.getCoarseYScroll() & 2) {
-                    atSubTile >> 4;
+                    atSubTile >>= 4;
                 }
-                if (renderingRegisters.getCoarseXScroll & 2) {
-                    atSubTile >> 2;
+                if (renderingRegisters.getCoarseXScroll() & 2) {
+                    atSubTile >>= 2;
                 }
                 bkrndTileMemory.attrTile = atSubTile;
 
@@ -255,5 +264,25 @@ namespace NES {
             }
 
         }
+    }
+
+    Pixel Ppu2C02::getScreenPixel() {
+        uint8_t bkrndIndex = (bkrndTileMemory.attrTile << 2) | ((bkrndTileMemory.patternTableR & 1) << 1) | (bkrndTileMemory.patternTableL & 1);
+        uint8_t spriteIndex = 0;
+
+        uint8_t bkrndColor = ppuMemory.colorPalette.getBkrndColorIndex(bkrndIndex);
+        uint8_t spriteColor = 0;    // ppuMemory.colorPalette.getSpriteColorIndex();
+        SpritePriority spritePriority = SpritePriority::BEHIND_BACKGROUND; // Sprites not implemented
+
+        // Determine pixel priority
+        uint8_t outColor = bkrndColor;
+        if (bkrndIndex == 0 && spriteIndex > 0) {
+            outColor = spriteColor;
+        } else if (spritePriority == SpritePriority::IN_FRONT_OF_BACKGROUND) {
+            outColor = spriteColor;
+        }
+
+        // Map color palette index to RGB pixel
+        return colorPaletteNtsc[outColor];
     }
 }

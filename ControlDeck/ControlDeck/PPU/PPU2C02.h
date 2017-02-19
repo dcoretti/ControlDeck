@@ -1,6 +1,7 @@
 #pragma once
 #include "PPUComponents.h"
 #include "PPUMemoryMap.h"
+#include "ColorPalette.h"
 
 namespace NES {
     /**
@@ -69,6 +70,7 @@ namespace NES {
         void doPpuCycle();
 
         void handleScrolling();
+        Pixel getScreenPixel();
 
         // Registers accessible to CPU through memory mapper
         PPUMemoryComponents ppuMemory{};

@@ -244,6 +244,9 @@ namespace NES{
     *   Pattern table (l and r half) specify which color in the palette
     */
     struct SystemColorPalette {
+        uint8_t getBkrndColorIndex(uint8_t index);
+        uint8_t getSpriteColorIndex(uint8_t index);
+
         // vram $3f00 (mirrored every 4 bytes until 3f1c)
         uint8_t universalBackgroundColor{};
         // vram $3f01-$3f0f
@@ -304,6 +307,7 @@ namespace NES{
         // combined with other registers: vram address, temporary vram address, fine x scroll and first/second write toggle
 
         // Two 16-bit shift registers one for each pattern table relevant to the portion of the current scan line
+        // New tiles are loaded into the upper 8 bits and pixel data is shifted off the lower bits.
         uint16_t patternTableL; // high bit
         uint16_t patternTableR; // low bit
 
