@@ -167,4 +167,10 @@ namespace NES {
         static const size_t systemRAMBytes = 2048;
         uint8_t ram[systemRAMBytes]{ 0 };
     };
+
+    struct DMAData {
+        bool isActive{ false };
+        // OAMDMA $4014 - MSB of 256 byte dma transfer starting location. 
+        uint8_t oamDma{ 0 };
+    };
 }

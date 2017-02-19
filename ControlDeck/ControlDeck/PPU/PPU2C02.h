@@ -72,6 +72,13 @@ namespace NES {
         void handleScrolling();
         Pixel getScreenPixel();
 
+
+        uint8_t readRegister(PPURegister ppuRegister);
+        void writeRegister(PPURegister ppuRegister, uint8_t val);
+        // scanline-triggered resets of various register components
+        void doRegisterUpdates();
+        RenderState getRenderState();
+
         // Registers accessible to CPU through memory mapper
         PPUMemoryComponents ppuMemory{};
 
@@ -95,6 +102,7 @@ namespace NES {
         uint8_t patternL{ 0 };  // current high bit pattern table entry
         uint8_t patternR{ 0 };  // current low bit pattern table entry
         uint8_t attrTableEntry{ 0 };
+
 
 
         /**

@@ -9,14 +9,6 @@ namespace NES{
         USE_SLAVE = 1   // Use secondary picture generator to replace background
     };
 
-    /**
-    *   Increment mode set by 
-    */
-    enum class IncrementMode {
-        ADD_ONE = 0,
-        ADD_32 = 1
-    };
-
     enum class SpriteSize {
         SIZE_8_8 = 0,
         SIZE_8_16 = 1
@@ -32,6 +24,20 @@ namespace NES{
         EMPHASIZE_BLUE_PAL = 0x80
     };
 
+    /*
+    *   Naming that connects CPU mapper addresses to PPU read/write operations.
+    */
+    enum PPURegister {
+        PPUCTRL = 0,
+        PPUMASK,
+        STATUS,
+        OAM_ADDRESS,
+        OAM_DATA,
+        SCROLL,
+        ADDRESS,
+        DATA,
+    };
+
     /**
     *   General exposed PPU Registers mapped by memory to cpu.
     *   Source:  http://wiki.nesdev.com/w/index.php/PPU_programmer_reference
@@ -42,8 +48,7 @@ namespace NES{
         uint8_t getNameTable();
         void setNameTable(uint8_t table);
 
-        void setIncrementMode(IncrementMode mode);
-        IncrementMode getIncrementMode();
+        uint8_t getDataAccessIncrement();
 
         void setSpritePatternTable(uint8_t table);
         uint8_t getSpritePatternTable();
@@ -91,6 +96,8 @@ namespace NES{
 
         bool getVBlank();
         void setVBlank(bool vblank);
+
+        void onStatusRead();
 
         /**
         *   PPUCTRL $2000 (Writable)
@@ -174,9 +181,6 @@ namespace NES{
         uint8_t data{ 0 };
         // TODO do I need this to represent dummy reads with internal buffer?
         uint8_t dataReadBuffer{ 0 };
-
-        // OAMDMA $4014 - MSB of 256 byte dma transfer starting location. 
-        uint8_t oamDma{ 0 };
     };
 
     enum class SpritePriority {
@@ -371,6 +375,7 @@ namespace NES{
         void onScrollWrite(PPURegisters &registers);
         void onAddressWrite(PPURegisters &registers);
         void onDataAccess(PPURegisters &registers);
+        void onStatusRead(PPURegisters &registers);
 
         // General bitmask accessors for VRAM
         uint16_t getCoarseXScroll();

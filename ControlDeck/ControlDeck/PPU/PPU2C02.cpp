@@ -125,6 +125,19 @@ namespace NES {
             DBG_CRASH("Somehow got called to fetchNameTableByte on cycle other than 1,2 scanLineCycle: %d", scanLineCycle);
         }
     } 
+
+    RenderState Ppu2C02::getRenderState() {
+        if (curScanLine == 0 || curScanLine == 262) {
+            return RenderState::PreRenderScanLine;
+        } else if (curScanLine < 241) {
+            return RenderState::VisibleScanLines;
+        } else if (curScanLine == 241) {
+            return RenderState::PostRenderScanLine;
+        } else { // curScanLine 242-261
+            return RenderState::VerticalBlank;
+        }
+    }
+
     ////////////////////////////////////////////////////////////
     // TODO put ppuData value in the correct shift register  for bkrndTileMemory/spriteMemory
     // I think fetches will always happen for the NEXT draw so pixels are shifted off existing data while the next register is filled in??
@@ -136,15 +149,12 @@ namespace NES {
     void Ppu2C02::doPpuCycle() {
         // scan line is 341 ppu clock cycles (113.667 cpu cycles with a 3x multiplier of clock from cpu to ppu)
         // 260 scan lines visible, +2  (-1, 261) which are pre-render scanlines.
-
-        if (curScanLine == 0 || curScanLine == 262) {
+        RenderState renderState = getRenderState();
+        if (renderState == RenderState::PreRenderScanLine) {
             // Pre-Render Cycle
             // Do scan line reads based on even / odd frames
             // Read operations still occur (can be read externally?)
-        }
-        
-        else if (curScanLine < 241) {
-
+        } else if (renderState == RenderState::VisibleScanLines) {
             // Visible scan line rendering (240 scan lines)
             // visible scan line
             if (scanLineCycle == 0) {
@@ -212,11 +222,11 @@ namespace NES {
                     currentNameTable = memoryMap->getByte(ppuAddr);
                 }
             }
-        } else if (curScanLine == 241) {
+        } else if (renderState == RenderState::PostRenderScanLine) {
             // Post-render scan line
-        } else {
+        } else {    // RenderState::VerticalBlank
             // Vblank period (20 scan lines) # 242-261
-            if (scanLineCycle == 1 && ppuMemory.memoryMappedRegisters.getVBlank()) {
+            if (scanLineCycle == 1 && ppuMemory.memoryMappedRegisters.getGenerateVBlankNmi()) {
                 // Second cycle enables vblank NMI!
                 ppuMemory.memoryMappedRegisters.setVBlank(true);
             }
@@ -285,4 +295,86 @@ namespace NES {
         // Map color palette index to RGB pixel
         return colorPaletteNtsc[outColor];
     }
+
+
+    uint8_t Ppu2C02::readRegister(PPURegister ppuRegister) {
+        uint8_t val;
+
+        switch (ppuRegister) {
+        case PPURegister::PPUCTRL:
+            break;
+        case PPURegister::PPUMASK:
+            break;
+        case PPURegister::STATUS:
+            val = ppuMemory.memoryMappedRegisters.status;
+            renderingRegisters.onStatusRead(ppuMemory.memoryMappedRegisters);           
+            break;
+        case PPURegister::OAM_ADDRESS:
+            break;
+        case PPURegister::OAM_DATA:
+            break;
+        case PPURegister::SCROLL:
+            break;
+        case PPURegister::ADDRESS:
+            break;
+        case PPURegister::DATA:
+            break;
+        }
+        return val;
+    }
+
+    // Source: http://wiki.nesdev.com/w/index.php/PPU_registers
+    // TODO maybe move the ppu interaction code out here since the registers don't really own any of that
+    void Ppu2C02::writeRegister(PPURegister ppuRegister, uint8_t val) {
+        switch (ppuRegister) {
+        case PPURegister::PPUCTRL:
+            renderingRegisters.onControlWrite(ppuMemory.memoryMappedRegisters);
+            break;
+        case PPURegister::PPUMASK:
+            break;
+        case PPURegister::STATUS:
+            break;
+        case PPURegister::OAM_ADDRESS:
+            break;
+        case PPURegister::OAM_DATA:
+            // Handle edge cases of OAM_ADDRESS increment for writes during rendering/pre-rendering scan lines
+
+            break;
+        case PPURegister::SCROLL:
+            renderingRegisters.onScrollWrite(ppuMemory.memoryMappedRegisters);
+            break;
+        case PPURegister::ADDRESS:
+            renderingRegisters.onAddressWrite(ppuMemory.memoryMappedRegisters);
+            break;
+        case PPURegister::DATA:
+            renderingRegisters.onDataAccess(ppuMemory.memoryMappedRegisters);
+            break;
+        };
+    }
+
+    void Ppu2C02::doRegisterUpdates() {
+        //if (ppuMemory.memoryMappedRegisters.isRenderingEnabled()) {
+
+        //}
+        RenderState renderState = getRenderState();
+        if (renderState == RenderState::PreRenderScanLine) {
+            if (scanLineCycle == 1) {
+                // PPUSTATUS resets
+                ppuMemory.memoryMappedRegisters.setSpriteOverflow(false);
+                ppuMemory.memoryMappedRegisters.setVBlank(false);
+                ppuMemory.memoryMappedRegisters.setSpriteZeroHit(false);
+
+            }
+            if (scanLineCycle >= 257 && scanLineCycle <= 320) {
+                ppuMemory.memoryMappedRegisters.oamAddr = 0;
+            }
+
+        } else if (renderState == RenderState::VisibleScanLines) {
+            if (scanLineCycle >= 257 && scanLineCycle <= 320) {
+                ppuMemory.memoryMappedRegisters.oamAddr = 0;
+            }
+        }
+    }
+
+
 }

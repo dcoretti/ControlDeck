@@ -36,9 +36,10 @@ namespace NES {
         else if (systemBus.addressBus < 0x4020) {
             // TODO add APU etc
 
-            // https://wiki.nesdev.com/w/index.php/2A03
-            if (systemBus.addressBus == OAMDMA) {
-                ppuRegisterHandler(systemBus);
+            if (systemBus.addressBus == 0x4014 && !systemBus.read) {
+                // Activate DMA for processor to take over.
+                dmaData->oamDma = systemBus.dataBus;
+                dmaData->isActive = true;
             }
         }
         // General cartrige space including PRG ROM/RAM, SRAM/WRAM (save data), mapper registers, etc.
@@ -61,36 +62,33 @@ namespace NES {
         uint16_t actualAddr = 0x2000 + ((systemBus.addressBus - 0x2000) % 8);
         uint8_t *reg = nullptr;;
         switch (actualAddr) {
-        case PPUCTRL:
+        case 0x2000:
             reg = &ppuRegisters->control;
             break;
-        case PPUMASK:
+        case 0x2001:   
             reg = &ppuRegisters->mask;
             break;
-        case PPUSTATUS:
+        case 0x2002:
             reg = &ppuRegisters->status;
             break;
-        case OAMADDR:
+        case 0x2003:
             reg = &ppuRegisters->oamAddr;
             break;
-        case OAMDATA:
+        case 0x2004:
             reg = &ppuRegisters->oamData;
             break;
-        case PPUSCROLL:
+        case 0x2005:
             reg = &ppuRegisters->scroll;
             break;
-        case PPUADDR:
+        case 0x2006:
             reg = &ppuRegisters->address;
             break;
-        case PPUDATA:
+        case 0x2007:
             reg = &ppuRegisters->data;
-            break;
-        case OAMDMA:
-            reg = &ppuRegisters->oamDma;
             break;
         default:
             break;
-        }
+        };
 
         if (reg != nullptr) {
             if (systemBus.read) {

@@ -21,14 +21,8 @@ namespace NES {
         }
     }
 
-    void PPURegisters::setIncrementMode(IncrementMode mode) {
-        control = (control & 0xfb) | ((uint8_t)mode << 2);
-
-        control &= (mode == IncrementMode::ADD_ONE ? 0xfb : 0xff);
-    }
-
-    IncrementMode PPURegisters::getIncrementMode() {
-        return (control & 0x04) > 0 ? IncrementMode::ADD_32 : IncrementMode::ADD_ONE;
+    uint8_t PPURegisters::getDataAccessIncrement() {
+        return (control & 0x04) > 0 ? 32 : 1;
     }
 
     void PPURegisters::setSpritePatternTable(uint8_t table) {
@@ -165,6 +159,10 @@ namespace NES {
         return (status & 0x80) > 0;
     }
 
+    void PPURegisters::onStatusRead() {
+        setVBlank(0);
+    }
+
 
 
     /////////////////////////////////////////////////////////////////
@@ -231,6 +229,9 @@ namespace NES {
     // CPU main register <-> Rendering register callbacks
     //
     // details: http://wiki.nesdev.com/w/index.php/PPU_scrolling#Register_controls
+    void PPURenderingRegisters::onStatusRead(PPURegisters &registers) {
+        writeToggle = 0;
+    }
 
 
     void PPURenderingRegisters::onControlWrite(PPURegisters &registers) {
@@ -245,22 +246,22 @@ namespace NES {
             tempVramAddress |= (registers.scroll >> 3);
             fineXScroll = registers.scroll & 0x07;
         } else {
-            tempVramAddress &= 0x031f;
+            tempVramAddress &= 0x8c1f;
             tempVramAddress |= ((registers.scroll & 0x07) << 12);
-            tempVramAddress |= ((registers.scroll & 0x38) << 3);
-            tempVramAddress |= ((registers.scroll & 0xc0) << 2);
-          
+            tempVramAddress |= ((registers.scroll & 0xf8) << 2);          
         }
         writeToggle = !writeToggle;
     }
 
     void PPURenderingRegisters::onAddressWrite(PPURegisters &registers) {
         if (writeToggle) {
-            tempVramAddress &= 0xff00;
+            // T/V registers have 15 bits, not 16 and only 14 are set via the ADDRESS register
+            tempVramAddress &= 0x00ff;  
             tempVramAddress |= ((registers.address & 0x3f) << 8);
         } else {
-            tempVramAddress &= 0xc0ff;
+            tempVramAddress &= 0xff00;
             tempVramAddress |= registers.address;
+            vramAddress = tempVramAddress;
         }
         writeToggle = !writeToggle;
     }
@@ -310,11 +311,7 @@ namespace NES {
                 setFineY(fineY);
             }
         } else {
-            if (registers.getIncrementMode() == IncrementMode::ADD_ONE) {
-                vramAddress++;
-            } else {
-                vramAddress += 32;
-            }
+            vramAddress += registers.getDataAccessIncrement();
         }
     }
 
