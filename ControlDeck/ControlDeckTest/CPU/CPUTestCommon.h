@@ -4,19 +4,19 @@
 #include "CPU\MemoryMapper.h"
 #include "CPU/AddressingMode.h"
 #include "CPU\InstructionDispatcher.h"
-#include "PPU/PPUComponents.h"
+#include "PPU/PPU2C02.h"
 
 using NES::SystemBus;
 using NES::SystemRam;
 using NES::Registers;
 using NES::MemoryMapper;
 using NES::DMAData;
-using NES::PPURegisters;
+using NES::Ppu2C02;
 
 class CPUTest : public testing::Test {
 protected:
     virtual void SetUp() {
-        memoryMapper = new MemoryMapper(&ram, &ppuRegisters);
+        memoryMapper = new MemoryMapper(&ram, &ppu);
         bus.addressBus = 0;
         bus.dataBus = 0;
         bus.read = false;
@@ -28,7 +28,6 @@ protected:
         registers.x = 0;
         registers.y = 0;
 
-        ppuRegisters = PPURegisters();
     }
 
     virtual void TearDown() {
@@ -45,7 +44,6 @@ protected:
     SystemRam ram;
     Registers registers;
     DMAData dmaData;
-    PPURegisters ppuRegisters;
-
+    Ppu2C02 ppu;
     MemoryMapper * memoryMapper;
 };

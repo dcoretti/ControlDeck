@@ -61,7 +61,7 @@ TEST_F(CPU2A03Test, testDMA) {
 
         // Verify the PPU register port contains the right info
         if (i > 1) {
-            EXPECT_EQ(ram.ram[byte], ppuRegisters.oamData);
+            EXPECT_EQ(ram.ram[byte], ppu.ppuMemory.memoryMappedRegisters.oamData);
             byte++;
         }
     }

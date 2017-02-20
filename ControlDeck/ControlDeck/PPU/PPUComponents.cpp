@@ -127,9 +127,9 @@ namespace NES {
     // TODO take a look at this again... 1E means ALL rendering enabled, only bits 3/4 enable rendering
     // $00 means ALL disabled. I'm not sure this accessor is useful overall since only 0 means disabled.
     //// True if bits 1-4 are true in the mask register (show background or sprites)
-    //bool PPURegisters::isRenderingEnabled() {
-    //    return (mask & 0x1e) > 0;
-    //}
+    bool PPURegisters::isRenderingEnabled() {
+        return (mask & 0x18) > 0;
+    }
 
 
     /////////////////////////////////////////////////////////////////
@@ -340,5 +340,20 @@ namespace NES {
 
     uint16_t PPURenderingRegisters::getFineYScroll() {
         return (vramAddress & fineYMask) >> 12;
+    }
+
+    uint8_t SystemColorPalette::getBkrndColorIndex(uint8_t index) {
+        uint8_t paletteNum = index & 0xc;
+        uint8_t pixelVal = index & 3;
+
+        if (index == 0) {
+            return universalBackgroundColor;
+        } else {
+            return backgroundPalettes[paletteNum].colorIndex[pixelVal];
+        }
+    }
+
+    uint8_t SystemColorPalette::getSpriteColorIndex(uint8_t index) {
+        return 0;
     }
 }

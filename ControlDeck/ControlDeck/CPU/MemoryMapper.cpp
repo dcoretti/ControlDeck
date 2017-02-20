@@ -56,45 +56,13 @@ namespace NES {
     }
 
     void MemoryMapper::ppuRegisterHandler(SystemBus &systemBus) {
-        // todo handle read-only situations?
-
         uint16_t actualAddr = 0x2000 + ((systemBus.addressBus - 0x2000) % 8);
-        uint8_t *reg = nullptr;;
-        switch (actualAddr) {
-        case 0x2000:
-            reg = &ppuRegisters->control;
-            break;
-        case 0x2001:   
-            reg = &ppuRegisters->mask;
-            break;
-        case 0x2002:
-            reg = &ppuRegisters->status;
-            break;
-        case 0x2003:
-            reg = &ppuRegisters->oamAddr;
-            break;
-        case 0x2004:
-            reg = &ppuRegisters->oamData;
-            break;
-        case 0x2005:
-            reg = &ppuRegisters->scroll;
-            break;
-        case 0x2006:
-            reg = &ppuRegisters->address;
-            break;
-        case 0x2007:
-            reg = &ppuRegisters->data;
-            break;
-        default:
-            break;
-        };
 
-        if (reg != nullptr) {
-            if (systemBus.read) {
-                systemBus.dataBus = *reg;
-            } else {
-                *reg = systemBus.dataBus;
-            }
+        PPURegister reg = (PPURegister)(actualAddr - 0x2000);
+        if (systemBus.read) {
+            ppu->readRegister(reg);
+        } else {
+            ppu->writeRegister(reg, systemBus.dataBus);
         }
     }
 

@@ -1,6 +1,6 @@
 #pragma once
 #include "SystemComponents.h"
-#include "../PPU/PPUComponents.h"
+#include "../PPU/PPU2C02.h"
 #include "../common.h"
 #include "../cartridge.h"
 namespace NES {
@@ -10,7 +10,7 @@ namespace NES {
     class MemoryMapper {
     public:
         MemoryMapper() = default;
-        MemoryMapper(SystemRam * systemRam, PPURegisters * ppuRegisters = nullptr) : systemRam(systemRam), ppuRegisters(ppuRegisters) {}
+        MemoryMapper(SystemRam * systemRam, Ppu2C02 * ppu = nullptr) : systemRam(systemRam), ppu(ppu) {}
 
         /**
         * returns number of cycles the memory operation costs.
@@ -20,7 +20,7 @@ namespace NES {
 
         Cartridge *cartridge;
 
-        PPURegisters * ppuRegisters{ nullptr };     // TODO remove this in favor of PPU memory mapper handling everything...
+        Ppu2C02 *ppu{ nullptr };
         SystemRam * systemRam{ nullptr };
         DMAData *dmaData{ nullptr };
     private:
