@@ -74,4 +74,8 @@ namespace NES {
         return readResult;
     }
 
+    bool PPUMemoryMap::isAddressInPaletteRange(uint16_t address) {
+        address = address % 0x4000;
+        return address >= 0x3f00 && address < 0x4000;
+    }
 }

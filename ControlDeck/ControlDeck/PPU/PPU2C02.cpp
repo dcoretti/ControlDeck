@@ -298,8 +298,9 @@ namespace NES {
 
 
     uint8_t Ppu2C02::readRegister(PPURegister ppuRegister) {
-        uint8_t val;
-
+        uint8_t val = 0;
+        // TODO handle the fact that the lead capacitance means that reading CTRL, MASK, OAMADDR, SCROLL, ADDR
+        //  for normally write-only registers will return that latched value which decays at some rate.
         switch (ppuRegister) {
         case PPURegister::PPUCTRL:
             break;
@@ -308,16 +309,27 @@ namespace NES {
         case PPURegister::STATUS:
             val = ppuMemory.memoryMappedRegisters.status;
             renderingRegisters.onStatusRead(ppuMemory.memoryMappedRegisters);           
+            ppuMemory.memoryMappedRegisters.setVBlank(false);
             break;
         case PPURegister::OAM_ADDRESS:
             break;
         case PPURegister::OAM_DATA:
+            val = ppuMemory.memoryMappedRegisters.oamData;
+            // TODO during rendering this will contain the current oam data being used
             break;
         case PPURegister::SCROLL:
             break;
         case PPURegister::ADDRESS:
             break;
         case PPURegister::DATA:
+            // Data is buffered on read when not reading from palette range $3f00-3fff
+            val = ppuMemory.memoryMappedRegisters.data;
+            ppuMemory.memoryMappedRegisters.data = memoryMap->getByte(renderingRegisters.vramAddress);
+            if (memoryMap->isAddressInPaletteRange(renderingRegisters.vramAddress)) {
+                // In the palette range, return the vram address immediately - don't require a dummy read from DATA
+                val = ppuMemory.memoryMappedRegisters.data;
+            }
+            renderingRegisters.onDataAccess(ppuMemory.memoryMappedRegisters);
             break;
         }
         return val;
@@ -328,25 +340,31 @@ namespace NES {
     void Ppu2C02::writeRegister(PPURegister ppuRegister, uint8_t val) {
         switch (ppuRegister) {
         case PPURegister::PPUCTRL:
+            ppuMemory.memoryMappedRegisters.control = val;
             renderingRegisters.onControlWrite(ppuMemory.memoryMappedRegisters);
             break;
         case PPURegister::PPUMASK:
+            ppuMemory.memoryMappedRegisters.mask = val;
             break;
         case PPURegister::STATUS:
             break;
         case PPURegister::OAM_ADDRESS:
+            ppuMemory.memoryMappedRegisters.oamAddr = val;
             break;
         case PPURegister::OAM_DATA:
             // Handle edge cases of OAM_ADDRESS increment for writes during rendering/pre-rendering scan lines
-
+            ppuMemory.memoryMappedRegisters.oamData = val;
             break;
         case PPURegister::SCROLL:
+            ppuMemory.memoryMappedRegisters.scroll = val;
             renderingRegisters.onScrollWrite(ppuMemory.memoryMappedRegisters);
             break;
         case PPURegister::ADDRESS:
+            ppuMemory.memoryMappedRegisters.address = val;
             renderingRegisters.onAddressWrite(ppuMemory.memoryMappedRegisters);
             break;
         case PPURegister::DATA:
+            ppuMemory.memoryMappedRegisters.data = val;
             renderingRegisters.onDataAccess(ppuMemory.memoryMappedRegisters);
             break;
         };
