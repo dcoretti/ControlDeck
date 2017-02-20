@@ -163,6 +163,10 @@ namespace NES {
         setVBlank(0);
     }
 
+    void PPURegisters::onOamDataWrite() {
+        // TODO write to OAM using newly set value on OAMData register
+    }
+
 
 
     /////////////////////////////////////////////////////////////////

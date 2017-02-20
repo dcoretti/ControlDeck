@@ -98,6 +98,7 @@ namespace NES{
         void setVBlank(bool vblank);
 
         void onStatusRead();
+        void onOamDataWrite();
 
         /**
         *   PPUCTRL $2000 (Writable)

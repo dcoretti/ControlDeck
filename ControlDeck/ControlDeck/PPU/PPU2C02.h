@@ -4,27 +4,6 @@
 #include "../cartridge.h"
 
 namespace NES {
-    /**
-    *   DMA state 
-    */
-    struct OamDmaState {
-        void activateDma(uint8_t pageAddr, bool oddCycle);
-        void doDmaAction();
-
-        // Copy one page (256 bytes)
-        static const int amountToCopy = 256;
-
-        bool isDmaActive{ false };
-        uint8_t curPageOffset{ 0 };
-        uint8_t pageAddr{ 0 };
-        // read/write toggle
-        bool isRead{ true };
-        // Add an extra cycle if DMA triggered on an odd cpu cycle
-        bool addOddCycle{ false };
-
-
-    };
-
     // Starting cycle in scan line state
     enum class ScanLineState {
         Idle = 0,                 //0
@@ -45,35 +24,10 @@ namespace NES {
 
     class Ppu2C02 {
     public:
-        // Memory mapped registers connected to CPU
-        uint8_t getStatus();
-        void setControl(uint8_t val);
-
-        void setMask(uint8_t val);
-
-        void setOamAddr(uint8_t val);
-
-        void setOamData(uint8_t val);
-        uint8_t getOamData();
-
-        void setScroll(uint8_t);
-
-        void setAddress(uint8_t);
-
-        void setData(uint8_t val);
-        uint8_t getData();
-
-        void setOamDma(uint8_t val);
-
         void setPowerUpState();
-
         void doPpuCycle();
-
         void handleScrolling();
         Pixel getScreenPixel();
-
-
-
 
         ///////////////////////////////////////////////////////////////////////
         // PPU Memory Mapper
@@ -83,7 +37,6 @@ namespace NES {
         uint8_t getByte(uint16_t address) { return doMemoryOperation(address, 0); }
         bool isAddressInPaletteRange(uint16_t address);
 
-
         ///////////////////////////////////////////////////////////////////////
         // CPU Memory-mapped register read/write
         uint8_t readRegister(PPURegister ppuRegister);
@@ -91,7 +44,6 @@ namespace NES {
         // scanline-triggered resets of various register components
         void doRegisterUpdates();
         RenderState getRenderState();
-
 
         ////////////////////////////////////////////////
         // Registers and memory components
@@ -119,8 +71,6 @@ namespace NES {
         uint8_t patternL{ 0 };  // current high bit pattern table entry
         uint8_t patternR{ 0 };  // current low bit pattern table entry
         uint8_t attrTableEntry{ 0 };
-
-
 
         /**
         *   Iterate primary OAM to determine which objects are in Y-range for the NEXT scan line from highest priority (0)
