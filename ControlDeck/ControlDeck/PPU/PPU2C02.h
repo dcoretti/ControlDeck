@@ -1,7 +1,7 @@
 #pragma once
 #include "PPUComponents.h"
-#include "PPUMemoryMap.h"
 #include "ColorPalette.h"
+#include "../cartridge.h"
 
 namespace NES {
     /**
@@ -73,11 +73,28 @@ namespace NES {
         Pixel getScreenPixel();
 
 
+
+
+        ///////////////////////////////////////////////////////////////////////
+        // PPU Memory Mapper
+        static const uint16_t patternTableBoundary = 0x4000;
+        static const uint16_t nameTableBoundary = 0x3f00;
+        uint8_t doMemoryOperation(uint16_t address, uint8_t write, bool read = true);
+        uint8_t getByte(uint16_t address) { return doMemoryOperation(address, 0); }
+        bool isAddressInPaletteRange(uint16_t address);
+
+
+        ///////////////////////////////////////////////////////////////////////
+        // CPU Memory-mapped register read/write
         uint8_t readRegister(PPURegister ppuRegister);
         void writeRegister(PPURegister ppuRegister, uint8_t val);
         // scanline-triggered resets of various register components
         void doRegisterUpdates();
         RenderState getRenderState();
+
+
+        ////////////////////////////////////////////////
+        // Registers and memory components
 
         // Registers accessible to CPU through memory mapper
         PPUMemoryComponents ppuMemory{};
@@ -88,14 +105,14 @@ namespace NES {
         SpriteMemory spriteMemory{};
         BackgroundTileMemory bkrndTileMemory{};
 
-        uint16_t ppuAddr;
-        uint8_t ppuData;
-        PPUMemoryMap *memoryMap;
-
+        Cartridge *cartridge;
     private:
+        // Rendering state
         uint16_t curScanLine{ 0 };
         uint32_t cycle{ 0 };
         uint16_t scanLineCycle{ 0 };    // one cycle per pixel
+        uint16_t ppuAddr;
+        uint8_t ppuData;
 
         // Scan line produced data pending load into registers for rendering
         uint16_t currentNameTable{ 0 };

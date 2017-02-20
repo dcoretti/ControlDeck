@@ -8,25 +8,18 @@ namespace NES {
     }
 
 
-    uint8_t Ppu2C02::getStatus() {
-        // Reading $2002 is latched to firstwrite reset http://wiki.nesdev.com/w/index.php/PPU_scrolling#.242002_read
-        renderingRegisters.writeToggle = false;
-        return ppuMemory.memoryMappedRegisters.status;
-    }
+    //uint8_t Ppu2C02::getStatus() {
+    //    // Reading $2002 is latched to firstwrite reset http://wiki.nesdev.com/w/index.php/PPU_scrolling#.242002_read
+    //    renderingRegisters.writeToggle = false;
+    //    return ppuMemory.memoryMappedRegisters.status;
+    //}
 
 
-    void Ppu2C02::setControl(uint8_t val) {
-        ppuMemory.memoryMappedRegisters.control = val;
-        renderingRegisters.onControlWrite(ppuMemory.memoryMappedRegisters);
-    }
+    //void Ppu2C02::setControl(uint8_t val) {
+    //    ppuMemory.memoryMappedRegisters.control = val;
+    //    renderingRegisters.onControlWrite(ppuMemory.memoryMappedRegisters);
+    //}
 
-    void Ppu2C02::setMask(uint8_t val) {
-
-    }
-
-    void Ppu2C02::setOamAddr(uint8_t val) {
-
-    }
 
     void Ppu2C02::setOamData(uint8_t val) {
         if (!ppuMemory.memoryMappedRegisters.isRenderingEnabled()) {
@@ -174,7 +167,7 @@ namespace NES {
                     // $2000 base addr + nameTable,x,yoffset
                     ppuAddr = nameTableBaseAddr | 0xfff;
                 } else if (state == 1) {
-                    currentNameTable = memoryMap->getByte(ppuAddr);
+                    currentNameTable = getByte(ppuAddr);
 
                 }
                 // Fetch Attribute table byte
@@ -185,14 +178,14 @@ namespace NES {
                         ((renderingRegisters.getCoarseYScroll() >> 2) << 3) |
                         (renderingRegisters.getCoarseXScroll() >> 2);
                 } else if (state == 3) {
-                    attrTableEntry = memoryMap->getByte(ppuAddr);
+                    attrTableEntry = getByte(ppuAddr);
                 }
                 // Fetch pattern table left half (low bit)
                 else if (state == 4) {
                     ppuAddr = (uint16_t)ppuMemory.memoryMappedRegisters.getBackgroundPatternTable() * sizeof(PatternTable) + currentNameTable * sizeof(PatternTableEntry)
                         + renderingRegisters.getFineYScroll();
                 } else if (state == 5) {
-                    patternL |= (uint16_t)memoryMap->getByte(ppuAddr) << 8;
+                    patternL |= (uint16_t)getByte(ppuAddr) << 8;
 
                 }
                 // Fetch pattern table right half (high bit)
@@ -200,7 +193,7 @@ namespace NES {
                     ppuAddr = (uint16_t)ppuMemory.memoryMappedRegisters.getBackgroundPatternTable() * sizeof(PatternTable) + currentNameTable * sizeof(PatternTableEntry)
                         + renderingRegisters.getFineYScroll() + 8;
                 } else {
-                    patternR |= (uint16_t)memoryMap->getByte(ppuAddr) << 8;
+                    patternR |= (uint16_t)getByte(ppuAddr) << 8;
                 }
             } else if (scanLineCycle < 321) {
                 // sprite data for next scan line fetched here
@@ -219,7 +212,7 @@ namespace NES {
                     // $2000 base addr + nameTable,x,yoffset
                     ppuAddr = nameTableBaseAddr | 0xfff;
                 } else {
-                    currentNameTable = memoryMap->getByte(ppuAddr);
+                    currentNameTable = getByte(ppuAddr);
                 }
             }
         } else if (renderState == RenderState::PostRenderScanLine) {
@@ -324,8 +317,8 @@ namespace NES {
         case PPURegister::DATA:
             // Data is buffered on read when not reading from palette range $3f00-3fff
             val = ppuMemory.memoryMappedRegisters.data;
-            ppuMemory.memoryMappedRegisters.data = memoryMap->getByte(renderingRegisters.vramAddress);
-            if (memoryMap->isAddressInPaletteRange(renderingRegisters.vramAddress)) {
+            ppuMemory.memoryMappedRegisters.data = getByte(renderingRegisters.vramAddress);
+            if (isAddressInPaletteRange(renderingRegisters.vramAddress)) {
                 // In the palette range, return the vram address immediately - don't require a dummy read from DATA
                 val = ppuMemory.memoryMappedRegisters.data;
             }
@@ -394,5 +387,82 @@ namespace NES {
         }
     }
 
+    /**
+    *   General map of address space on PPU including cartridge-supplied memory
+    *   ref: http://wiki.nesdev.com/w/index.php/PPU_memory_map
+    **/
+    uint8_t Ppu2C02::doMemoryOperation(uint16_t address, uint8_t write, bool read) {
+        uint8_t *opAddr;
+        address = address % 0x4000;
 
+        // Cartridge-backed CHR-ROM is mapped here and bank-switched(if needed) via CPU memory
+        if (address < 0x2000) {
+            return cartridge->mmc->doCHRMemoryOperationOperation(*cartridge, address, write, read);
+        }
+        // either internal vram or cart ram to enable 4 nametables
+        else if (address < 0x3f00) {
+            // 0x3000-0x3eff is a mirror of 0x2000-0x2fff
+            uint16_t base = (address - 0x2000) % 0x1000;   // 4 1k nametables mirrored up to 2eff
+            size_t table = base / 0x400;
+            size_t offset = base % 0x400;
+
+            // 4 tables addressable, only 2 in ram so mirror them based on cartridge settings.
+            // See http://wiki.nesdev.com/w/index.php/Mirroring
+            switch (cartridge->mirroring) {
+            case PPUMirroring::PPU_VERTICAL:
+                table = table % 2;  // Configuration: 0, 1, 0, 1 
+                break;
+            case PPUMirroring::PPU_HORIZONTAL:
+                table = table / 2;  // Configuration: 0, 0, 1, 1
+                break;
+            default:
+                DBG_CRASH("Unsupported mirroring mode found %d", cartridge->mirroring);
+            };
+            if (base % 0x400 < 0x3c0) {
+                opAddr = &ppuMemory.nameTables[table].nameTable[offset];
+            } else {
+                opAddr = &ppuMemory.nameTables[table].attributeTable.tileGroup[offset - 0x3c0];
+            }
+        }
+        // Palette memory ($3f00-$3f20 mirrored up to $4000)
+        else if (address < 0x4000) {
+            uint8_t base = (address - 0x3f00) % 0x20;   // 32 bits mirrored
+            if (base == 0 || base == 0x10) {
+                // universal background'
+                opAddr = &ppuMemory.colorPalette.universalBackgroundColor;
+            }
+            // unused in rendering normally and mirrored
+            else if (base == 0x04 || base == 0x14) {
+                opAddr = &ppuMemory.colorPalette.unusedPaletteData[0];
+            } else if (base == 0x08 || base == 0x18) {
+                opAddr = &ppuMemory.colorPalette.unusedPaletteData[1];
+            } else if (base == 0x0c || base == 0x1c) {
+                opAddr = &ppuMemory.colorPalette.unusedPaletteData[2];
+            } else {
+                int paletteNum = (base - 1) / 4;
+                int colorIndexNum = (base - 1) % 4;
+                if (base < 0x10) {
+                    // Background palettes
+                    opAddr = &ppuMemory.colorPalette.backgroundPalettes[paletteNum].colorIndex[colorIndexNum];
+                } else {
+                    // Sprite palettes
+                    opAddr = &ppuMemory.colorPalette.spritePalette[paletteNum - 4].colorIndex[colorIndexNum];
+                }
+            }
+        } else {
+            DBG_CRASH("Unsupported memory operation on address %04x isRead %d write value %02x\n", address, read, write);
+            return 0;   // for compiler warnings
+        }
+
+        uint8_t readResult = *opAddr;
+        if (!read) {
+            *opAddr = write;
+        }
+        return readResult;
+    }
+
+    bool Ppu2C02::isAddressInPaletteRange(uint16_t address) {
+        address = address % 0x4000;
+        return address >= 0x3f00 && address < 0x4000;
+    }
 }

@@ -2,6 +2,7 @@
 #include "ines.h"
 
 namespace NES {
+    // TODO clean up initialization and general memory management
     void initNes(char * nesFile, NesControlDeck &controlDeck) {
         controlDeck.memoryMapper.systemRam = &controlDeck.systemRam;
         loadINesFile(nesFile, &controlDeck.cart);
@@ -14,7 +15,11 @@ namespace NES {
         controlDeck.cpu.memoryMapper = &controlDeck.memoryMapper;
         controlDeck.cpu.memoryMapper->ppu = &controlDeck.ppu;
         controlDeck.cpu.setPowerUpState();
+        controlDeck.cpu.dmaData = &controlDeck.dmaData;
         //controlDeck.cpu.reset();
+
+
+        controlDeck.ppu.cartridge = &controlDeck.cart;
     }
 
     void nesLoop(NesControlDeck &nes, int numInstructions) {

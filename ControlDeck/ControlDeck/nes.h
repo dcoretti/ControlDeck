@@ -20,6 +20,7 @@ namespace NES {
         SystemRam systemRam{};
         SystemBus systemBus{};
         Registers registers{};
+        DMAData dmaData{};
     };
 
 
