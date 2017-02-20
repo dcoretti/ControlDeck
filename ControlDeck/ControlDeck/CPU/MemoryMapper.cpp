@@ -38,8 +38,7 @@ namespace NES {
 
             if (systemBus.addressBus == 0x4014 && !systemBus.read) {
                 // Activate DMA for processor to take over.
-                dmaData->oamDma = systemBus.dataBus;
-                dmaData->isActive = true;
+                dmaData->activate(systemBus.dataBus);
             }
         }
         // General cartrige space including PRG ROM/RAM, SRAM/WRAM (save data), mapper registers, etc.

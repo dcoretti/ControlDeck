@@ -169,8 +169,19 @@ namespace NES {
     };
 
     struct DMAData {
+        void activate(uint8_t baseDmaAddress) {
+            baseAddress = baseDmaAddress;
+            isActive = true;
+            cycleCounter = 0;
+            bytesWritten = 0;
+            curByteToWrite = 0;
+        }
+        
         bool isActive{ false };
         // OAMDMA $4014 - MSB of 256 byte dma transfer starting location. 
-        uint8_t oamDma{ 0 };
+        uint8_t baseAddress{ 0 };
+        uint16_t cycleCounter{ 0 };
+        int bytesWritten{ 0 };
+        uint8_t curByteToWrite{ 0 };
     };
 }

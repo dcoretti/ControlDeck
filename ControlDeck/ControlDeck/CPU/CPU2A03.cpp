@@ -4,8 +4,8 @@ namespace NES {
     /**
     *    CPU
     */
-    Cpu2a03::Cpu2a03(MemoryMapper *memoryMapper, SystemRam *ram, SystemBus *systemBus, Registers *registers) :
-        memoryMapper(memoryMapper), ram(ram), registers(registers), systemBus(systemBus) {
+    Cpu2a03::Cpu2a03(MemoryMapper *memoryMapper, SystemRam *ram, SystemBus *systemBus, Registers *registers, DMAData *dmaData) :
+        memoryMapper(memoryMapper), ram(ram), registers(registers), systemBus(systemBus), dmaData(dmaData) {
     }
 
     OpCode Cpu2a03::fetchOpCode() {
@@ -28,29 +28,57 @@ namespace NES {
 
 
     DebugState Cpu2a03::processInstruction() {
-        cycle++;
         DebugState debugState;
+        debugState.dmaBefore = *dmaData;
 
-        // Read the next op code from memory (or interrupt)
-        OpCode opCode = fetchOpCode();
-        debugState.opCode = opCode;
-        debugState.registersBefore = *registers;
-        debugState.systemBusBefore = *systemBus;
-        DBG_ASSERT(opCode.instruction != Instruction::UNK, "Unknown instruction encountered %d", opCode.opCode);
+        if (dmaData->isActive) {
+            if (dmaData->cycleCounter == 0  || (dmaData->cycleCounter == 1 && cycle & 1)) {
+                // do nothing, skip the first cycle and the second if it occurs on an odd cycle.
+                // TODO hard to tell from documentation if the skip happens if the start cycle is odd or if the second cycle is odd
+            } else if ((dmaData->cycleCounter & 1) == 0) {
+                // read mem
+                systemBus->addressBus = (dmaData->baseAddress << 8) + dmaData->bytesWritten;
+                systemBus->read = true;
+                memoryMapper->doMemoryOperation(*systemBus);
+                dmaData->curByteToWrite = systemBus->dataBus;
+            } else {
+                // ppu write
+                systemBus->addressBus = 0x2004;
+                systemBus->dataBus = dmaData->curByteToWrite;
+                systemBus->read = false;
+                memoryMapper->doMemoryOperation(*systemBus);
+                dmaData->bytesWritten++;
+            }
+
+            dmaData->cycleCounter++;
+            if (dmaData->bytesWritten == 256) {
+                dmaData->isActive = false;
+            }
+            debugState.dmaAfter = *dmaData;
+        } else {
+            // Read the next op code from memory (or interrupt)
+            OpCode opCode = fetchOpCode();
+            debugState.opCode = opCode;
+            debugState.registersBefore = *registers;
+            debugState.systemBusBefore = *systemBus;
+            DBG_ASSERT(opCode.instruction != Instruction::UNK, "Unknown instruction encountered %d", opCode.opCode);
 
 
-        // Set up system bus to contain relevant memory data for a particular instruction.
-        AddressingModeHandler::handleAddressingMode(opCode.addressingMode, *systemBus, *registers, *memoryMapper);
-        // Call the instruction handler
-        opCode.instructionHandler(opCode, *systemBus, *registers, *memoryMapper);
+            // Set up system bus to contain relevant memory data for a particular instruction.
+            AddressingModeHandler::handleAddressingMode(opCode.addressingMode, *systemBus, *registers, *memoryMapper);
+            // Call the instruction handler
+            opCode.instructionHandler(opCode, *systemBus, *registers, *memoryMapper);
 
-        // TODO handle return of post-instruction data such as cylce timing and paging 
+            // TODO handle return of post-instruction data such as cylce timing and paging 
 
-        // clear interrupt source flag set by hardware pins if any.
-        registers->interruptStatus = InterruptLevel::NONE;
+            // clear interrupt source flag set by hardware pins if any.
+            registers->interruptStatus = InterruptLevel::NONE;
 
-        debugState.registersAfter = *registers;
-        debugState.systemBusAfter = *systemBus;
+            debugState.registersAfter = *registers;
+            debugState.systemBusAfter = *systemBus;
+        }
+
+        cycle++;
         return debugState;
     }
 
@@ -87,13 +115,20 @@ namespace NES {
     }
 
     void DebugState::print(){
-        printf("[%s (%02x), addrMode: %s]:\n",
-            instructionNames[opCode.instruction], opCode.opCode, addressingModeNames[opCode.addressingMode]);
-        printf("B: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, p: $%02x, sp:$%02x, pc: $%04x}\n",
-            systemBusBefore.addressBus, systemBusBefore.dataBus, systemBusBefore.read,
-            registersBefore.acc, registersBefore.x, registersBefore.y, registersBefore.statusRegister, registersBefore.stackPointer, registersBefore.programCounter);
-        printf("A: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, p: $%02x, sp: $%02x, pc: $%04x}\n",
-            systemBusAfter.addressBus, systemBusAfter.dataBus, systemBusAfter.read,
-            registersAfter.acc, registersAfter.x, registersAfter.y, registersAfter.statusRegister, registersAfter.stackPointer, registersAfter.programCounter);
+        if (isDma) {
+            printf("DMA B: {baseAddress: $%04x, isActive: %d, cycleCounter: %d, bytesWritten: %d, curByteToWrite %d\n",
+                dmaBefore.baseAddress, dmaBefore.isActive, dmaBefore.cycleCounter, dmaBefore.bytesWritten, dmaBefore.curByteToWrite);
+            printf("DMA A: {baseAddress: $%04x, isActive: %d, cycleCounter: %d, bytesWritten: %d, curByteToWrite %d\n",
+                dmaAfter.baseAddress, dmaAfter.isActive, dmaAfter.cycleCounter, dmaAfter.bytesWritten, dmaAfter.curByteToWrite);
+        } else {
+            printf("[%s (%02x), addrMode: %s]:\n",
+                instructionNames[opCode.instruction], opCode.opCode, addressingModeNames[opCode.addressingMode]);
+            printf("B: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, p: $%02x, sp:$%02x, pc: $%04x}\n",
+                systemBusBefore.addressBus, systemBusBefore.dataBus, systemBusBefore.read,
+                registersBefore.acc, registersBefore.x, registersBefore.y, registersBefore.statusRegister, registersBefore.stackPointer, registersBefore.programCounter);
+            printf("A: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, p: $%02x, sp: $%02x, pc: $%04x}\n",
+                systemBusAfter.addressBus, systemBusAfter.dataBus, systemBusAfter.read,
+                registersAfter.acc, registersAfter.x, registersAfter.y, registersAfter.statusRegister, registersAfter.stackPointer, registersAfter.programCounter);
+        }
     }
 }

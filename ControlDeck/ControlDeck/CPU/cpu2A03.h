@@ -13,6 +13,9 @@ namespace NES {
         SystemBus systemBusAfter;
         Registers registersAfter;
 
+        DMAData dmaBefore;
+        DMAData dmaAfter;
+        bool isDma{ false };
         void print();
     };
 
@@ -22,7 +25,7 @@ namespace NES {
     class Cpu2a03{
     public:
         Cpu2a03() = default;
-        Cpu2a03(MemoryMapper *memoryMapper, SystemRam *ram, SystemBus *systemBus, Registers *registers);
+        Cpu2a03(MemoryMapper *memoryMapper, SystemRam *ram, SystemBus *systemBus, Registers *registers, DMAData *dmaData);
 
         DebugState processInstruction();
 
@@ -41,6 +44,7 @@ namespace NES {
         SystemRam *ram;
         SystemBus *systemBus;
         Registers *registers;
+        DMAData *dmaData;
 
     protected:
         uint32_t cycle{ 0 };
