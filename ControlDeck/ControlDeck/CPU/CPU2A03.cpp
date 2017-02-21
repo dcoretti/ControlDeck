@@ -115,6 +115,7 @@ namespace NES {
     // https://wiki.nesdev.com/w/index.php/CPU_power_up_state#cite_note-1
     void Cpu2a03::reset() {
         registers->interruptStatus = InterruptLevel::RESET;
+        registers->stackPointer -= 3;
     }
 
     void DebugState::print(){
