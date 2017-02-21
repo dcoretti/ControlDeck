@@ -7,6 +7,7 @@
 #include "CPU/SystemComponents.h"
 
 #include "PPU/PPUComponents.h"
+#include "Render.h"
 
 
 // APU
@@ -21,6 +22,7 @@ namespace NES {
         SystemBus systemBus{};
         Registers registers{};
         DMAData dmaData{};
+        RenderBuffer renderBuffer;
     };
 
 

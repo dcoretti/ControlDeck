@@ -78,6 +78,7 @@ namespace NES {
         // 260 scan lines visible, +2  (-1, 261) which are pre-render scanlines.
         RenderState renderState = getRenderState();
         if (renderState == RenderState::PreRenderScanLine) {
+
             if (scanLineCycle >= 257 && scanLineCycle <= 320) {
                 ppuMemory.memoryMappedRegisters.oamAddr = 0;
             }
@@ -132,6 +133,9 @@ namespace NES {
                 } else {
                     patternR |= (uint16_t)getByte(ppuAddr) << 8;
                 }
+
+                Pixel pixel = getScreenPixel();
+                renderBuffer.putPixel(scanLineCycle, curScanLine, pixel);
             } else if (scanLineCycle < 321) {
                 ppuMemory.memoryMappedRegisters.oamAddr = 0;
                 // sprite data for next scan line fetched here

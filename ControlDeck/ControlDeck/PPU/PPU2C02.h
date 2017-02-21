@@ -2,6 +2,7 @@
 #include "PPUComponents.h"
 #include "ColorPalette.h"
 #include "../cartridge.h"
+#include "../Render.h"
 
 namespace NES {
     // Starting cycle in scan line state
@@ -58,6 +59,7 @@ namespace NES {
         BackgroundTileMemory bkrndTileMemory{};
 
         Cartridge *cartridge;
+        RenderBuffer renderBuffer;
     private:
         // Rendering state
         uint16_t curScanLine{ 0 };

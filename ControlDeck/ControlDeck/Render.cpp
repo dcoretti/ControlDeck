@@ -1,9 +1,13 @@
 #include "Render.h"
 #include <cstring>
-#include "../common.h"
+#include "common.h"
 
 namespace NES {
-    void RenderBuffer::putPixel(uint8_t x, uint8_t y, Pixel pixel) {
+    void RenderBuffer::putPixel(int x, int y, Pixel pixel) {
+        if (x > screen_w || y > screen_h) {
+            return;
+        }
+
         int index = screen_w * x + y;
         renderBuffer[index] = pixel.r;
         renderBuffer[index + 1] = pixel.g;

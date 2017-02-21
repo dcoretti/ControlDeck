@@ -134,7 +134,7 @@
     <ClInclude Include="PPU\ColorPalette.h" />
     <ClInclude Include="PPU\PPU2C02.h" />
     <ClInclude Include="PPU\PPUComponents.h" />
-    <ClInclude Include="Render\Render.h" />
+    <ClInclude Include="Render.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CPU\AddressingMode.cpp" />
@@ -147,7 +147,7 @@
     <ClCompile Include="nes.cpp" />
     <ClCompile Include="PPU\PPU2C02.cpp" />
     <ClCompile Include="PPU\PPUComponents.cpp" />
-    <ClCompile Include="Render\Render.cpp" />
+    <ClCompile Include="Render.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

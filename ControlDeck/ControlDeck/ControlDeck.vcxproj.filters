@@ -63,7 +63,7 @@
     <ClInclude Include="nes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Render\Render.h">
+    <ClInclude Include="Render.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -98,7 +98,7 @@
     <ClCompile Include="nes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Render\Render.cpp">
+    <ClCompile Include="Render.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
