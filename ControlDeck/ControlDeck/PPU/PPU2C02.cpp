@@ -78,6 +78,9 @@ namespace NES {
         // 260 scan lines visible, +2  (-1, 261) which are pre-render scanlines.
         RenderState renderState = getRenderState();
         if (renderState == RenderState::PreRenderScanLine) {
+            if (scanLineCycle >= 257 && scanLineCycle <= 320) {
+                ppuMemory.memoryMappedRegisters.oamAddr = 0;
+            }
             // Pre-Render Cycle
             // Do scan line reads based on even / odd frames
             // Read operations still occur (can be read externally?)
@@ -130,6 +133,7 @@ namespace NES {
                     patternR |= (uint16_t)getByte(ppuAddr) << 8;
                 }
             } else if (scanLineCycle < 321) {
+                ppuMemory.memoryMappedRegisters.oamAddr = 0;
                 // sprite data for next scan line fetched here
 
             }
@@ -271,6 +275,10 @@ namespace NES {
 
         switch (ppuRegister) {
         case PPURegister::PPUCTRL:
+            //if (cycle < 30000) {
+            //    // PPU warmup
+            //    break;
+            //}
             ppuMemory.memoryMappedRegisters.control = val;
             renderingRegisters.onControlWrite(ppuMemory.memoryMappedRegisters);
             break;

@@ -8,6 +8,8 @@
 namespace NES {
     struct DebugState {
         OpCode opCode;
+        uint8_t opCodeArgs[2];
+
         SystemBus systemBusBefore;
         Registers registersBefore;
         SystemBus systemBusAfter;

@@ -1,59 +1,63 @@
 #include "AddressingModeHandler.h"
 
+
 namespace NES {
-    void AddressingModeHandler::handleAddressingMode(const AddressingMode addressingMode, SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+    AddressingModeHandler::OpCodeArgs AddressingModeHandler::handleAddressingMode(const AddressingMode addressingMode, SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+        AddressingModeHandler::OpCodeArgs opCodeArgs = AddressingModeHandler::OpCodeArgs();
         switch (addressingMode) {
         case AddressingMode::Absolute:
-            getAbsoluateAddress(systemBus, registers, memoryMapper);
+            getAbsoluateAddress(systemBus, registers, memoryMapper, opCodeArgs);
             break;
         case AddressingMode::AbsoluteX:
-            getXIndexedAbsoluteAddress(systemBus, registers, memoryMapper);
+            getXIndexedAbsoluteAddress(systemBus, registers, memoryMapper, opCodeArgs);
             break;
         case AddressingMode::AbsoluteY:
-            getYIndexedAbsoluteAddress(systemBus, registers, memoryMapper);
+            getYIndexedAbsoluteAddress(systemBus, registers, memoryMapper, opCodeArgs);
             break;
         case AddressingMode::Accumulator:
             // no memory access used
-            return;
+            return opCodeArgs;
         case AddressingMode::Immediate:
-            getImmediateAddress(systemBus, registers, memoryMapper);
+            getImmediateAddress(systemBus, registers, memoryMapper, opCodeArgs);
             break;
         case AddressingMode::Implicit:
             // no memory access used
-            return;
+            return opCodeArgs;
         case AddressingMode::Indirect:
-            getIndirectAddress(systemBus, registers, memoryMapper);
+            getIndirectAddress(systemBus, registers, memoryMapper, opCodeArgs);
             break;
         case AddressingMode::IndirectYIndexed:
-            getIndirectYIndexedAddress(systemBus, registers, memoryMapper);
+            getIndirectYIndexedAddress(systemBus, registers, memoryMapper, opCodeArgs);
             break;
         case AddressingMode::Relative:
-            getRelativeAddress(systemBus, registers, memoryMapper);
+            getRelativeAddress(systemBus, registers, memoryMapper, opCodeArgs);
             break;
         case AddressingMode::XIndexedIndirect:
-            getXIndexedIndirectAddress(systemBus, registers, memoryMapper);
+            getXIndexedIndirectAddress(systemBus, registers, memoryMapper, opCodeArgs);
             break;
         case AddressingMode::ZeroPage:
-            getZeroPageAddress(systemBus, registers, memoryMapper);
+            getZeroPageAddress(systemBus, registers, memoryMapper, opCodeArgs);
             break;
         case AddressingMode::ZeroPageX:
-            getXIndexedZeroPageAddress(systemBus, registers, memoryMapper);
+            getXIndexedZeroPageAddress(systemBus, registers, memoryMapper, opCodeArgs);
             break;
         case AddressingMode::ZeroPageY:
-            getYIndexedZeroPageAddress(systemBus, registers, memoryMapper);
+            getYIndexedZeroPageAddress(systemBus, registers, memoryMapper, opCodeArgs);
             break;
         case AddressingMode::Undefined:
         default:
             DBG_CRASH("Invalid address mode encountered for instruction %d", addressingMode);
-            return;
+            return opCodeArgs;
         }
 
         // Do final read
-        systemBus.read = true;
-        memoryMapper.doMemoryOperation(systemBus);
+//        systemBus.read = true;
+//        memoryMapper.doMemoryOperation(systemBus);
 
         // Fix program counter
         registers.programCounter += addressingModeProgramCounterDelta[addressingMode];
+
+        return opCodeArgs;
     }
 
     void readFromAddress(SystemBus &systemBus, MemoryMapper &memoryMapper, uint16_t addr) {
@@ -68,9 +72,12 @@ namespace NES {
     *    1 Cycle:
     *        1. Get data from PC+1
     */
-    void AddressingModeHandler::getImmediateAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+    void AddressingModeHandler::getImmediateAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper, OpCodeArgs &args) {
         systemBus.addressBus = registers.programCounter;
         systemBus.read = true;
+
+        memoryMapper.doMemoryOperation(systemBus);
+        args.args[0] = systemBus.dataBus;
     }
 
     /**
@@ -78,9 +85,11 @@ namespace NES {
     *    1 Cycle:
     *        1. Fetch operand for branch jump to be used when determining conditional
     */
-    void AddressingModeHandler::getRelativeAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+    void AddressingModeHandler::getRelativeAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper, OpCodeArgs &args) {
         systemBus.addressBus = registers.programCounter;
         systemBus.read = true;
+        memoryMapper.doMemoryOperation(systemBus);
+        args.args[0] = systemBus.dataBus;
     }
 
     /**
@@ -88,11 +97,16 @@ namespace NES {
     *    1 Cycle:
     *        1. fetch addr operand (1 byte)        
     */ 
-    void AddressingModeHandler::getZeroPageAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+    void AddressingModeHandler::getZeroPageAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper, OpCodeArgs &args) {
         // get operand addr
         readFromAddress(systemBus, memoryMapper, registers.programCounter);
+        args.args[0] = systemBus.dataBus;
+
         // setup from zero page
         systemBus.setAdlOnly(systemBus.dataBus);
+
+        systemBus.read = true;
+        memoryMapper.doMemoryOperation(systemBus);
     }
 
     /**
@@ -100,9 +114,14 @@ namespace NES {
     *    1 Cycle:
     *        1. fetch addr operand (1 byte)
     */
-    void AddressingModeHandler::getXIndexedZeroPageAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+    void AddressingModeHandler::getXIndexedZeroPageAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper, OpCodeArgs &args) {
         readFromAddress(systemBus, memoryMapper, registers.programCounter);
+        args.args[0] = systemBus.dataBus;
+
         systemBus.setAdlOnly((systemBus.dataBus + registers.x) % 0x80);
+
+        systemBus.read = true;
+        memoryMapper.doMemoryOperation(systemBus);
     }
 
     /**
@@ -110,9 +129,14 @@ namespace NES {
     *    1 Cycle:
     *        1. fetch addr operand (1 byte)
     */
-    void AddressingModeHandler::getYIndexedZeroPageAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+    void AddressingModeHandler::getYIndexedZeroPageAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper, OpCodeArgs &args) {
         readFromAddress(systemBus, memoryMapper, registers.programCounter);
+        args.args[0] = systemBus.dataBus;
+
         systemBus.setAdlOnly((systemBus.dataBus + registers.y) % 0x80);
+
+        systemBus.read = true;
+        memoryMapper.doMemoryOperation(systemBus);
     }
 
     /**
@@ -120,21 +144,36 @@ namespace NES {
     *        1. Fetch ADL
     *        2. Fetch ADH
     */
-    void AddressingModeHandler::getAbsoluateAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+    void AddressingModeHandler::fetchAddressFromPCToBus(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper, OpCodeArgs &args) {
         readFromAddress(systemBus, memoryMapper, registers.programCounter);
         uint8_t adlTmp = systemBus.dataBus;
-        readFromAddress(systemBus, memoryMapper, registers.programCounter+1);
+        readFromAddress(systemBus, memoryMapper, registers.programCounter + 1);
         systemBus.setAddressBus(adlTmp, systemBus.dataBus);
+
+        args.args[0] = adlTmp;
+        args.args[1] = systemBus.dataBus;
     }
 
-    void AddressingModeHandler::getXIndexedAbsoluteAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-        getAbsoluateAddress(systemBus, registers, memoryMapper);
+    void AddressingModeHandler::getAbsoluateAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper, OpCodeArgs &args) {
+        fetchAddressFromPCToBus(systemBus, registers, memoryMapper, args);
+        systemBus.read = true;
+        memoryMapper.doMemoryOperation(systemBus);
+    }
+
+    void AddressingModeHandler::getXIndexedAbsoluteAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper, OpCodeArgs &args) {
+        fetchAddressFromPCToBus(systemBus, registers, memoryMapper, args);
         systemBus.addressBus += registers.x;
+
+        systemBus.read = true;
+        memoryMapper.doMemoryOperation(systemBus);
     }
 
-    void AddressingModeHandler::getYIndexedAbsoluteAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-        getAbsoluateAddress(systemBus, registers, memoryMapper);
+    void AddressingModeHandler::getYIndexedAbsoluteAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper, OpCodeArgs &args) {
+        fetchAddressFromPCToBus(systemBus, registers, memoryMapper, args);
         systemBus.addressBus += registers.y;
+
+        systemBus.read = true;
+        memoryMapper.doMemoryOperation(systemBus);
     }
 
 
@@ -146,10 +185,13 @@ namespace NES {
     *        3. Fetch Jump L address from indirect address in memory
     *        4. Fetch Jump H address
     */
-    void AddressingModeHandler::getIndirectAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
-        getAbsoluateAddress(systemBus, registers, memoryMapper);
+    void AddressingModeHandler::getIndirectAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper, OpCodeArgs &args) {
+        fetchAddressFromPCToBus(systemBus, registers, memoryMapper, args);
 
         fetchIndirectAddressToBus(systemBus, memoryMapper);
+
+        systemBus.read = true;
+        memoryMapper.doMemoryOperation(systemBus);
     }
 
     /**
@@ -159,11 +201,16 @@ namespace NES {
     *        2. Fetch [ADL]+X (location of final address)
     *        3. Fetch ADL+X+1
     */
-    void AddressingModeHandler::getXIndexedIndirectAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+    void AddressingModeHandler::getXIndexedIndirectAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper, OpCodeArgs &args) {
         readFromAddress(systemBus, memoryMapper, registers.programCounter);
+        args.args[0] = systemBus.dataBus;
+
         systemBus.setAdlOnly(systemBus.dataBus + registers.x);
         fetchIndirectAddressToBus(systemBus, memoryMapper);
         // address bus now contains the address retrieved from x in zero page.
+
+        systemBus.read = true;
+        memoryMapper.doMemoryOperation(systemBus);
     }
 
     /**
@@ -175,12 +222,17 @@ namespace NES {
     *
     *    TODO handle special case denoted in http://www.fceux.com/web/help/fceux.html?6502CPU.html 6th cycle when given invalid effective address
     */
-    void AddressingModeHandler::getIndirectYIndexedAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper) {
+    void AddressingModeHandler::getIndirectYIndexedAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper, OpCodeArgs &args) {
         readFromAddress(systemBus, memoryMapper, registers.programCounter);
+        args.args[0] = systemBus.dataBus;
+
         systemBus.setAdlOnly(systemBus.dataBus);
         fetchIndirectAddressToBus(systemBus, memoryMapper);
 
         systemBus.addressBus += registers.y;
+
+        systemBus.read = true;
+        memoryMapper.doMemoryOperation(systemBus);
     }
 
     /**

@@ -65,7 +65,10 @@ namespace NES {
 
 
             // Set up system bus to contain relevant memory data for a particular instruction.
-            AddressingModeHandler::handleAddressingMode(opCode.addressingMode, *systemBus, *registers, *memoryMapper);
+            AddressingModeHandler::OpCodeArgs opCodeArgs = AddressingModeHandler::handleAddressingMode(opCode.addressingMode, *systemBus, *registers, *memoryMapper);
+            debugState.opCodeArgs[0] = opCodeArgs.args[0];
+            debugState.opCodeArgs[1] = opCodeArgs.args[1];
+
             // Call the instruction handler
             opCode.instructionHandler(opCode, *systemBus, *registers, *memoryMapper);
 
@@ -121,8 +124,18 @@ namespace NES {
             printf("DMA A: {baseAddress: $%04x, isActive: %d, cycleCounter: %d, bytesWritten: %d, curByteToWrite %d\n",
                 dmaAfter.baseAddress, dmaAfter.isActive, dmaAfter.cycleCounter, dmaAfter.bytesWritten, dmaAfter.curByteToWrite);
         } else {
-            printf("[%s (%02x), addrMode: %s]:\n",
-                instructionNames[opCode.instruction], opCode.opCode, addressingModeNames[opCode.addressingMode]);
+            if (opCode.bytes == 3) {
+                // absolute address
+                printf("[%s(%02x) %02x%02x, addrMode: %s]:\n", instructionNames[opCode.instruction], opCode.opCode, opCodeArgs[1], opCodeArgs[0], addressingModeNames[opCode.addressingMode]);
+            } else if (opCode.bytes == 2) {
+                // single arg
+                printf("[%s(%02x), %02x, addrMode: %s]:\n", instructionNames[opCode.instruction], opCode.opCode, opCodeArgs[0], addressingModeNames[opCode.addressingMode]);
+
+            } else {
+                printf("[%s(%02x), addrMode: %s]:\n",  instructionNames[opCode.instruction], opCode.opCode, addressingModeNames[opCode.addressingMode]);
+            }
+
+
             printf("B: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, p: $%02x, sp:$%02x, pc: $%04x}\n",
                 systemBusBefore.addressBus, systemBusBefore.dataBus, systemBusBefore.read,
                 registersBefore.acc, registersBefore.x, registersBefore.y, registersBefore.statusRegister, registersBefore.stackPointer, registersBefore.programCounter);

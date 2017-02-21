@@ -30,6 +30,11 @@ namespace NES {
             if (countDown) {
                 numInstructions--;
             }
+            nes.ppu.doPpuCycle();
+            nes.ppu.doPpuCycle();
+            nes.ppu.doPpuCycle();
         }
+
+
     }
 }

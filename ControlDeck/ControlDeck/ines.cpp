@@ -39,7 +39,7 @@ namespace NES {
         // UXRom
         // case 2:
         default:
-            DBG_ASSERT(false, "Unsupported mapper number identified: %d", header->mapperNumber);
+            DBG_CRASH("Unsupported mapper number identified: %d", header->mapperNumber);
         };
 
         return mmc;
