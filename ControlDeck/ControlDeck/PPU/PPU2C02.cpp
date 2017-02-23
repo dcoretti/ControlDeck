@@ -78,7 +78,12 @@ namespace NES {
         // 260 scan lines visible, +2  (-1, 261) which are pre-render scanlines.
         RenderState renderState = getRenderState();
         if (renderState == RenderState::PreRenderScanLine) {
-
+            if (scanLineCycle == 1) {
+                // reset sprite zero hit, overflow, etc.
+            }
+            if (scanLineCycle == 2) {
+                ppuMemory.memoryMappedRegisters.setVBlank(false);
+            }
             if (scanLineCycle >= 257 && scanLineCycle <= 320) {
                 ppuMemory.memoryMappedRegisters.oamAddr = 0;
             }
