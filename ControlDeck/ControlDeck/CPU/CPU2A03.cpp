@@ -131,10 +131,10 @@ namespace NES {
         } else {
             if (opCode->bytes == 3) {
                 // absolute address
-                printf("[%s(%02x) %02x%02x, addrMode: %s]:\n", instructionNames[opCode->instruction], opCode->opCode, opCodeArgs[1], opCodeArgs[0], addressingModeNames[opCode->addressingMode]);
+                printf("[%s(%02x) $%02x%02x, addrMode: %s]:\n", instructionNames[opCode->instruction], opCode->opCode, opCodeArgs[1], opCodeArgs[0], addressingModeNames[opCode->addressingMode]);
             } else if (opCode->bytes == 2) {
                 // single arg
-                printf("[%s(%02x), %02x, addrMode: %s]:\n", instructionNames[opCode->instruction], opCode->opCode, opCodeArgs[0], addressingModeNames[opCode->addressingMode]);
+                printf("[%s(%02x), $%02x, addrMode: %s]:\n", instructionNames[opCode->instruction], opCode->opCode, opCodeArgs[0], addressingModeNames[opCode->addressingMode]);
 
             } else {
                 printf("[%s(%02x), addrMode: %s]:\n",  instructionNames[opCode->instruction], opCode->opCode, addressingModeNames[opCode->addressingMode]);

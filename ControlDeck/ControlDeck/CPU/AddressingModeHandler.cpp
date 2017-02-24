@@ -162,6 +162,10 @@ namespace NES {
 
     void AddressingModeHandler::getXIndexedAbsoluteAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper, OpCodeArgs &args) {
         fetchAddressFromPCToBus(systemBus, registers, memoryMapper, args);
+        if ((systemBus.addressBus & 0xff) + registers.x >= 0xff) {
+            // page boundary crossed
+            args.pagingInstructions = 1;
+        }
         systemBus.addressBus += registers.x;
 
         systemBus.read = true;
@@ -170,6 +174,10 @@ namespace NES {
 
     void AddressingModeHandler::getYIndexedAbsoluteAddress(SystemBus &systemBus, Registers &registers, MemoryMapper &memoryMapper, OpCodeArgs &args) {
         fetchAddressFromPCToBus(systemBus, registers, memoryMapper, args);
+        if ((systemBus.addressBus & 0xff) + registers.y >= 0xff) {
+            // page boundary crossed
+            args.pagingInstructions = 1;
+        }
         systemBus.addressBus += registers.y;
 
         systemBus.read = true;
@@ -228,7 +236,9 @@ namespace NES {
 
         systemBus.setAdlOnly(systemBus.dataBus);
         fetchIndirectAddressToBus(systemBus, memoryMapper);
-
+        if ((systemBus.addressBus & 0xff) + registers.y > 0xff) {
+            args.pagingInstructions = 1;
+        }
         systemBus.addressBus += registers.y;
 
         systemBus.read = true;
