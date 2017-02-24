@@ -7,12 +7,13 @@ namespace NES {
         const uint16_t stackBaseAddress = 0x100;
 
 
-        void NOP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t NOP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             // do nothing
+            return 0;
         }
 
         // signed shift
-        void ASL(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t ASL(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             uint8_t arg = systemBus.dataBus;
             if (opCode.addressingMode == AddressingMode::Accumulator) {
                 arg = registers.acc;
@@ -33,10 +34,12 @@ namespace NES {
                 systemBus.read = false;
                 memoryMapper.doMemoryOperation(systemBus);
             }
+
+            return 0;
         }
 
         // Rotate left (0-filled)
-        void ROL(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t ROL(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             uint8_t arg = systemBus.dataBus;
             if (opCode.addressingMode == AddressingMode::Accumulator) {
                 arg = registers.acc;
@@ -61,9 +64,11 @@ namespace NES {
                 systemBus.read = false;
                 memoryMapper.doMemoryOperation(systemBus);
             }
+
+            return 0;
         }
 
-        void ROR(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t ROR(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             uint8_t arg = systemBus.dataBus;
             if (opCode.addressingMode == AddressingMode::Accumulator) {
                 arg = registers.acc;
@@ -89,10 +94,11 @@ namespace NES {
                 systemBus.read = false;
                 memoryMapper.doMemoryOperation(systemBus);
             }
+            return 0;
         }
 
         // Logical shift right (shift right with 0 bit going to carry flag, 7 bit set to 0.)
-        void LSR(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t LSR(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             uint8_t arg = systemBus.dataBus;
             if (opCode.addressingMode == AddressingMode::Accumulator) {
                 arg = registers.acc;
@@ -114,124 +120,156 @@ namespace NES {
                 systemBus.read = false;
                 memoryMapper.doMemoryOperation(systemBus);
             }
+            return 0;
         }
 
-        void DEC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t DEC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             systemBus.dataBus--;
             registers.setFlagIfZero(systemBus.dataBus);
             registers.setFlagIfNegative(systemBus.dataBus);
 
             systemBus.read = false;
             memoryMapper.doMemoryOperation(systemBus);
+
+            return 0;
         }
 
-        void INC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t INC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             systemBus.dataBus++;
             registers.setFlagIfZero(systemBus.dataBus);
             registers.setFlagIfNegative(systemBus.dataBus);
 
             systemBus.read = false;
             memoryMapper.doMemoryOperation(systemBus);
+
+            return 0;
         }
 
         // Decrement X register
-        void DEX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t DEX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.x--;
             registers.setFlagIfZero(registers.x);
             registers.setFlagIfNegative(registers.x);
+
+            return 0;
         }
 
         // Decrement Y register
-        void DEY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t DEY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.y--;
             registers.setFlagIfZero(registers.y);
             registers.setFlagIfNegative(registers.y);
+
+            return 0;
         }
 
-        void INX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t INX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.x++;
             registers.setFlagIfZero(registers.x);
             registers.setFlagIfNegative(registers.x);
+
+            return 0;
         }
 
-        void INY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t INY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.y++;
             registers.setFlagIfZero(registers.y);
             registers.setFlagIfNegative(registers.y);
+
+            return 0;
         }
 
         // Transfer accumulator to x
-        void TAX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t TAX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.x = registers.acc;
 
             registers.setFlagIfZero(registers.x);
             registers.setFlagIfNegative(registers.x);
+
+            return 0;
         }
 
         // Transfer x to accumulator
-        void TXA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t TXA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.acc = registers.x;
 
             registers.setFlagIfZero(registers.acc);
             registers.setFlagIfNegative(registers.acc);
+
+            return 0;
         }
 
         // Transfer y to accumulator
-        void TYA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t TYA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.acc = registers.y;
 
             registers.setFlagIfZero(registers.acc);
             registers.setFlagIfNegative(registers.acc);
+
+            return 0;
         }
 
         // Transfer accumulator to y
-        void TAY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t TAY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.y = registers.acc;
 
             registers.setFlagIfZero(registers.y);
             registers.setFlagIfNegative(registers.y);
+
+            return 0;
         }
 
         // Clear carry flag
-        void CLC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t CLC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.clearFlag(ProcessorStatus::CarryFlag);
+
+            return 0;
         }
 
         // Clear decimal mode flag
-        void CLD(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t CLD(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.clearFlag(ProcessorStatus::DecimalMode);
+
+            return 0;
         }
 
         // Clear interrupt disable flag
-        void CLI(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t CLI(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.clearFlag(ProcessorStatus::InterruptDisable);
 
+            return 0;
         }
 
         // Clear overflow flag
-        void CLV(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t CLV(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.clearFlag(ProcessorStatus::OverflowFlag);
 
+            return 0;
         }
 
         // Set carry flag
-        void SEC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t SEC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.setFlag(ProcessorStatus::CarryFlag);
+
+            return 0;
         }
 
         // Set decimal flag
-        void SED(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t SED(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.setFlag(ProcessorStatus::DecimalMode);
+
+            return 0;
         }
 
         // Set interrupt disable flag
-        void SEI(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t SEI(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.setFlag(ProcessorStatus::InterruptDisable);
 
+            return 0;
         }
 
         // TODO .. simplify these
-        void ADC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t ADC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             uint8_t add = registers.acc + systemBus.dataBus;
             if (registers.willAddOverflow(systemBus.dataBus)) {
                 registers.setFlag(ProcessorStatus::OverflowFlag);
@@ -243,9 +281,10 @@ namespace NES {
             registers.setFlagIfNegative(add);
 
             registers.acc = add;
+            return 0;
         }
 
-        void SBC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t SBC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             uint8_t sub = registers.acc - systemBus.dataBus;
             if (registers.willSubOverflow(systemBus.dataBus)) {
                 registers.setFlag(ProcessorStatus::OverflowFlag);
@@ -257,48 +296,55 @@ namespace NES {
             registers.setFlagIfNegative(sub);
 
             registers.acc = sub;
+            return 0;
         }
 
         /////////////////////////////////////////////////
         // Logical operations on accumulator
-        void EOR(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t EOR(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.acc ^= systemBus.dataBus;
             registers.setFlagIfZero(registers.acc);
             registers.setFlagIfNegative(registers.acc);
+            return 0;
         }
 
-        void AND(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t AND(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.acc &= systemBus.dataBus;
             registers.setFlagIfZero(registers.acc);
             registers.setFlagIfNegative(registers.acc);
+            return 0;
         }
 
-        void ORA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t ORA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.acc |= systemBus.dataBus;
             registers.setFlagIfZero(registers.acc);
             registers.setFlagIfNegative(registers.acc);
+            return 0;
         }
 
-        void LDA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t LDA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.acc = systemBus.dataBus;
             registers.setFlagIfZero(registers.acc);
             registers.setFlagIfNegative(registers.acc);
+            return 0;
         }
 
-        void LDY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t LDY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.y = systemBus.dataBus;
             registers.setFlagIfZero(registers.y);
             registers.setFlagIfNegative(registers.y);
+            return 0;
         }
 
-        void LDX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t LDX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.x = systemBus.dataBus;
             registers.setFlagIfZero(registers.x);
             registers.setFlagIfNegative(registers.x);
+            return 0;
         }
 
         // Bit test by & with acc
-        void BIT(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t BIT(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             uint8_t val = registers.acc & systemBus.dataBus;
             registers.setFlagIfZero(val);
             registers.setFlagIfNegative(systemBus.dataBus);
@@ -309,9 +355,11 @@ namespace NES {
                 registers.clearFlag(ProcessorStatus::OverflowFlag);
             }
             registers.setFlagIfNegative(systemBus.dataBus);
+
+            return 0;
         }
 
-        void CMP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t CMP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             int8_t sub = (int8_t)registers.acc - (int8_t)systemBus.dataBus;
             if (registers.acc == systemBus.dataBus) {
                 registers.setFlag(ProcessorStatus::ZeroFlag);
@@ -321,9 +369,10 @@ namespace NES {
             }
 
             registers.setFlagIfNegative((uint8_t)sub);
+            return 0;
         }
 
-        void CPY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t CPY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             int8_t sub = (int8_t)registers.y - (int8_t)systemBus.dataBus;
             if (registers.y == systemBus.dataBus) {
                 registers.setFlag(ProcessorStatus::ZeroFlag);
@@ -333,10 +382,11 @@ namespace NES {
             }
 
             registers.setFlagIfNegative((uint8_t)sub);
+            return 0;
         }
 
 
-        void CPX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t CPX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             int8_t sub = (int8_t)registers.x - (int8_t)systemBus.dataBus;
             if (registers.x == systemBus.dataBus) {
                 registers.setFlag(ProcessorStatus::ZeroFlag);
@@ -346,6 +396,7 @@ namespace NES {
             }
 
             registers.setFlagIfNegative((uint8_t)sub);
+            return 0;
         }
 
 
@@ -354,109 +405,132 @@ namespace NES {
         //    Stack instructions
 
         // Copy X to S
-        void TXS(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t TXS(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.stackPointer = registers.x;
+            return 0;
         }
 
         // Push accumulator on stack
-        void PHA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t PHA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             systemBus.dataBus = registers.acc;
             pushDataBusToStack(systemBus, registers, memoryMapper);
+            return 0;
         }
         // Push processor status on stack
-        void PHP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t PHP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             systemBus.dataBus = registers.statusRegister;
             // Set BRK and unused bit ALWAYs with PHP https://wiki.nesdev.com/w/index.php/Status_flags
             systemBus.dataBus |= 0x30;    
             pushDataBusToStack(systemBus, registers, memoryMapper);
+            return 0;
         }
 
         // copy stack pointer register to x
-        void TSX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t TSX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.x = registers.stackPointer;
 
             registers.setFlagIfZero(registers.x);
             registers.setFlagIfNegative(registers.x);
+            return 0;
         }
 
         // Pop accumulator from stack
-        void PLA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t PLA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             popStackToDataBus(systemBus, registers, memoryMapper);
             registers.acc = systemBus.dataBus;
 
             registers.setFlagIfZero(registers.acc);
             registers.setFlagIfNegative(registers.acc);
+            return 0;
         }
 
         // Pop processor status from stack
-        void PLP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t PLP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             popStackToDataBus(systemBus, registers, memoryMapper);
             registers.statusRegister = systemBus.dataBus;
             // Ignore bits 4/5 when pulling from the stack since they are never physically represented in the status register.
             // These indicate the type of irq
             //registers.statusRegister |= 0x30; // just always set.
+            return 0;
         }
 
         /////////////////////////////////////////////////
         // branching
 
-        void BCC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t BCC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (!registers.flagSet(ProcessorStatus::CarryFlag)) {
                 registers.programCounter += (int8_t)systemBus.dataBus;
+                return 1;
             }
+            return 0;
         }
 
-        void BCS(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t BCS(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (registers.flagSet(ProcessorStatus::CarryFlag)) {
                 registers.programCounter += (int8_t)systemBus.dataBus;
+                return 1;
             }
+            return 0;
         }
 
-        void BEQ(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t BEQ(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (registers.flagSet(ProcessorStatus::ZeroFlag)) {
                 registers.programCounter += (int8_t)systemBus.dataBus;
+                return 1;
             }
+            return 0;
         }
 
-        void BPL(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t BPL(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (!registers.flagSet(ProcessorStatus::NegativeFlag)) {
                 registers.programCounter += (int8_t)systemBus.dataBus;
+                return 1;
             }
+            return 0;
         }
 
-        void BMI(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t BMI(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (registers.flagSet(ProcessorStatus::NegativeFlag)) {
                 registers.programCounter += (int8_t)systemBus.dataBus;
+                return 1;
             }
+            return 0;
         }
 
-        void BNE(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t BNE(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (!registers.flagSet(ProcessorStatus::ZeroFlag)) {
                 registers.programCounter += (int8_t)systemBus.dataBus;
+                return 1;
             }
+            return 0;
         }
 
-        void BVC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t BVC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (!registers.flagSet(ProcessorStatus::OverflowFlag)) {
                 registers.programCounter += (int8_t)systemBus.dataBus;
+                return 1;
             }
+            return 0;
         }
 
-        void BVS(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t BVS(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             if (registers.flagSet(ProcessorStatus::OverflowFlag)) {
                 registers.programCounter += systemBus.dataBus;
+                return 1;
             }
+            return 0;
         }
 
-        void JMP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t JMP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.programCounter = systemBus.addressBus;
+            return 0;
         }
 
         /**
             BRK handles general software interrupts as well as level/edge-triggered hardware interrupts (IRQ, NMI).
 
         */
-        void BRK(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t BRK(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             // Technically RESET does these operations but with the data bus set to read instead of write.  Leaving them out 
             // unless I feel like accuracy of the reset operation is important later.
             // See: http://www.pagetable.com/?p=410
@@ -522,9 +596,10 @@ namespace NES {
                 // https://wiki.nesdev.com/w/index.php/Status_flags
                 registers.clearFlag(ProcessorStatus::BreakCommand);
             }
+            return 0;
         }
 
-        void RTI(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t RTI(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             // pop stack to processor flags
             popStackSetup(systemBus, registers);
             memoryMapper.doMemoryOperation(systemBus);
@@ -540,9 +615,10 @@ namespace NES {
             popStackSetup(systemBus, registers);
             memoryMapper.doMemoryOperation(systemBus);
             registers.setPch(systemBus.dataBus);
+            return 0;
         }
 
-        void JSR(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t JSR(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             registers.programCounter = systemBus.addressBus;
             // Usual timing order only fetches ADL here
             systemBus.dataBus = registers.pch();
@@ -550,39 +626,46 @@ namespace NES {
             systemBus.dataBus = registers.pcl();
             pushDataBusToStack(systemBus, registers, memoryMapper);
             // Usual timing order only fetches ADH here
+            return 0;
         }
 
-        void RTS(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t RTS(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             popStackToDataBus(systemBus, registers, memoryMapper);
             registers.setPcl(systemBus.dataBus);
             popStackToDataBus(systemBus, registers, memoryMapper);
             registers.setPch(systemBus.dataBus);
             registers.programCounter--;
+            return 0;
         }
 
-        void STA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t STA(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             systemBus.dataBus = registers.acc;
             systemBus.read = false;
             memoryMapper.doMemoryOperation(systemBus);
+            return 0;
         }
 
-        void STX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t STX(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             systemBus.dataBus = registers.x;
             systemBus.read = false;
             memoryMapper.doMemoryOperation(systemBus);
+            return 0;
         }
 
-        void STY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t STY(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             systemBus.dataBus = registers.y;
             systemBus.read = false;
             memoryMapper.doMemoryOperation(systemBus);
+            return 0;
         }
 
-        void UNK(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        uint8_t UNK(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
             DBG_CRASH("Unknown instruction encountered %02x: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, sp:$%02x, p: $%02x, pc: $%04x}\n",
                 opCode.opCode,
                 systemBus.addressBus, systemBus.dataBus, systemBus.read,
                 registers.acc, registers.x, registers.y, registers.stackPointer, registers.statusRegister, registers.programCounter);
+
+            return 0;
         }
 
         //////////////////////////////////////////////////////

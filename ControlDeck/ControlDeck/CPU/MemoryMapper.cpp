@@ -60,7 +60,7 @@ namespace NES {
 
         PPURegister reg = (PPURegister)(actualAddr - 0x2000);
         if (systemBus.read) {
-            ppu->readRegister(reg);
+            systemBus.dataBus = ppu->readRegister(reg);
         } else {
             ppu->writeRegister(reg, systemBus.dataBus);
         }

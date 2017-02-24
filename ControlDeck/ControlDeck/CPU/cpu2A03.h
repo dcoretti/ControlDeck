@@ -7,7 +7,10 @@
 // http://users.telenet.be/kim1-6502/6502/hwman.html - general hardware manual source
 namespace NES {
     struct DebugState {
-        OpCode opCode;
+        const OpCode *opCode;
+        uint8_t addressingCycles;
+        uint8_t branchCycles;
+
         uint8_t opCodeArgs[2];
 
         SystemBus systemBusBefore;
@@ -53,7 +56,7 @@ namespace NES {
         void waitForNextInstruction();
 
         // Fetch next op code or handle interrupt
-        OpCode fetchOpCode();
+        const OpCode *fetchOpCode();
     };
 }
 

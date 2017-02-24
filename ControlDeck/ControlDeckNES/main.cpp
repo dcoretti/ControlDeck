@@ -147,7 +147,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         return -1;
     }
 
-    char *fname = "C:\\Users\\dc\\Desktop\\test.nes"; // "C:\\Users\\dc\\Desktop\\nestest\\cpu_reset\\registers.nes";
+    char *fname = "C:\\Users\\dc\\Desktop\\smb.nes"; // "C:\\Users\\dc\\Desktop\\nestest\\cpu_reset\\registers.nes";
     initNes(fname, controlDeck);
 
     unsigned int iterations = 0;

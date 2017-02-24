@@ -18,6 +18,7 @@ namespace NES {
     namespace AddressingModeHandler {
         // debug info about arguments for an op code
         struct OpCodeArgs {
+            uint8_t pagingInstructions{ 0 };
             uint8_t args[2]{};
             // TODO also add indirectly loaded args?
         };

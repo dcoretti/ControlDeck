@@ -30,9 +30,12 @@ namespace NES {
             if (countDown) {
                 numInstructions--;
             }
-            nes.ppu.doPpuCycle();
-            nes.ppu.doPpuCycle();
-            nes.ppu.doPpuCycle();
+            uint8_t totalCycles = dbgState.opCode->cycles + dbgState.addressingCycles + dbgState.branchCycles;
+            for (int i = 0; i < totalCycles; i++) {
+                nes.ppu.doPpuCycle();
+                nes.ppu.doPpuCycle();
+                nes.ppu.doPpuCycle();
+            }
         }
 
 

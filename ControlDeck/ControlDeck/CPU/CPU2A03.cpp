@@ -8,7 +8,7 @@ namespace NES {
         memoryMapper(memoryMapper), ram(ram), registers(registers), systemBus(systemBus), dmaData(dmaData) {
     }
 
-    OpCode Cpu2a03::fetchOpCode() {
+    const OpCode * Cpu2a03::fetchOpCode() {
         if (registers->interruptStatus == InterruptLevel::NONE) {
             systemBus->addressBus = registers->programCounter;
             systemBus->read = true;
@@ -22,7 +22,7 @@ namespace NES {
                 systemBus->dataBus = 0;
             }
         }
-        return InstructionSet::opCodes[systemBus->dataBus];
+        return &InstructionSet::opCodes[systemBus->dataBus];
     }
 
 
@@ -30,7 +30,7 @@ namespace NES {
     DebugState Cpu2a03::processInstruction() {
         DebugState debugState;
         debugState.dmaBefore = *dmaData;
-
+        uint8_t cyclesTaken = 0;
         if (dmaData->isActive) {
             if (dmaData->cycleCounter == 0  || (dmaData->cycleCounter == 1 && cycle & 1)) {
                 // do nothing, skip the first cycle and the second if it occurs on an odd cycle.
@@ -55,22 +55,23 @@ namespace NES {
                 dmaData->isActive = false;
             }
             debugState.dmaAfter = *dmaData;
+            cyclesTaken = 1;
         } else {
             // Read the next op code from memory (or interrupt)
-            OpCode opCode = fetchOpCode();
+            const OpCode *opCode = fetchOpCode();
             debugState.opCode = opCode;
             debugState.registersBefore = *registers;
             debugState.systemBusBefore = *systemBus;
-            DBG_ASSERT(opCode.instruction != Instruction::UNK, "Unknown instruction encountered %d", opCode.opCode);
+            DBG_ASSERT(opCode->instruction != Instruction::UNK, "Unknown instruction encountered %d", opCode->opCode);
 
 
             // Set up system bus to contain relevant memory data for a particular instruction.
-            AddressingModeHandler::OpCodeArgs opCodeArgs = AddressingModeHandler::handleAddressingMode(opCode.addressingMode, *systemBus, *registers, *memoryMapper);
+            AddressingModeHandler::OpCodeArgs opCodeArgs = AddressingModeHandler::handleAddressingMode(opCode->addressingMode, *systemBus, *registers, *memoryMapper);
             debugState.opCodeArgs[0] = opCodeArgs.args[0];
             debugState.opCodeArgs[1] = opCodeArgs.args[1];
 
             // Call the instruction handler
-            opCode.instructionHandler(opCode, *systemBus, *registers, *memoryMapper);
+            uint8_t branchCycles = opCode->instructionHandler(*opCode, *systemBus, *registers, *memoryMapper);
 
             // TODO handle return of post-instruction data such as cylce timing and paging 
 
@@ -79,9 +80,12 @@ namespace NES {
 
             debugState.registersAfter = *registers;
             debugState.systemBusAfter = *systemBus;
+
+
+            cyclesTaken += opCode->cycles + branchCycles + opCodeArgs.pagingInstructions;
         }
 
-        cycle++;
+        cycle += cyclesTaken;
         return debugState;
     }
 
@@ -125,15 +129,15 @@ namespace NES {
             printf("DMA A: {baseAddress: $%04x, isActive: %d, cycleCounter: %d, bytesWritten: %d, curByteToWrite %d\n",
                 dmaAfter.baseAddress, dmaAfter.isActive, dmaAfter.cycleCounter, dmaAfter.bytesWritten, dmaAfter.curByteToWrite);
         } else {
-            if (opCode.bytes == 3) {
+            if (opCode->bytes == 3) {
                 // absolute address
-                printf("[%s(%02x) %02x%02x, addrMode: %s]:\n", instructionNames[opCode.instruction], opCode.opCode, opCodeArgs[1], opCodeArgs[0], addressingModeNames[opCode.addressingMode]);
-            } else if (opCode.bytes == 2) {
+                printf("[%s(%02x) %02x%02x, addrMode: %s]:\n", instructionNames[opCode->instruction], opCode->opCode, opCodeArgs[1], opCodeArgs[0], addressingModeNames[opCode->addressingMode]);
+            } else if (opCode->bytes == 2) {
                 // single arg
-                printf("[%s(%02x), %02x, addrMode: %s]:\n", instructionNames[opCode.instruction], opCode.opCode, opCodeArgs[0], addressingModeNames[opCode.addressingMode]);
+                printf("[%s(%02x), %02x, addrMode: %s]:\n", instructionNames[opCode->instruction], opCode->opCode, opCodeArgs[0], addressingModeNames[opCode->addressingMode]);
 
             } else {
-                printf("[%s(%02x), addrMode: %s]:\n",  instructionNames[opCode.instruction], opCode.opCode, addressingModeNames[opCode.addressingMode]);
+                printf("[%s(%02x), addrMode: %s]:\n",  instructionNames[opCode->instruction], opCode->opCode, addressingModeNames[opCode->addressingMode]);
             }
 
 
