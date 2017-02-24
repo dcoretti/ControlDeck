@@ -166,9 +166,12 @@ namespace NES {
             // Post-render scan line
         } else {    // RenderState::VerticalBlank
             // Vblank period (20 scan lines) # 242-261
-            if (scanLineCycle == 1 && ppuMemory.memoryMappedRegisters.getGenerateVBlankNmi()) {
+            if (scanLineCycle == 1) {
                 // Second cycle enables vblank NMI!
                 ppuMemory.memoryMappedRegisters.setVBlank(true);
+                if (ppuMemory.memoryMappedRegisters.getGenerateVBlankNmi()) {
+                    // TODO GENERATE THE NMI?????????s
+                }
             }
         }
 

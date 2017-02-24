@@ -268,34 +268,27 @@ namespace NES {
             return 0;
         }
 
-        // TODO .. simplify these
-        uint8_t ADC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-            uint8_t add = registers.acc + systemBus.dataBus;
-            if (registers.willAddOverflow(systemBus.dataBus)) {
-                registers.setFlag(ProcessorStatus::OverflowFlag);
-            }
-            registers.setFlagIfZero(add);
-            if (registers.willAddCarry(systemBus.dataBus)) {
+        uint8_t add(uint8_t busVal, Registers &registers) {
+            uint16_t add = registers.acc + busVal + registers.flagSet(ProcessorStatus::CarryFlag);
+            if (add > 0xff) {
                 registers.setFlag(ProcessorStatus::CarryFlag);
             }
-            registers.setFlagIfNegative(add);
+            if (registers.willAddOverflow(busVal)) {
+                registers.setFlag(ProcessorStatus::OverflowFlag);
+            }
+            registers.setFlagIfZero((uint8_t)add);
+            registers.setFlagIfNegative((uint8_t)add);
+            return (uint8_t)add;
+        }
 
-            registers.acc = add;
+        // TODO .. simplify these
+        uint8_t ADC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+            registers.acc = add(systemBus.dataBus, registers);
             return 0;
         }
 
         uint8_t SBC(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-            uint8_t sub = registers.acc - systemBus.dataBus;
-            if (registers.willSubOverflow(systemBus.dataBus)) {
-                registers.setFlag(ProcessorStatus::OverflowFlag);
-            }
-            registers.setFlagIfZero(sub);
-            if (registers.willSubCarry(systemBus.dataBus)) {
-                registers.setFlag(ProcessorStatus::CarryFlag);
-            }
-            registers.setFlagIfNegative(sub);
-
-            registers.acc = sub;
+            registers.acc = add(~systemBus.dataBus, registers);
             return 0;
         }
 

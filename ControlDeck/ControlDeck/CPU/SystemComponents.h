@@ -64,7 +64,7 @@ namespace NES {
         }
 
         inline void setFlagIfNegative(uint8_t val) {
-            if (val >> 7 != 0) {
+            if ((val & 0x80) != 0) {
                 setFlag(ProcessorStatus::NegativeFlag);
             } else {
                 clearFlag(ProcessorStatus::NegativeFlag);
@@ -82,11 +82,11 @@ namespace NES {
         inline bool willAddOverflow(uint8_t val) {
             // acc ^ val will have a 1 in sign bit if signs are different between them
             // See if the sign changed from acc to the result and check if the sign bit is set between them
-            return (((~(acc ^ val))&(acc ^ (acc+val))) & 0x80) == 0x80;
+            return (((~(acc ^ val))&(acc ^ (acc+val))) & 0x80) > 0;
         }
 
         inline bool willSubOverflow(uint8_t val) {
-            return acc - val <= -128 || acc - val > 127;
+            return (int16_t)acc - (int16_t)val <= -128 || (int16_t)acc - (int16_t)val > 127;
         }
 
         // will the carry flag be set or cleared on an addition with the accumulator
