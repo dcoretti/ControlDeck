@@ -30,6 +30,17 @@ namespace NES {
         InstructionFnPtr instructionHandler;
     };
 
+    // constants
+    extern const uint16_t stackBaseAddress;
+
+    void interrupt(InterruptType interruptType, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+    //utilities
+    void pushStackSetup(SystemBus &systemBus, Registers &registers);
+    void popStackSetup(SystemBus &systemBus, Registers &registers);
+    void popStackToDataBusWithFlags(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+    void popStackToDataBus(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+    void pushDataBusToStack(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
+
     namespace InstructionSet {
         uint8_t NOP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
 
@@ -387,14 +398,5 @@ namespace NES {
             { 0xfe, 3, 7, 0, Instruction::INC, AddressingMode::AbsoluteX, &INC },
             { 0xff, 0, 0, 0, Instruction::UNK, AddressingMode::Undefined, &UNK }
         };
-        // constants
-        extern const uint16_t stackBaseAddress;
-
-        //utilities
-        void pushStackSetup(SystemBus &systemBus, Registers &registers);
-        void popStackSetup(SystemBus &systemBus, Registers &registers);
-        void popStackToDataBusWithFlags(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
-        void popStackToDataBus(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
-        void pushDataBusToStack(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper);
     }
 }

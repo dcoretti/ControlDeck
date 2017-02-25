@@ -26,15 +26,17 @@ namespace NES {
         bool countDown = numInstructions > -1;
         while (!nes.cpu.powerDown && numInstructions != 0) {
             DebugState dbgState = nes.cpu.processInstruction();
-            dbgState.print();
             if (countDown) {
                 numInstructions--;
             }
-            uint8_t totalCycles = dbgState.opCode->cycles + dbgState.addressingCycles + dbgState.branchCycles;
-            for (int i = 0; i < totalCycles; i++) {
-                nes.ppu.doPpuCycle();
-                nes.ppu.doPpuCycle();
-                nes.ppu.doPpuCycle();
+            if (dbgState.opCode != nullptr) {
+                // This is absolutely wrong but doing this until I can move PPU tick to the instruction level
+                uint8_t totalCycles = dbgState.opCode->cycles + dbgState.addressingCycles + dbgState.branchCycles;
+                for (int i = 0; i < totalCycles; i++) {
+                    nes.ppu.doPpuCycle();
+                    nes.ppu.doPpuCycle();
+                    nes.ppu.doPpuCycle();
+                }
             }
         }
 

@@ -9,26 +9,18 @@ namespace NES {
     }
 
     const OpCode * Cpu2a03::fetchOpCode() {
-        if (registers->interruptStatus == InterruptLevel::NONE) {
-            systemBus->addressBus = registers->programCounter;
-            systemBus->read = true;
-            memoryMapper->doMemoryOperation(*systemBus);
-            registers->programCounter++;
-        } else {
-            // If an interrupt is currently in process, only a NMI can get through
-            if (!registers->flagSet(ProcessorStatus::InterruptDisable) || registers->interruptStatus != InterruptLevel::IRQ) {
-                // Treat an interrupt as an injected "0" op code (BRK).  
-                // Interrupt level will determine the treatment of that op code in the instruction dispatcher
-                systemBus->dataBus = 0;
-            }
-        }
+        systemBus->addressBus = registers->programCounter;
+        systemBus->read = true;
+        memoryMapper->doMemoryOperation(*systemBus);
+        registers->programCounter++;
+
         return &InstructionSet::opCodes[systemBus->dataBus];
     }
 
 
 
     DebugState Cpu2a03::processInstruction() {
-        DebugState debugState;
+        DebugState debugState = DebugState();
         debugState.dmaBefore = *dmaData;
         uint8_t cyclesTaken = 0;
         if (dmaData->isActive) {
@@ -56,8 +48,13 @@ namespace NES {
             }
             debugState.dmaAfter = *dmaData;
             cyclesTaken = 1;
-        } else {
-            // Read the next op code from memory (or interrupt)
+            printf("DMA active\n");
+        } else if (registers->interruptStatus != InterruptType::INT_NONE) {
+            printf("Interrupt being handled for interruptStatus: %d\n", registers->interruptStatus);
+            interrupt(registers->interruptStatus, *systemBus, *registers, *memoryMapper);
+
+        }  else {
+            // Read the next op code from memory
             const OpCode *opCode = fetchOpCode();
             debugState.opCode = opCode;
             debugState.registersBefore = *registers;
@@ -73,18 +70,14 @@ namespace NES {
             // Call the instruction handler
             uint8_t branchCycles = opCode->instructionHandler(*opCode, *systemBus, *registers, *memoryMapper);
 
-            // TODO handle return of post-instruction data such as cylce timing and paging 
-
-            // clear interrupt source flag set by hardware pins if any.
-            registers->interruptStatus = InterruptLevel::NONE;
-
             debugState.registersAfter = *registers;
             debugState.systemBusAfter = *systemBus;
 
-
             cyclesTaken += opCode->cycles + branchCycles + opCodeArgs.pagingInstructions;
+            debugState.print();
         }
-
+        // clear interrupt source flag set by hardware pins if any.
+        registers->interruptStatus = InterruptType::INT_NONE;
         cycle += cyclesTaken;
         return debugState;
     }
@@ -99,18 +92,18 @@ namespace NES {
         registers->acc = 0;
         registers->x = 0;
         registers->y = 0;
-        registers->stackPointer = 0xfd;
+        registers->stackPointer = 0;// during reset gets -=2 to 0xfd;
         registers->programCounter = 0xffed;  // will do reset vector following
-        registers->interruptStatus = InterruptLevel::POWER_ON;
+        registers->interruptStatus = InterruptType::INT_RESET;
         memset(ram->ram, 0, SystemRam::systemRAMBytes);
 
     }
 
     void Cpu2a03::setIrq() {
-        registers->interruptStatus = InterruptLevel::IRQ;
+        registers->interruptStatus = InterruptType::INT_IRQ;
     }
     void Cpu2a03::setNmi() {
-        registers->interruptStatus = InterruptLevel::NMI;
+        registers->interruptStatus = InterruptType::INT_NMI;
     }
 
     // $4011 set to 0
@@ -118,8 +111,7 @@ namespace NES {
     // reset vector is at FFFC,FFFD (usually ROM)
     // https://wiki.nesdev.com/w/index.php/CPU_power_up_state#cite_note-1
     void Cpu2a03::reset() {
-        registers->interruptStatus = InterruptLevel::RESET;
-        registers->stackPointer -= 3;
+        registers->interruptStatus = InterruptType::INT_RESET;
     }
 
     void DebugState::print(){

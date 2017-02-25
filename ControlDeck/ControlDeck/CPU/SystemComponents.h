@@ -18,12 +18,12 @@ namespace NES {
         NegativeFlag = 7        // If bit 7 set to 1 as a result of last operation
     };
 
-    enum InterruptLevel {
-        NONE,
-        IRQ,
-        NMI,
-        RESET, 
-        POWER_ON    // same as reset but without changing status flags, etc
+    enum InterruptType {
+        INT_NONE,
+        INT_IRQ,
+        INT_NMI,
+        INT_RESET,
+        INT_BRK
     };
 
     // Sources:  http://nesdev.com/NESDoc.pdf
@@ -121,8 +121,8 @@ namespace NES {
 
         uint16_t programCounter;
 
-        // Status of interrupt pins on CPU.  Treated as an injected 00 op code (BRK) to be handled durin
-        InterruptLevel interruptStatus{ InterruptLevel::NONE };
+        // interrupts needing to be processed.
+        InterruptType interruptStatus;
     };
 
     /**

@@ -3,8 +3,9 @@
 #include "../common.h"
 
 namespace NES {
+    const uint16_t stackBaseAddress = 0x100;
+
     namespace InstructionSet {
-        const uint16_t stackBaseAddress = 0x100;
 
 
         uint8_t NOP(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
@@ -524,71 +525,8 @@ namespace NES {
 
         */
         uint8_t BRK(const OpCode &opCode, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-            // Technically RESET does these operations but with the data bus set to read instead of write.  Leaving them out 
-            // unless I feel like accuracy of the reset operation is important later.
-            // See: http://www.pagetable.com/?p=410
-            if (registers.interruptStatus == InterruptLevel::RESET) {
-                registers.stackPointer -= 3;
-                registers.setFlag(ProcessorStatus::InterruptDisable);
-            } else if (registers.interruptStatus == InterruptLevel::POWER_ON) {
-                // n/a
-            } else {
-
-                // 1. push program counter
-                systemBus.dataBus = registers.pch();
-                pushDataBusToStack(systemBus, registers, memoryMapper);
-                systemBus.dataBus = registers.pcl();
-                pushDataBusToStack(systemBus, registers, memoryMapper);
-                // 2. push status register
-                systemBus.dataBus = registers.statusRegister;
-
-                // The pushed status register reflects the source of the interrupt.
-                // Usually the interrupt handler would read this value and test bit 4 to see if the interrupt was software (1) or
-                // hardware (0) to then determine the vector address for the handler.
-                if (registers.interruptStatus == InterruptLevel::IRQ || registers.interruptStatus == InterruptLevel::NMI) {
-                    // set bit 4/5 to 10
-                    systemBus.dataBus &= 0xef;    // clear bit 4
-                    systemBus.dataBus |= (uint8_t)0x20;    // set bit 5
-                } 
-                //else {//???????
-    //                // bit 4/5 set to 1
-    //                systemBus.dataBus |= (uint8_t)0x30;
-    //            }
-                pushDataBusToStack(systemBus, registers, memoryMapper);
-            }
-
-
-            static uint16_t interruptVector[3][2] = {
-                {0xfffe, 0xffff},    // IRQ, BRK
-                {0xfffa, 0xfffb},    // NMI
-                {0xfffc, 0xfffd}    // RESET
-            };
-            // 3. Load PC from address at interrupt vector
-            int vector = 0;
-            if (registers.interruptStatus == InterruptLevel::NMI) {
-                vector = 1;
-            } else if (registers.interruptStatus == InterruptLevel::RESET || registers.interruptStatus == InterruptLevel::POWER_ON) {
-                vector = 2;
-            }
-
-            systemBus.addressBus = interruptVector[vector][0];
-            systemBus.read = true;
-            memoryMapper.doMemoryOperation(systemBus);
-            uint8_t adl = systemBus.dataBus;
-
-            systemBus.addressBus = interruptVector[vector][1];
-            systemBus.read = true;
-            memoryMapper.doMemoryOperation(systemBus);
-
-            // jump to interrupt vector
-            registers.programCounter = (systemBus.dataBus << 8) + adl;
-            registers.setFlag(ProcessorStatus::InterruptDisable);
-
-            if (registers.interruptStatus != InterruptLevel::NONE) {
-                // General interrupt vectoring (anything but BRK) clears bit 4
-                // https://wiki.nesdev.com/w/index.php/Status_flags
-                registers.clearFlag(ProcessorStatus::BreakCommand);
-            }
+            registers.programCounter++;
+            interrupt(InterruptType::INT_BRK, systemBus, registers, memoryMapper);
             return 0;
         }
 
@@ -660,41 +598,78 @@ namespace NES {
 
             return 0;
         }
+    }
 
-        //////////////////////////////////////////////////////
-        // Utility methods
-        // Stack is pushed to from register to memory location $0100 + Stack pointer offset (00-ff)
-        // No overflow detection just like the NES
+    //////////////////////////////////////////////////////
+    // Utility methods
+    // Stack is pushed to from register to memory location $0100 + Stack pointer offset (00-ff)
+    // No overflow detection just like the NES
 
-        void pushStackSetup(SystemBus &systemBus, Registers &registers) {
-            systemBus.addressBus = (uint16_t)(stackBaseAddress + registers.stackPointer--);
-            systemBus.read = false;
+    void pushStackSetup(SystemBus &systemBus, Registers &registers) {
+        systemBus.addressBus = (uint16_t)(stackBaseAddress + registers.stackPointer--);
+        systemBus.read = false;
+    }
+
+    // TODO a bit confusing where push knows about register x -> addr  whereas this one only knows where to read.  Does that matter?
+    void popStackSetup(SystemBus &systemBus, Registers &registers) {
+        systemBus.addressBus = (uint16_t)(stackBaseAddress + ++registers.stackPointer);
+        systemBus.read = true;
+    }
+
+    void popStackToDataBus(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        popStackSetup(systemBus, registers);
+        memoryMapper.doMemoryOperation(systemBus);
+    }
+
+    void popStackToDataBusWithFlags(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        popStackToDataBus(systemBus, registers, memoryMapper);
+
+        // Update processor status flags
+        if (systemBus.dataBus == 0) {
+            registers.flagSet(ProcessorStatus::ZeroFlag);
         }
+        registers.setFlagIfNegative(systemBus.dataBus);
+    }
 
-        // TODO a bit confusing where push knows about register x -> addr  whereas this one only knows where to read.  Does that matter?
-        void popStackSetup(SystemBus &systemBus, Registers &registers) {
-            systemBus.addressBus = (uint16_t)(stackBaseAddress + ++registers.stackPointer);
-            systemBus.read = true;
-        }
+    void pushDataBusToStack(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        pushStackSetup(systemBus, registers);
+        memoryMapper.doMemoryOperation(systemBus);
+    }
 
-        void popStackToDataBus(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-            popStackSetup(systemBus, registers);
-            memoryMapper.doMemoryOperation(systemBus);
-        }
+    uint8_t read(uint16_t addr, SystemBus &systemBus, MemoryMapper &memoryMapper) {
+        systemBus.addressBus = addr;
+        systemBus.read = true;
+        memoryMapper.doMemoryOperation(systemBus);
+        return systemBus.dataBus;
+    }
 
-        void popStackToDataBusWithFlags(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-            popStackToDataBus(systemBus, registers, memoryMapper);
+    void interrupt(InterruptType interruptType, SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
+        if (interruptType == InterruptType::INT_RESET) {
+            // do dummy reads
+            registers.stackPointer -= 3;
+        } else {
+            // 1. push program counter
+            systemBus.dataBus = registers.pch();
+            pushDataBusToStack(systemBus, registers, memoryMapper);
+            systemBus.dataBus = registers.pcl();
+            pushDataBusToStack(systemBus, registers, memoryMapper);
 
-            // Update processor status flags
-            if (systemBus.dataBus == 0) {
-                registers.flagSet(ProcessorStatus::ZeroFlag);
+            // 2. push status register for non-reset situations
+            if (interruptType == InterruptType::INT_BRK) {
+                // BRK sets BRK bit
+                systemBus.dataBus = (registers.statusRegister | 0x30);
+            } else {
+                systemBus.dataBus = (registers.statusRegister & 0xef) | 0x20;
             }
-            registers.setFlagIfNegative(systemBus.dataBus);
         }
 
-        void pushDataBusToStack(SystemBus &systemBus, Registers &registers, MemoryMapper& memoryMapper) {
-            pushStackSetup(systemBus, registers);
-            memoryMapper.doMemoryOperation(systemBus);
-        }
+        static uint16_t interruptVector[4][2] = {
+            { 0xfffe, 0xffff },    // IRQ
+            { 0xfffa, 0xfffb },    // NMI
+            { 0xfffc, 0xfffd },    // RESET
+            { 0xfffe, 0xffff },    // BRK
+        };
+        registers.programCounter = read(interruptVector[interruptType - 1][0], systemBus, memoryMapper);
+        registers.programCounter |= (read(interruptVector[interruptType - 1][1], systemBus, memoryMapper) << 8);
     }
 }
