@@ -157,9 +157,9 @@ namespace NES {
             addressBus = (adh << 8) + adl;
         }
 
-        uint16_t addressBus;
-        uint8_t dataBus;
-        bool read;
+        uint16_t addressBus{ 0 };
+        uint8_t dataBus{ 0 };
+        bool read{ false };
     };
 
     struct SystemRam {

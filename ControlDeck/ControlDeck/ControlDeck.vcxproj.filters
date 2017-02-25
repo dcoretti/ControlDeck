@@ -18,13 +18,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CPU\MemoryMapper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CPU\SystemComponents.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CPU\InstructionDispatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CPU\InstructionSet.h">
@@ -68,13 +62,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CPU\MemoryMapper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CPU\CPU2A03.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CPU\InstructionDispatcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CPU\AddressingModeHandler.cpp">

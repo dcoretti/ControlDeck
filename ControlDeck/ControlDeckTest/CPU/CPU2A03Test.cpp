@@ -8,63 +8,65 @@ class CPU2A03Test : public CPUTest {
 protected:
     virtual void SetUp() {
         CPUTest::SetUp();
-        cpu = new Cpu2a03(memoryMapper, &ram, &bus, &registers, &dmaData);
     }
 
     virtual void TearDown() {
         CPUTest::TearDown();
-        delete cpu;
     }
-
-    Cpu2a03 *cpu;
 };
 
 TEST_F(CPU2A03Test, simpleInstructionSanityTest) {
-    ram.ram[0] = 0xe8;  // INX
-    registers.x = 2;
-    registers.programCounter = 0;
+    cpu.ram.ram[0] = 0xe8;  // INX
+    cpu.registers.x = 2;
+    cpu.registers.programCounter = 0;
 
-    cpu->processInstruction();
-    EXPECT_EQ(bus.dataBus, ram.ram[0]);
-    EXPECT_EQ(3, registers.x);
-    EXPECT_EQ(1, registers.programCounter);
+    cpu.processInstruction();
+    EXPECT_EQ(cpu.systemBus.dataBus, cpu.ram.ram[0]);
+    EXPECT_EQ(3, cpu.registers.x);
+    EXPECT_EQ(1, cpu.registers.programCounter);
 }
 
 TEST_F(CPU2A03Test, simpleTwoInstructionSanityTest) {
-    ram.ram[0] = 0xe8;  // INX
-    ram.ram[1] = 0xe8;  // INX
+    cpu.ram.ram[0] = 0xe8;  // INX
+    cpu.ram.ram[1] = 0xe8;  // INX
 
-    registers.x = 2;
-    registers.programCounter = 0;
+    cpu.registers.x = 2;
+    cpu.registers.programCounter = 0;
 
-    cpu->processInstruction();
-    EXPECT_EQ(bus.dataBus, ram.ram[0]);
-    EXPECT_EQ(3, registers.x);
-    EXPECT_EQ(1, registers.programCounter);
-    cpu->processInstruction();
-    EXPECT_EQ(bus.dataBus, ram.ram[1]);
-    EXPECT_EQ(4, registers.x);
-    EXPECT_EQ(2, registers.programCounter);
+    cpu.processInstruction();
+    EXPECT_EQ(cpu.systemBus.dataBus, cpu.ram.ram[0]);
+    EXPECT_EQ(3, cpu.registers.x);
+    EXPECT_EQ(1, cpu.registers.programCounter);
+    cpu.processInstruction();
+    EXPECT_EQ(cpu.systemBus.dataBus, cpu.ram.ram[1]);
+    EXPECT_EQ(4, cpu.registers.x);
+    EXPECT_EQ(2, cpu.registers.programCounter);
 }
 
 TEST_F(CPU2A03Test, testDMA) {
     for (int i = 0; i < 256; i++) {
-        ram.ram[i] = i;
+        cpu.ram.ram[i] = i;
     }
-    dmaData.activate(0x00);
-
+    cpu.dmaData.activate(0x00);
     int byte = 0;
-    for (int i = 0; i < (256 * 2 + 2); i+=2) {//)
-        EXPECT_TRUE(dmaData.isActive);
-        cpu->processInstruction();
-        cpu->processInstruction();
-
+    printf("starting\n");
+    for (int i = 0; i < (256 * 2 + 2); i+=2) {
+        EXPECT_TRUE(cpu.dmaData.isActive) << "dma went inactive too early :(";
+        cpu.processInstruction();
+        cpu.processInstruction();
         // Verify the PPU register port contains the right info
         if (i > 1) {
-            EXPECT_EQ(ram.ram[byte], ppu.ppuMemory.memoryMappedRegisters.oamData);
+            EXPECT_EQ(cpu.ram.ram[byte], ppu.ppuMemory.memoryMappedRegisters.oamData) << "Ram wasn't equal!";
             byte++;
         }
     }
-    EXPECT_EQ(dmaData.bytesWritten, 256);
-    EXPECT_FALSE(dmaData.isActive);
+    EXPECT_EQ(cpu.dmaData.bytesWritten, 256) << "didn't get 256";
+    EXPECT_FALSE(cpu.dmaData.isActive) << "still active";
+}
+
+TEST_F(CPU2A03Test, testSystemMemWrap) {
+    getSystemRamWithMarkedOutOfRangeMemory();
+    for (uint16_t i = 0; i < 0x2000; i++) {
+        EXPECT_EQ(GOOD_BYTE, cpu.readFromAddress(i));
+    }
 }

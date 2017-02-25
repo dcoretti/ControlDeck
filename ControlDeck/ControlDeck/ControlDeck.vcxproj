@@ -124,9 +124,7 @@
     <ClInclude Include="cartridge.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="CPU\cpu2A03.h" />
-    <ClInclude Include="CPU\InstructionDispatcher.h" />
     <ClInclude Include="CPU\InstructionSet.h" />
-    <ClInclude Include="CPU\MemoryMapper.h" />
     <ClInclude Include="CPU\SystemComponents.h" />
     <ClInclude Include="ines.h" />
     <ClInclude Include="joypad.h" />
@@ -142,8 +140,6 @@
     <ClCompile Include="CPU\CPU2A03.cpp" />
     <ClCompile Include="CPU\InstructionSet.cpp" />
     <ClCompile Include="ines.cpp" />
-    <ClCompile Include="CPU\InstructionDispatcher.cpp" />
-    <ClCompile Include="CPU\MemoryMapper.cpp" />
     <ClCompile Include="nes.cpp" />
     <ClCompile Include="PPU\PPU2C02.cpp" />
     <ClCompile Include="PPU\PPUComponents.cpp" />

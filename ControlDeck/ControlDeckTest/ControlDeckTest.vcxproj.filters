@@ -24,9 +24,6 @@
     <ClCompile Include="CPU\AddressingModeHandlerTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CPU\MemoryMapperTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CPU\CPU2A03Test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
