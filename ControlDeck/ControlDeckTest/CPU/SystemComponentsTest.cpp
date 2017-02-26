@@ -24,6 +24,19 @@ TEST(RegistersTest, pcl) {
     EXPECT_EQ(reg.pcl(), 1);
 }
 
+
+TEST(RegistersTest, setPC) {
+    Registers reg;
+    uint8_t l = 0xab;
+    uint8_t h = 0xcd;
+    reg.setPcl(l);
+    reg.setPch(h);
+    EXPECT_EQ(0xcdab, reg.programCounter);
+
+    EXPECT_EQ(l, reg.pcl());
+    EXPECT_EQ(h, reg.pch());
+}
+
 std::vector<ProcessorStatus> statusFlags = {
     ProcessorStatus::CarryFlag,
     ProcessorStatus::ZeroFlag,

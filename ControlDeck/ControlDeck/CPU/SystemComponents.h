@@ -31,7 +31,7 @@ namespace NES {
         // Reference: http://e-tradition.net/bytes/6502/6502_instruction_set.html for flags altered by a given instruction
         // Program counter low byte
         inline uint8_t  pcl() {
-            return (uint8_t)(programCounter & 0x0F);
+            return (uint8_t)(programCounter & 0xff);
         }
 
         // Program counter high byte
@@ -40,13 +40,11 @@ namespace NES {
         }
 
         inline void setPcl(uint8_t l) {
-            programCounter &= 0xf0;
-            programCounter += l;
+            programCounter = (programCounter & 0xff00) + l;
         }
 
         inline void setPch(uint8_t h) {
-            programCounter &= 0x0f;
-            programCounter |= (h << 8);
+            programCounter = (programCounter & 0xff) | (h << 8);
         }
 
         // Status register utils

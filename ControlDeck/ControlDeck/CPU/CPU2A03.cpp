@@ -48,6 +48,7 @@ namespace NES {
             interrupt(registers.interruptStatus);
 
         } else {
+//            DBG_ASSERT(!registers.flagSet(ProcessorStatus::BreakCommand), "BRK probably shouldn't be set since it isn't used much in nes game ......");
             // Read the next op code from memory
             const OpCode *opCode = fetchOpCode();
             debugState.opCode = opCode;
@@ -85,7 +86,7 @@ namespace NES {
 
     //https://wiki.nesdev.com/w/index.php/CPU_power_up_state#cite_note-1
     void Cpu2a03::setPowerUpState() {
-        registers.statusRegister = 0x34;   // interrupt enabled with B/unused flag also set (though not used)
+        registers.statusRegister = 0x24;   // interrupt enabled with unused flag also set (though not used)
         registers.acc = 0;
         registers.x = 0;
         registers.y = 0;
@@ -1065,13 +1066,16 @@ namespace NES {
         }
 
         uint8_t JSR(const OpCode &opCode, Cpu2a03 &cpu) {
-            cpu.registers.programCounter = cpu.systemBus.addressBus;
+            uint16_t jmpAddress = cpu.systemBus.addressBus;
             // Usual timing order only fetches ADL here
             cpu.systemBus.dataBus = cpu.registers.pch();
             cpu.pushDataBusToStack();
             cpu.systemBus.dataBus = cpu.registers.pcl();
             cpu.pushDataBusToStack();
+
+            cpu.registers.programCounter = jmpAddress;
             // Usual timing order only fetches ADH here
+
             return 0;
         }
 
