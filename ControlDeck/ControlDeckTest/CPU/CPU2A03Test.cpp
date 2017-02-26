@@ -8,6 +8,8 @@ class CPU2A03Test : public CPUTest {
 protected:
     virtual void SetUp() {
         CPUTest::SetUp();
+        ppu.disabled = true;
+
     }
 
     virtual void TearDown() {

@@ -74,6 +74,11 @@ namespace NES {
     static const uint16_t nameTableBaseAddr = 0x2000;
     static const uint16_t attributeTableBaseAddr = 0x23c0;
     void Ppu2C02::doPpuCycle() {
+        // for testing
+        if (disabled) {
+            return;
+        }
+
         // scan line is 341 ppu clock cycles (113.667 cpu cycles with a 3x multiplier of clock from cpu to ppu)
         // 260 scan lines visible, +2  (-1, 261) which are pre-render scanlines.
         RenderState renderState = getRenderState();

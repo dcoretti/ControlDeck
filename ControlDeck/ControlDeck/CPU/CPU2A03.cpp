@@ -139,6 +139,13 @@ namespace NES {
         }
     }
 
+    void Cpu2a03::synchronizeProcessors() {
+        ppu->doPpuCycle();
+        ppu->doPpuCycle();
+        ppu->doPpuCycle();
+    }
+
+
     /*
     Source :http://nesdev.com/NESDoc.pdf Appendix D for memory mapper functions
     $1000
@@ -159,6 +166,9 @@ namespace NES {
     $0000    Zero Page
     */
     unsigned int Cpu2a03::doMemoryOperation() {
+        synchronizeProcessors();
+
+
         // 2kb system ram, mirrored 3 additional times
         if (systemBus.addressBus < 0x2000) {
             // 0x0800-0x0FFF  mirror 1
@@ -225,12 +235,14 @@ namespace NES {
     void Cpu2a03::pushStackSetup() {
         systemBus.addressBus = (uint16_t)(stackBaseAddress + registers.stackPointer--);
         systemBus.read = false;
+        synchronizeProcessors();    // for registers.stackPointer-- 
     }
 
     // TODO a bit confusing where push knows about register x -> addr  whereas this one only knows where to read.  Does that matter?
     void Cpu2a03::popStackSetup() {
         systemBus.addressBus = (uint16_t)(stackBaseAddress + ++registers.stackPointer);
         systemBus.read = true;
+        synchronizeProcessors();    // for ++registers.stackPointer 
     }
 
     void Cpu2a03::popStackToDataBus() {
@@ -256,6 +268,10 @@ namespace NES {
     void Cpu2a03::interrupt(InterruptType interruptType) {
         if (interruptType == InterruptType::INT_RESET) {
             // do dummy reads
+            synchronizeProcessors();   
+            synchronizeProcessors(); 
+            synchronizeProcessors(); 
+
             registers.stackPointer -= 3;
         } else {
             // 1. push program counter
@@ -271,6 +287,7 @@ namespace NES {
             } else {
                 systemBus.dataBus = (registers.statusRegister & 0xef) | 0x20;
             }
+            pushDataBusToStack();
         }
 
         static uint16_t interruptVector[4][2] = {

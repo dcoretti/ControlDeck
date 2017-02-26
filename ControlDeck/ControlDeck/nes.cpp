@@ -21,14 +21,11 @@ namespace NES {
             if (countDown) {
                 numInstructions--;
             }
+
+            /// not sure what to do about this...
             if (dbgState.opCode != nullptr) {
                 // This is absolutely wrong but doing this until I can move PPU tick to the instruction level
                 uint8_t totalCycles = dbgState.opCode->cycles + dbgState.addressingCycles + dbgState.branchCycles;
-                for (int i = 0; i < totalCycles; i++) {
-                    nes.ppu.doPpuCycle();
-                    nes.ppu.doPpuCycle();
-                    nes.ppu.doPpuCycle();
-                }
             }
         }
 

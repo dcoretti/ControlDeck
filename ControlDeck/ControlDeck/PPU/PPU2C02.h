@@ -60,6 +60,8 @@ namespace NES {
 
         Cartridge *cartridge;
         RenderBuffer renderBuffer;
+
+        bool disabled{ false }; // for easier testing to cause goPpuCycle to nop
     private:
         // Rendering state
         uint16_t curScanLine{ 0 };

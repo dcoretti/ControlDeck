@@ -111,6 +111,8 @@ namespace NES {
     protected:
         uint32_t cycle{ 0 };
         void waitForNextInstruction();
+        // Run cycles of PPU corresponding to a single cpu instruction having occurred
+        void synchronizeProcessors();
 
         void systemRamHandler(SystemBus &systemBus);
         void ppuRegisterHandler(SystemBus &systemBus);
@@ -119,23 +121,23 @@ namespace NES {
         // Fetch next op code or handle interrupt
         const OpCode *fetchOpCode();
 
+        ///////////////////////////////////////////////////////////////////////
+        // Addressing mode handlers
+        
         // TODO use this instead of stack specific instructions which have implied addressing mode.  Make any instruction use addressing mode 
         //        handler to prepare for the next cycle by fetching op code operands??
         void getImmediateAddress(OpCodeArgs &args);
         void getZeroPageAddress(OpCodeArgs &args);
         void getXIndexedZeroPageAddress(OpCodeArgs &args);
         void getYIndexedZeroPageAddress(OpCodeArgs &args);
-
         // Put full 16 bit address on address bus.
         void getAbsoluateAddress(OpCodeArgs &args);
         void getXIndexedAbsoluteAddress(OpCodeArgs &args);
         void getYIndexedAbsoluteAddress(OpCodeArgs &args);
-
         void getIndirectAddress(OpCodeArgs &args);
         void getRelativeAddress(OpCodeArgs &args);
         void getXIndexedIndirectAddress(OpCodeArgs &args);
         void getIndirectYIndexedAddress(OpCodeArgs &args);
-
 
         // Addressing mode access utilities
         void  fetchIndirectAddressToBus();
