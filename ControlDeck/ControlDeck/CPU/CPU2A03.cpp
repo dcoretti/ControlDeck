@@ -199,6 +199,13 @@ namespace NES {
         return 0;
     }
 
+    uint8_t Cpu2a03::readFromAddress(uint16_t addr) {
+        systemBus.addressBus = addr;
+        systemBus.read = true;
+        doMemoryOperation();
+        return systemBus.dataBus;
+    }
+
     void Cpu2a03::ioRegisterHandler(SystemBus &systemBus) {
         DBG_ASSERT(systemBus.addressBus < 0x4020 && systemBus.addressBus > 0x4000, "invalid address for io handler %d", systemBus.addressBus);
 
@@ -300,19 +307,6 @@ namespace NES {
         registers.programCounter |= (readFromAddress(interruptVector[interruptType - 1][1]) << 8);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     OpCodeArgs Cpu2a03::handleAddressingMode(AddressingMode addressingMode) {
         OpCodeArgs opCodeArgs = OpCodeArgs();
         switch (addressingMode) {
@@ -371,25 +365,13 @@ namespace NES {
         return opCodeArgs;
     }
 
-    uint8_t Cpu2a03::readFromAddress(uint16_t addr) {
-        systemBus.addressBus = addr;
-        systemBus.read = true;
-        doMemoryOperation();
-        return systemBus.dataBus;
-    }
-
-
     /**
     *    Operate on data directly held in instruction operand
     *    1 Cycle:
     *        1. Get data from PC+1
     */
     void Cpu2a03::getImmediateAddress(OpCodeArgs &args) {
-        systemBus.addressBus = registers.programCounter;
-        systemBus.read = true;
-
-        doMemoryOperation();
-        args.args[0] = systemBus.dataBus;
+        args.args[0] = readFromAddress(registers.programCounter);
     }
 
     /**
@@ -398,10 +380,8 @@ namespace NES {
     *        1. Fetch operand for branch jump to be used when determining conditional
     */
     void Cpu2a03::getRelativeAddress(OpCodeArgs &args) {
-        systemBus.addressBus = registers.programCounter;
-        systemBus.read = true;
-        doMemoryOperation();
-        args.args[0] = systemBus.dataBus;
+        // Argument is fetched to be used to alter PC
+        args.args[0] = readFromAddress(registers.programCounter);
     }
 
     /**
@@ -414,11 +394,8 @@ namespace NES {
         readFromAddress(registers.programCounter);
         args.args[0] = systemBus.dataBus;
 
-        // setup from zero page
-        systemBus.setAdlOnly(systemBus.dataBus);
-
-        systemBus.read = true;
-        doMemoryOperation();
+        // zero page addr only needs lower byte
+        readFromAddress((uint16_t)systemBus.dataBus);
     }
 
     /**
@@ -430,10 +407,7 @@ namespace NES {
         readFromAddress(registers.programCounter);
         args.args[0] = systemBus.dataBus;
 
-        systemBus.setAdlOnly((systemBus.dataBus + registers.x) % 0x80);
-
-        systemBus.read = true;
-        doMemoryOperation();
+        readFromAddress((systemBus.dataBus + registers.x) % 0x80);
     }
 
     /**
@@ -445,10 +419,7 @@ namespace NES {
         readFromAddress(registers.programCounter);
         args.args[0] = systemBus.dataBus;
 
-        systemBus.setAdlOnly((systemBus.dataBus + registers.y) % 0x80);
-
-        systemBus.read = true;
-        doMemoryOperation();
+        readFromAddress((systemBus.dataBus + registers.y) % 0x80);
     }
 
     /**
@@ -525,7 +496,7 @@ namespace NES {
         readFromAddress(registers.programCounter);
         args.args[0] = systemBus.dataBus;
 
-        systemBus.setAdlOnly(systemBus.dataBus + registers.x);
+        systemBus.setAdlOnly((systemBus.dataBus + registers.x) % 0xff);
         fetchIndirectAddressToBus();
         // address bus now contains the address retrieved from x in zero page.
 
@@ -571,11 +542,8 @@ namespace NES {
         systemBus.setAddressBus(tmpAdl, systemBus.dataBus);
     }
 
-
-
+    // TODO maybe move this into CPU namespace finally to remove the cpu argument?
     namespace InstructionSet {
-
-
         uint8_t NOP(const OpCode &opCode, Cpu2a03 &cpu) {
             // do nothing
             return 0;
@@ -1019,68 +987,49 @@ namespace NES {
         /////////////////////////////////////////////////
         // branching
 
-        uint8_t BCC(const OpCode &opCode, Cpu2a03 &cpu) {
-            if (!cpu.registers.flagSet(ProcessorStatus::CarryFlag)) {
+        inline uint8_t branch(bool condition, Cpu2a03 &cpu) {
+            if (condition) {
+                if ((cpu.registers.programCounter & 0xff) + (uint8_t)cpu.systemBus.dataBus > 0xff) {
+                    // page crossing takes an extra cycle due to dummy read made on both sides of the page ($00/$ff)
+                    cpu.synchronizeProcessors();
+                }
                 cpu.registers.programCounter += (int8_t)cpu.systemBus.dataBus;
-                return 1;
+
+                return 1;   // extra cycle to take for branching
             }
             return 0;
+        }
+
+        uint8_t BCC(const OpCode &opCode, Cpu2a03 &cpu) {
+            return branch(!cpu.registers.flagSet(ProcessorStatus::CarryFlag), cpu);
         }
 
         uint8_t BCS(const OpCode &opCode, Cpu2a03 &cpu) {
-            if (cpu.registers.flagSet(ProcessorStatus::CarryFlag)) {
-                cpu.registers.programCounter += (int8_t)cpu.systemBus.dataBus;
-                return 1;
-            }
-            return 0;
+            return branch(cpu.registers.flagSet(ProcessorStatus::CarryFlag), cpu);
         }
 
         uint8_t BEQ(const OpCode &opCode, Cpu2a03 &cpu) {
-            if (cpu.registers.flagSet(ProcessorStatus::ZeroFlag)) {
-                cpu.registers.programCounter += (int8_t)cpu.systemBus.dataBus;
-                return 1;
-            }
-            return 0;
+            return branch(cpu.registers.flagSet(ProcessorStatus::ZeroFlag), cpu);
         }
 
         uint8_t BPL(const OpCode &opCode, Cpu2a03 &cpu) {
-            if (!cpu.registers.flagSet(ProcessorStatus::NegativeFlag)) {
-                cpu.registers.programCounter += (int8_t)cpu.systemBus.dataBus;
-                return 1;
-            }
-            return 0;
+            return branch(!cpu.registers.flagSet(ProcessorStatus::NegativeFlag), cpu);
         }
 
         uint8_t BMI(const OpCode &opCode, Cpu2a03 &cpu) {
-            if (cpu.registers.flagSet(ProcessorStatus::NegativeFlag)) {
-                cpu.registers.programCounter += (int8_t)cpu.systemBus.dataBus;
-                return 1;
-            }
-            return 0;
+            return branch(cpu.registers.flagSet(ProcessorStatus::NegativeFlag), cpu);
         }
 
         uint8_t BNE(const OpCode &opCode, Cpu2a03 &cpu) {
-            if (!cpu.registers.flagSet(ProcessorStatus::ZeroFlag)) {
-                cpu.registers.programCounter += (int8_t)cpu.systemBus.dataBus;
-                return 1;
-            }
-            return 0;
+            return branch(!cpu.registers.flagSet(ProcessorStatus::ZeroFlag), cpu);
         }
 
         uint8_t BVC(const OpCode &opCode, Cpu2a03 &cpu) {
-            if (!cpu.registers.flagSet(ProcessorStatus::OverflowFlag)) {
-                cpu.registers.programCounter += (int8_t)cpu.systemBus.dataBus;
-                return 1;
-            }
-            return 0;
+            return branch(!cpu.registers.flagSet(ProcessorStatus::OverflowFlag), cpu);
         }
 
         uint8_t BVS(const OpCode &opCode, Cpu2a03 &cpu) {
-            if (cpu.registers.flagSet(ProcessorStatus::OverflowFlag)) {
-                cpu.registers.programCounter += cpu.systemBus.dataBus;
-                return 1;
-            }
-            return 0;
+            return branch(cpu.registers.flagSet(ProcessorStatus::OverflowFlag), cpu);
         }
 
         uint8_t JMP(const OpCode &opCode, Cpu2a03 &cpu) {
@@ -1100,19 +1049,17 @@ namespace NES {
 
         uint8_t RTI(const OpCode &opCode, Cpu2a03 &cpu) {
             // pop stack to processor flags
-            cpu.popStackSetup();
-            cpu.doMemoryOperation();
+            cpu.popStackToDataBus();
+
             cpu.registers.statusRegister = cpu.systemBus.dataBus;
             // Ignore bits 4/5  since they should never be set on the physical status register.  They only indicate IRQ source when the 
             // status register was pushed to the stack in the first place.
             cpu.registers.statusRegister &= 0xcf;
 
             // pop program counter
-            cpu.popStackSetup();
-            cpu.doMemoryOperation();
+            cpu.popStackToDataBus();
             cpu.registers.setPcl(cpu.systemBus.dataBus);
-            cpu.popStackSetup();
-            cpu.doMemoryOperation();
+            cpu.popStackToDataBus();
             cpu.registers.setPch(cpu.systemBus.dataBus);
             return 0;
         }

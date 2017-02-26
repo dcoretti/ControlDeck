@@ -100,6 +100,7 @@ namespace NES {
         void popStackToDataBusWithFlags();
         void popStackToDataBus();
         void pushDataBusToStack();
+        void synchronizeProcessors();
 
         SystemRam ram{};
         SystemBus systemBus{};
@@ -112,7 +113,7 @@ namespace NES {
         uint32_t cycle{ 0 };
         void waitForNextInstruction();
         // Run cycles of PPU corresponding to a single cpu instruction having occurred
-        void synchronizeProcessors();
+        
 
         void systemRamHandler(SystemBus &systemBus);
         void ppuRegisterHandler(SystemBus &systemBus);
