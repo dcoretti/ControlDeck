@@ -83,7 +83,7 @@ namespace NES {
         // TODO move memory address adjustment constants to a common location (0x8000 being first bank, etc.)
         void doMemoryOperation(SystemBus &bus, Cartridge &cart) override {
             // No Save RAM so 0x4020-0x8000 are not valid
-            DBG_ASSERT(bus.addressBus >= 0x8000, "Invalid bus address range for NROM: %d.", bus.addressBus);
+            DBG_ASSERT(bus.addressBus >= 0x8000, "Invalid bus address range for NROM: %04x.", bus.addressBus);
             DBG_ASSERT(bus.read, "write operation detected to NROM.. not sure what to do here since there's no segfault");
             
             if (bus.addressBus >= 0xc000) {

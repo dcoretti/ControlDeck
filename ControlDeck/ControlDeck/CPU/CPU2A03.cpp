@@ -54,7 +54,7 @@ namespace NES {
             debugState.opCode = opCode;
             debugState.registersBefore = registers;
             debugState.systemBusBefore = systemBus;
-            DBG_ASSERT(opCode->instruction != Instruction::UNK, "Unknown instruction encountered %d", opCode->opCode);
+            DBG_ASSERT(opCode->instruction != Instruction::UNK, "Unknown instruction encountered %02x at addr %04x", opCode->opCode, registers.programCounter);
 
 
             // Set up system bus to contain relevant memory data for a particular instruction.
@@ -890,43 +890,32 @@ namespace NES {
             return 0;
         }
 
-        uint8_t CMP(const OpCode &opCode, Cpu2a03 &cpu) {
-            int8_t sub = (int8_t)cpu.registers.acc - (int8_t)cpu.systemBus.dataBus;
-            if (cpu.registers.acc == cpu.systemBus.dataBus) {
-                cpu.registers.setFlag(ProcessorStatus::ZeroFlag);
-            }
-            if (cpu.registers.acc >= cpu.systemBus.dataBus) {
+        void compare(uint8_t reg, uint8_t arg, Cpu2a03 &cpu) {
+            uint8_t res = reg - arg;
+            cpu.registers.setFlagIfZero(res);
+
+            if (reg >= arg) {
                 cpu.registers.setFlag(ProcessorStatus::CarryFlag);
+            } else {
+                cpu.registers.clearFlag(ProcessorStatus::CarryFlag);
             }
 
-            cpu.registers.setFlagIfNegative((uint8_t)sub);
+            cpu.registers.setFlagIfNegative(res);
+        }
+
+        uint8_t CMP(const OpCode &opCode, Cpu2a03 &cpu) {
+            compare(cpu.registers.acc, cpu.systemBus.dataBus, cpu);
             return 0;
         }
 
         uint8_t CPY(const OpCode &opCode, Cpu2a03 &cpu) {
-            int8_t sub = (int8_t)cpu.registers.y - (int8_t)cpu.systemBus.dataBus;
-            if (cpu.registers.y == cpu.systemBus.dataBus) {
-                cpu.registers.setFlag(ProcessorStatus::ZeroFlag);
-            }
-            if (cpu.registers.y >= cpu.systemBus.dataBus) {
-                cpu.registers.setFlag(ProcessorStatus::CarryFlag);
-            }
-
-            cpu.registers.setFlagIfNegative((uint8_t)sub);
+            compare(cpu.registers.y, cpu.systemBus.dataBus, cpu);
             return 0;
         }
 
 
         uint8_t CPX(const OpCode &opCode, Cpu2a03 &cpu) {
-            int8_t sub = (int8_t)cpu.registers.x - (int8_t)cpu.systemBus.dataBus;
-            if (cpu.registers.x == cpu.systemBus.dataBus) {
-                cpu.registers.setFlag(ProcessorStatus::ZeroFlag);
-            }
-            if (cpu.registers.x >= cpu.systemBus.dataBus) {
-                cpu.registers.setFlag(ProcessorStatus::CarryFlag);
-            }
-
-            cpu.registers.setFlagIfNegative((uint8_t)sub);
+            compare(cpu.registers.x, cpu.systemBus.dataBus, cpu);
             return 0;
         }
 
@@ -1068,9 +1057,12 @@ namespace NES {
         uint8_t JSR(const OpCode &opCode, Cpu2a03 &cpu) {
             uint16_t jmpAddress = cpu.systemBus.addressBus;
             // Usual timing order only fetches ADL here
-            cpu.systemBus.dataBus = cpu.registers.pch();
+            uint16_t ret = cpu.registers.programCounter - 1;
+            printf("jmp to %04x with return addr %04x\n", jmpAddress, ret);
+
+            cpu.systemBus.dataBus = ret >> 8;
             cpu.pushDataBusToStack();
-            cpu.systemBus.dataBus = cpu.registers.pcl();
+            cpu.systemBus.dataBus = ret & 0xff;
             cpu.pushDataBusToStack();
 
             cpu.registers.programCounter = jmpAddress;
@@ -1084,7 +1076,7 @@ namespace NES {
             cpu.registers.setPcl(cpu.systemBus.dataBus);
             cpu.popStackToDataBus();
             cpu.registers.setPch(cpu.systemBus.dataBus);
-            cpu.registers.programCounter--;
+            cpu.registers.programCounter++;
             return 0;
         }
 
