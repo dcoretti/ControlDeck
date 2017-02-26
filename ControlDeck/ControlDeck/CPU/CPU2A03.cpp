@@ -43,37 +43,44 @@ namespace NES {
             }
             debugState.dmaAfter = dmaData;
             cyclesTaken = 1;
-        } else if (registers.interruptStatus != InterruptType::INT_NONE) {
-            printf("Interrupt being handled for interruptStatus: %d\n", registers.interruptStatus);
-            interrupt(registers.interruptStatus);
-
         } else {
-//            DBG_ASSERT(!registers.flagSet(ProcessorStatus::BreakCommand), "BRK probably shouldn't be set since it isn't used much in nes game ......");
-            // Read the next op code from memory
-            const OpCode *opCode = fetchOpCode();
-            debugState.opCode = opCode;
-            debugState.registersBefore = registers;
-            debugState.systemBusBefore = systemBus;
-            DBG_ASSERT(opCode->instruction != Instruction::UNK, "Unknown instruction encountered %02x at addr %04x", opCode->opCode, registers.programCounter);
-
-
-            // Set up system bus to contain relevant memory data for a particular instruction.
-            OpCodeArgs opCodeArgs = handleAddressingMode(opCode->addressingMode);
-            debugState.opCodeArgs[0] = opCodeArgs.args[0];
-            debugState.opCodeArgs[1] = opCodeArgs.args[1];
-
-            // Call the instruction handler
-            uint8_t branchCycles = opCode->instructionHandler(*opCode, *this);
-
-            debugState.registersAfter = registers;
-            debugState.systemBusAfter = systemBus;
-
-            cyclesTaken += opCode->cycles + branchCycles + opCodeArgs.pagingInstructions;
-
-            if (debug) {
-                debugState.print();
+            if (ppu->pollNMI()) {
+                printf("NMI\n");
+                registers.interruptStatus = InterruptType::INT_NMI;
             }
-        }
+            // TODO add irq polling?  check interrupt disable flag to ignore IRQ if 1
+
+            if (registers.interruptStatus != InterruptType::INT_NONE) {
+                printf("Interrupt being handled for interruptStatus: %d\n", registers.interruptStatus);
+                interrupt(registers.interruptStatus);
+            } else {
+                //            DBG_ASSERT(!registers.flagSet(ProcessorStatus::BreakCommand), "BRK probably shouldn't be set since it isn't used much in nes game ......");
+                // Read the next op code from memory
+                const OpCode *opCode = fetchOpCode();
+                debugState.opCode = opCode;
+                debugState.registersBefore = registers;
+                debugState.systemBusBefore = systemBus;
+                DBG_ASSERT(opCode->instruction != Instruction::UNK, "Unknown instruction encountered %02x at addr %04x", opCode->opCode, registers.programCounter);
+
+
+                // Set up system bus to contain relevant memory data for a particular instruction.
+                OpCodeArgs opCodeArgs = handleAddressingMode(opCode->addressingMode);
+                debugState.opCodeArgs[0] = opCodeArgs.args[0];
+                debugState.opCodeArgs[1] = opCodeArgs.args[1];
+
+                // Call the instruction handler
+                uint8_t branchCycles = opCode->instructionHandler(*opCode, *this);
+
+                debugState.registersAfter = registers;
+                debugState.systemBusAfter = systemBus;
+
+                cyclesTaken += opCode->cycles + branchCycles + opCodeArgs.pagingInstructions;
+
+                if (debug) {
+                    debugState.print();
+                }
+            }
+        } 
         // clear interrupt source flag set by hardware pins if any.
         registers.interruptStatus = InterruptType::INT_NONE;
         cycle += cyclesTaken;

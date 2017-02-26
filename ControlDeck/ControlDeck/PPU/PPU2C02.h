@@ -46,6 +46,9 @@ namespace NES {
         void doRegisterUpdates();
         RenderState getRenderState();
 
+        // CPU poll API for NMI.  Only ever active if PPU reaches vblank and PPUCTRL bit 7 set (generate NMI)
+        bool pollNMI();
+
         ////////////////////////////////////////////////
         // Registers and memory components
 
@@ -76,6 +79,7 @@ namespace NES {
         uint8_t patternR{ 0 };  // current low bit pattern table entry
         uint8_t attrTableEntry{ 0 };
 
+        bool flagNmi{ false };
         /**
         *   Iterate primary OAM to determine which objects are in Y-range for the NEXT scan line from highest priority (0)
         *   to lowest.  Set sprite overflow flag in status register if more than 8 are found.

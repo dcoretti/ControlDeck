@@ -88,6 +88,7 @@ namespace NES {
             }
             if (scanLineCycle == 2) {
                 ppuMemory.memoryMappedRegisters.setVBlank(false);
+                flagNmi = false;    // if nmi wasn't polled by cpu during vblank, reset
             }
             if (scanLineCycle >= 257 && scanLineCycle <= 320) {
                 ppuMemory.memoryMappedRegisters.oamAddr = 0;
@@ -176,6 +177,7 @@ namespace NES {
                 ppuMemory.memoryMappedRegisters.setVBlank(true);
                 if (ppuMemory.memoryMappedRegisters.getGenerateVBlankNmi()) {
                     // TODO GENERATE THE NMI?????????s
+                    flagNmi = true;
                 }
             }
         }
@@ -187,6 +189,13 @@ namespace NES {
         scanLineCycle = cycle % cyclesPerScanLine;
     }
 
+    bool Ppu2C02::pollNMI() {
+        if (flagNmi) {
+            flagNmi = false;
+            return true;
+        }
+        return false;
+    }
 
     void loadTile() {
 
