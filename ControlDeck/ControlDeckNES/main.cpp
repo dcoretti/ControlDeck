@@ -4,12 +4,11 @@
 #endif
 
 #define WIN32_LEAN_AND_MEAN
-#include "windows.h"
-//#include <stdio.h>
-#define GLEW_DLL
-#include "GL/glew.h"
-#define GLFW_EXPOSE_NATIVE_WIN32
-#define GLFW_EXPOSE_NATIVE_WGL
+#include <Windows.h>
+#include "glad/glad.h"
+
+//#define GLFW_EXPOSE_NATIVE_WIN32
+//#define GLFW_EXPOSE_NATIVE_WGL
 #include "GLFW/glfw3.h"
 #include "nes.h"
 #include "shaderLoader.h"
@@ -103,6 +102,10 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     }
 }
 
+void errorCallback(int error, const char * description) {
+	fprintf(stderr, "ERROR(%d): %s\n", error, description);
+}
+
 void setupConsole() {
     AllocConsole();
     AttachConsole(GetCurrentProcessId());
@@ -127,10 +130,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     // This is ONLY useful between 3.0 and 3.1 for 3.2+ this does nothing as it was a deprecation path
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_FALSE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
     // instead of setting profile, giving hints and letting system decide
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwSwapInterval(1);	//vsync
+
 
     window = glfwCreateWindow(width *2, height * 2, "RenderMode", NULL, NULL);
     if (!window) {
@@ -139,13 +141,21 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     }
 
     glfwMakeContextCurrent(window);
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		fprintf(stderr, "unable to initialize glad opengl context.\n");
+		return -1;
+	}
+
+	glfwSwapInterval(1);	//vsync
+
     glEnable(GL_CULL_FACE);
     glfwSetKeyCallback(window, keyCallback);
-    GLenum err = glewInit();
-    if (GLEW_OK != err) {
-        printf("Error initializing glew: %s\n", glewGetErrorString(err));
-        return -1;
-    }
+	glfwSetErrorCallback(errorCallback);
+    //GLenum err = glewInit();
+    //if (GLEW_OK != err) {
+    //    printf("Error initializing glew: %s\n", glewGetErrorString(err));
+    //    return -1;
+    //}
 
     char *fname = "C:\\Users\\dc\\Desktop\\smb.nes"; // "C:\\Users\\dc\\Desktop\\nestest\\cpu_reset\\registers.nes";
     initNes(fname, controlDeck);

@@ -1,5 +1,4 @@
 #pragma once
-#include <GL/glew.h>
 #include "common.h"
 
 void checkShaderCompileStatus(unsigned int shaderId) {

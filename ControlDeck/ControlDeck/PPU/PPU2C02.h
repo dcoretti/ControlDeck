@@ -49,7 +49,7 @@ namespace NES {
         // CPU poll API for NMI.  Only ever active if PPU reaches vblank and PPUCTRL bit 7 set (generate NMI)
         bool pollNMI();
 
-        ////////////////////////////////////////////////
+        ////////////////////////////////////////////
         // Registers and memory components
 
         // Registers accessible to CPU through memory mapper
