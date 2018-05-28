@@ -379,7 +379,8 @@ namespace NES {
     *        1. Get data from PC+1
     */
     void Cpu2a03::getImmediateAddress(OpCodeArgs &args) {
-        args.args[0] = readFromAddress(registers.programCounter);
+        args.args[0] = 
+			(registers.programCounter);
     }
 
     /**

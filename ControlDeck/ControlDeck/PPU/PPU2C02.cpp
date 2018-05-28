@@ -96,14 +96,17 @@ namespace NES {
             // Pre-Render Cycle
             // Do scan line reads based on even / odd frames
             // Read operations still occur (can be read externally?)
-        } else if (renderState == RenderState::VisibleScanLines) {
+        } 
+		////////////////////////////////////////////////////////
+		// Visible Scan line 1-241
+		else if (renderState == RenderState::VisibleScanLines) {
             // Visible scan line rendering (240 scan lines)
             // visible scan line
             if (scanLineCycle == 0) {
                 // Idle cycle
             } 
             // Load a tile
-            else if (scanLineCycle < 257 || scanLineCycle >= 321 && scanLineCycle < 337) {
+            else if (scanLineCycle < 257 || (scanLineCycle >= 321 && scanLineCycle < 337)) {
                 int state = (scanLineCycle - 1) % 8;
                 // move shift registers here after first write cycle, meaning scanLineCycle >1
                 if (scanLineCycle > 1) {
@@ -146,7 +149,7 @@ namespace NES {
                 }
 
                 Pixel pixel = getScreenPixel();
-                renderBuffer.putPixel(scanLineCycle, curScanLine, pixel);
+                renderBuffer.putPixel(scanLineCycle -1/* -1 because cycle 0 is idle */, curScanLine -1, pixel);
             } else if (scanLineCycle < 321) {
                 ppuMemory.memoryMappedRegisters.oamAddr = 0;
                 // sprite data for next scan line fetched here

@@ -13,7 +13,6 @@ namespace NES {
         Cpu2a03 cpu;
         Ppu2C02 ppu;
         Cartridge cart;
-        RenderBuffer renderBuffer;
     };
 
     void initNes(char * nesFile, NesControlDeck &nesControlDeck);

@@ -67,9 +67,9 @@ namespace NES {
         bool disabled{ false }; // for easier testing to cause goPpuCycle to nop
     private:
         // Rendering state
-        uint16_t curScanLine{ 0 };
-        uint32_t cycle{ 0 };
-        uint16_t scanLineCycle{ 0 };    // one cycle per pixel
+        uint16_t curScanLine{ 0 };		// Active scan line (of 262 total)
+        uint32_t cycle{ 0 };			// Overall cycle counter
+        uint16_t scanLineCycle{ 0 };    // one cycle per pixel (35
         uint16_t ppuAddr;
         uint8_t ppuData;
 

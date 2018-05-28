@@ -13,6 +13,8 @@
 #include "nes.h"
 #include "shaderLoader.h"
 
+#include "imgui/imgui.h"
+
 bool pause = true;
 NES::NesControlDeck controlDeck;
 
@@ -50,6 +52,7 @@ static const GLfloat uv[] = {
     1.0f, 0.0f,
     1.0f, 1.0f
 };
+
 void setupRenderSurface() {
     memset(test, 200, 3*sizeof(uint8_t) * width * height);
     createShader(&shaderProgramId, "shader.vert", "shader.frag");
@@ -113,10 +116,22 @@ void setupConsole() {
     freopen("CON", "w", stderr);
 }
 
+
+void setupPPUUI() {
+	bool * open;
+	if (!ImGui::Begin("ImGui Demo", open, 0))
+	{
+		// Early out if the window is collapsed, as an optimization.
+		ImGui::End();
+		return;
+	}
+}
+
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     setupConsole();
 
     GLFWwindow* window;
+	GLFWwindow* ppuDebug;
     //glewExperimental = GL_TRUE;
     if (!glfwInit()) {
         return -1;
@@ -162,25 +177,48 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     unsigned int iterations = 0;
     setupRenderSurface();
-    while (!glfwWindowShouldClose(window)) {
+
+	ppuDebug = glfwCreateWindow(512, 256, "Pattern Tables", NULL, NULL);
+	glfwSetKeyCallback(ppuDebug, keyCallback);
+	glfwMakeContextCurrent(ppuDebug);
+
+    while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(ppuDebug)) {
          glfwPollEvents();
         // temporary hack to play around with
         if (!pause) {
-            nesLoop(controlDeck, 500);
+            nesLoop(controlDeck, 200);
         }
 
-
+		glfwMakeContextCurrent(window);
         // Render the results
         glClear(GL_COLOR_BUFFER_BIT);
         // update the texture with the latest
         glUseProgram(shaderProgramId);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureBufferId);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, controlDeck.renderBuffer.renderBuffer);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, controlDeck.ppu.renderBuffer.renderBuffer);
         glBindVertexArray(va);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
         glfwSwapBuffers(window);
+
+
+		// Render the pattern tables
+		glfwMakeContextCurrent(ppuDebug);
+		//// Render the results
+		//glClear(GL_COLOR_BUFFER_BIT);
+		//// update the texture with the latest
+		//glUseProgram(shaderProgramId);
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, textureBufferId);
+		//glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, controlDeck.ppu.renderBuffer.renderBuffer);
+		//glBindVertexArray(va);
+		//glDrawArrays(GL_TRIANGLES, 0, 6);
+		//glBindVertexArray(0);
+		glfwSwapBuffers(ppuDebug);
+		
+
+
     }
 
     glfwTerminate();
