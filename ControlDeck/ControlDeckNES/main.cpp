@@ -149,7 +149,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 
-    window = glfwCreateWindow(width *2, height * 2, "RenderMode", NULL, NULL);
+    window = glfwCreateWindow(width *2, height * 2, "ControlDeck", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
