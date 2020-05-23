@@ -10,8 +10,8 @@ namespace NES {
         }
 
 		int index = 3 * screen_w * (screen_h - y - 1) + (3 * x);
-		DBG_ASSERT(index >= 0);
-		DBG_ASSERT(index + 2 < 3 * screen_w * screen_h); // because I'm bad at math and seem to make this mistake often 
+		DBG_ASSERT(index >= 0, "index for putpixel was negative");
+		DBG_ASSERT(index + 2 < 3 * screen_w * screen_h, "index somehow stepped out of bounds with 3bytesper pixel *screen dimensions"); // because I'm bad at math and seem to make this mistake often 
         renderBuffer[index] = pixel.r;
         renderBuffer[index + 1] = pixel.g;
         renderBuffer[index + 2] = pixel.b;
