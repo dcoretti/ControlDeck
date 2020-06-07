@@ -1,5 +1,5 @@
 #pragma once
-#include "common.h"
+#include <ControlDeck/common.h>
 
 void checkShaderCompileStatus(unsigned int shaderId) {
     int status;

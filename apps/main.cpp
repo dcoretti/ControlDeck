@@ -10,10 +10,10 @@
 //#define GLFW_EXPOSE_NATIVE_WIN32
 //#define GLFW_EXPOSE_NATIVE_WGL
 #include "GLFW/glfw3.h"
-#include "nes.h"
+#include <ControlDeck/nes.h>
 #include "shaderLoader.h"
 
-#include "imgui/imgui.h"
+//#include "imgui/imgui.h"
 
 bool pause = true;
 NES::NesControlDeck controlDeck;
@@ -55,7 +55,7 @@ static const GLfloat uv[] = {
 
 void setupRenderSurface() {
     memset(test, 200, 3*sizeof(uint8_t) * width * height);
-    createShader(&shaderProgramId, "shader.vert", "shader.frag");
+    createShader(&shaderProgramId, "../shaders/shader.vert", "../shaders/shader.frag");
 
 
     glGenVertexArrays(1, &va);
@@ -118,13 +118,13 @@ void setupConsole() {
 
 
 void setupPPUUI() {
-	bool * open;
-	if (!ImGui::Begin("ImGui Demo", open, 0))
-	{
-		// Early out if the window is collapsed, as an optimization.
-		ImGui::End();
-		return;
-	}
+	bool * open = nullptr;
+	// if (!ImGui::Begin("ImGui Demo", open, 0))
+	// {
+	// 	// Early out if the window is collapsed, as an optimization.
+	// 	ImGui::End();
+	// 	return;
+	// }
 }
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
@@ -172,7 +172,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     //    return -1;
     //}
 
-    char *fname = "C:\\Users\\dc\\Desktop\\smb.nes"; // "C:\\Users\\dc\\Desktop\\nestest\\cpu_reset\\registers.nes";
+    char *fname = "C:\\nes\\smb.nes";
     initNes(fname, controlDeck);
 
     unsigned int iterations = 0;

@@ -1,5 +1,5 @@
-#include "PPUComponents.h"
-#include "../common.h"
+#include <ControlDeck/PPU/PPUComponents.h>
+#include <ControlDeck/common.h>
 
 namespace NES {
     /////////////////////////////////////////////////////////////////

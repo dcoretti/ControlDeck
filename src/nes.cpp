@@ -1,5 +1,5 @@
-#include "nes.h"
-#include "ines.h"
+#include <ControlDeck/nes.h>
+#include <ControlDeck/ines.h>
 
 namespace NES {
     // TODO clean up initialization and general memory management

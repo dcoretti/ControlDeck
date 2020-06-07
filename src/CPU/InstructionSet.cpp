@@ -1,4 +1,4 @@
-#include "InstructionSet.h"
+#include <ControlDeck/CPU/InstructionSet.h>
 
 namespace NES {
     const char * addressingModeNames[] = {

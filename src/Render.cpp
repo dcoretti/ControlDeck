@@ -1,6 +1,6 @@
-#include "Render.h"
+#include <ControlDeck/Render.h>
 #include <cstring>
-#include "common.h"
+#include <ControlDeck/common.h>
 
 namespace NES {
     void RenderBuffer::putPixel(int x, int y, Pixel pixel) {

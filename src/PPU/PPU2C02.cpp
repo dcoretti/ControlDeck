@@ -1,5 +1,5 @@
-#include "ppu2c02.h"
-#include "../common.h"
+#include <ControlDeck/PPU/ppu2c02.h>
+#include <ControlDeck/common.h>
 
 namespace NES {
     void Ppu2C02::setPowerUpState() {

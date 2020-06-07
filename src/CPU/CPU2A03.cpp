@@ -1,5 +1,5 @@
-#include "cpu2A03.h"
-#include "AddressingModeHandler.h"
+#include <ControlDeck/CPU/cpu2A03.h>
+#include <ControlDeck/CPU/AddressingModeHandler.h>
 #include <string.h>
 namespace NES {
     Cpu2a03::Cpu2a03(Ppu2C02 *ppu, Cartridge *cartridge) : ppu(ppu), cartridge(cartridge) {
@@ -379,7 +379,7 @@ namespace NES {
     *        1. Get data from PC+1
     */
     void Cpu2a03::getImmediateAddress(OpCodeArgs &args) {
-        args.args[0] = (registers.programCounter);
+        args.args[0] = (uint8_t) (registers.programCounter);
     }
 
     /**

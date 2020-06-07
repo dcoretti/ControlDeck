@@ -1,7 +1,7 @@
-#include "ines.h"
+#include <ControlDeck/ines.h>
 #include <stdio.h>
 #include <cstring>
-#include "common.h"
+#include <ControlDeck/common.h>
 #ifdef _MSC_VER
 // Disable warnings for fopen
 #pragma warning(disable:4996)
@@ -10,6 +10,7 @@
 namespace NES {
     Cartridge * loadINesFile(char * fname, Cartridge * cart) {
         FILE *fp = fopen(fname, "r");
+        DBG_ASSERT(fp != nullptr, "Unable to load file %s", fname);
         // TODO what kind of error handling should be done here?
         fseek(fp, 0, SEEK_END);
         long fsize = ftell(fp);

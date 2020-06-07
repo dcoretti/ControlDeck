@@ -1,0 +1,6 @@
+[submodule "extern/repo"]
+	path = extern/repo
+	url = ../../glfw/glfw.git
+[submodule "extern/glfw"]
+	path = extern/glfw
+	url = ../../glfw/glfw.git
