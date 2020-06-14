@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
 
-#include "PPU/PPUComponents.h"
-#include "PPU/PPU2C02.h"
-#include "cartridge.h"
-#include "common.h"
+#include <ControlDeck/PPU/PPUComponents.h>
+#include <ControlDeck/PPU/PPU2C02.h>
+#include <ControlDeck/cartridge.h>
+#include <ControlDeck/common.h>
 
 using NES::PPUMemoryComponents;
 using NES::Cartridge;

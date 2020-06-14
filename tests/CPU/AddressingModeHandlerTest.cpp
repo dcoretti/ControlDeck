@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "CPUTestCommon.h"
-#include "CPU/AddressingModeHandler.h"
+#include <ControlDeck/CPU/AddressingModeHandler.h>
 using NES::AddressingMode;
 
 class AddressingModeHandlerTest : public CPUTest {

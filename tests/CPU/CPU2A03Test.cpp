@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "CPU/cpu2A03.h"
+#include <ControlDeck/CPU/cpu2A03.h>
 #include "CPUTestCommon.h"
 
 using NES::Cpu2a03;

@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "cartridge.h"
+#include <ControlDeck/cartridge.h>
 using namespace NES;
 
 TEST(Cartridge_Test, testNRomSingleBank) {

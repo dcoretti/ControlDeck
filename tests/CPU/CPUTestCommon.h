@@ -1,9 +1,9 @@
 #pragma once
 #include "gtest/gtest.h"
-#include "CPU\SystemComponents.h"
-#include "CPU/AddressingMode.h"
-#include "CPU/cpu2A03.h"
-#include "PPU/PPU2C02.h"
+#include <ControlDeck/CPU\SystemComponents.h>
+#include <ControlDeck/CPU/AddressingMode.h>
+#include <ControlDeck/CPU/cpu2A03.h>
+#include <ControlDeck/PPU/PPU2C02.h>
 
 using NES::SystemBus;
 using NES::SystemRam;

@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "ines.h"
+#include <ControlDeck/ines.h>
 using namespace NES;
 TEST(INES_Test, testBasicHeader) {
     INesHeader header;

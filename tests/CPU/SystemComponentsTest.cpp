@@ -1,4 +1,4 @@
-#include "CPU/SystemComponents.h"
+#include <ControlDeck/CPU/SystemComponents.h>
 #include "gtest/gtest.h"
 #include <vector>
 
