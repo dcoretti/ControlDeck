@@ -14,21 +14,21 @@ namespace NES {
         controlDeck.cpu.setPowerUpState();
     }
 
-    void nesLoop(NesControlDeck &nes, int numInstructions) {
+
+    DebugState step(NesControlDeck &nes) {
+        return nes.cpu.processInstruction();
+    }
+
+    DebugState nesLoop(NesControlDeck &nes, int numInstructions) {
         bool countDown = numInstructions > -1;
+        DebugState dbgState;
         while (numInstructions != 0) {
-            DebugState dbgState = nes.cpu.processInstruction();
+            dbgState = nes.cpu.processInstruction();
             if (countDown) {
                 numInstructions--;
             }
-
-            /// not sure what to do about this...
-            if (dbgState.opCode != nullptr) {
-                // This is absolutely wrong but doing this until I can move PPU tick to the instruction level
-                uint8_t totalCycles = dbgState.opCode->cycles + dbgState.addressingCycles + dbgState.branchCycles;
-            }
         }
 
-
+        return dbgState;
     }
 }

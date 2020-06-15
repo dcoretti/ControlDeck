@@ -119,15 +119,83 @@ void setupConsole() {
 }
 
 
-void setupPPUUI() {
-	bool * open = nullptr;
-	// if (!ImGui::Begin("ImGui Demo", open, 0))
-	// {
-	// 	// Early out if the window is collapsed, as an optimization.
-	// 	ImGui::End();
-	// 	return;
-	// }
+void showDebugState(NES::DebugState &debugState, NES::NesControlDeck &controlDeck, bool paused) {
+        ImGui::SetNextWindowSize(ImVec2(500, 450), ImGuiCond_FirstUseEver);
+        ImGui::Begin("Debug Output");   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+        
+        ImGui::Columns(3, "Processor Status");
+        ImGui::SetColumnWidth(0, 100.0f);
+        ImGui::Text("Previous");
+        ImGui::Text("Sys Bus");
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputScalar("ADDR", ImGuiDataType_U16 , &debugState.systemBusBefore.addressBus, 0, 0, "$%02X");
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputScalar("Data", ImGuiDataType_U8, &debugState.systemBusBefore.dataBus, 0, 0, "$%02X");
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputScalar("Read", ImGuiDataType_U8, &debugState.systemBusBefore.read, 0);
+        ImGui::Text("Reg");
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputScalar("PC", ImGuiDataType_U16, &debugState.registersBefore.programCounter, 0, 0, "$%02X"); // program counter
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputScalar("A", ImGuiDataType_U8, &debugState.registersBefore.acc, 0, 0, "$%02X"); // accumulator
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputScalar("X", ImGuiDataType_U8, &debugState.registersBefore.x, 0, 0, "$%02X"); // x index
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputScalar("Y", ImGuiDataType_U8, &debugState.registersBefore.y, 0, 0, "$%02X"); // y index
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputScalar("P", ImGuiDataType_U8, &debugState.registersBefore.statusRegister, 0, 0, "$%02X"); // processor Status
+        ImGui::SetNextItemWidth(50);    
+        ImGui::InputScalar("SP", ImGuiDataType_U8, &debugState.registersBefore.stackPointer, 0, 0, "$%02X"); // Stack pointer
+        ImGui::NextColumn();
+        ImGui::Text("Current");
+        ImGui::Text("Sys Bus");
+
+        ImGui::SetNextItemWidth(50);
+        
+        ImGui::InputScalar("ADDR", ImGuiDataType_U16 , &debugState.systemBusAfter.addressBus, 0, 0, "$%04X");
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputScalar("Data", ImGuiDataType_U8, &debugState.systemBusAfter.dataBus, 0, 0, "$%02X");
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputScalar("Read", ImGuiDataType_U8, &debugState.systemBusAfter.read, 0);
+        ImGui::Text("Reg");
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputScalar("PC", ImGuiDataType_U16, &debugState.registersAfter.programCounter, 0, 0, "$%04X"); // program counter
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputScalar("A", ImGuiDataType_U8, &debugState.registersAfter.acc, 0, 0, "$%02X"); // accumulator
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputScalar("X", ImGuiDataType_U8, &debugState.registersAfter.x, 0, 0, "$%02X"); // x index
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputScalar("Y", ImGuiDataType_U8, &debugState.registersAfter.y, 0, 0, "$%02X"); // y index
+        ImGui::SetNextItemWidth(50);
+        ImGui::InputScalar("P", ImGuiDataType_U8, &debugState.registersAfter.statusRegister, 0, 0, "$%02X"); // processor Status
+        ImGui::SetNextItemWidth(50);    
+        ImGui::InputScalar("SP", ImGuiDataType_U8, &debugState.registersAfter.stackPointer, 0, 0, "$%02X"); // Stack pointer
+        ImGui::NextColumn();
+        ImGui::Text("Memory");
+        int ins = debugState.opCode != nullptr ? debugState.opCode->instruction : NES::Instruction::UNK;
+        if (ins > NES::Instruction::UNK) {
+            ins = NES::Instruction::UNK;
+        }
+        ImGui::Text("%s %02X%02X", NES::instructionString[ins], debugState.opCodeArgs[1], debugState.opCodeArgs[0]);
+        ImGui::Columns(1);
+        ImGui::Separator();
+
+        if (ImGui::Button("Step") && paused) {
+            debugState = step(controlDeck);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Run")) {
+            int i =0;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Pause")) {
+            int i =0;
+        }
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(50);
+        ImGui::End();
 }
+
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     setupConsole();
@@ -187,7 +255,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     unsigned int iterations = 0;
     setupRenderSurface();
 
-	GLFWwindow* debugWindow = glfwCreateWindow(512, 256, "Debug", NULL, NULL);
+	GLFWwindow* debugWindow = glfwCreateWindow(500, 500, "Debug", NULL, NULL);
     int windowX,windowY;
     glfwGetWindowPos(window, &windowX, &windowY);
     glfwSetWindowPos(debugWindow, windowX + (width * 2) + 100, windowY);
@@ -206,12 +274,17 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     bool showDemoWindow = true;
 
+
+    NES::DebugState debugState = NES::DebugState();
+
     while (!glfwWindowShouldClose(window) && !glfwWindowShouldClose(debugWindow)) {
          glfwPollEvents();
         // temporary hack to play around with
-        if (!pause) {
-            nesLoop(controlDeck, 200);
+
+        if(!pause) {
+            debugState = nesLoop(controlDeck, 200);
         }
+
 
 		glfwMakeContextCurrent(window);
         // Render the results
@@ -234,9 +307,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        if (showDemoWindow)
-            ImGui::ShowDemoWindow(&showDemoWindow);
+
+
+        ImGui::ShowDemoWindow();
+
+
+        showDebugState(debugState, controlDeck, pause);
+
 
         ImGui::Render();
         int display_w, display_h;

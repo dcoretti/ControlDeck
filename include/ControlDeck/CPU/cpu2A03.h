@@ -16,20 +16,20 @@ namespace NES {
 
     struct OpCode {
         // Op code reference
-        uint8_t opCode;
+        const uint8_t opCode;
 
         // Bytes to read for instruction data
-        uint8_t bytes;
+        const uint8_t bytes;
 
         // All instructions are at least 2 cycles long.  First cycle is always to increment and select the program counter as the next address to appear on the bus
-        uint8_t cycles;
+        const uint8_t cycles;
         // Additional cycles added for page boundaries.
         // 0,1,2 1 for page boundary crossed, 2 for branch sending to different page
-        uint8_t pageCycles;
+        const uint8_t pageCycles;
 
-        Instruction instruction;
-        AddressingMode addressingMode;
-        InstructionFnPtr instructionHandler;
+        const Instruction instruction;
+        const AddressingMode addressingMode;
+        const InstructionFnPtr instructionHandler;
     };
 
     struct DebugState {
@@ -48,6 +48,7 @@ namespace NES {
         DMAData dmaAfter;
         bool isDma{ false };
         void print();
+        inline uint8_t getInstructionsExecuted() { return addressingCycles + branchCycles + opCode->cycles; }
     };
 
     // debug info about arguments for an op code

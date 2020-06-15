@@ -16,5 +16,6 @@ namespace NES {
     };
 
     void initNes(char * nesFile, NesControlDeck &nesControlDeck);
-    void nesLoop(NesControlDeck &nes, int numInstructions = -1);
+    DebugState nesLoop(NesControlDeck &nes, int numInstructions = -1);
+    DebugState step(NesControlDeck &nes);
 }
