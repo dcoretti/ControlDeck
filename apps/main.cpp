@@ -120,7 +120,7 @@ void setupConsole() {
 
 
 void showDebugState(NES::DebugState &debugState, NES::NesControlDeck &controlDeck, bool paused) {
-        ImGui::SetNextWindowSize(ImVec2(500, 450), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(550, 450), ImGuiCond_FirstUseEver);
         ImGui::Begin("Debug Output");   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
         
         ImGui::Columns(3, "Processor Status");
@@ -176,6 +176,28 @@ void showDebugState(NES::DebugState &debugState, NES::NesControlDeck &controlDec
         if (ins > NES::Instruction::UNK) {
             ins = NES::Instruction::UNK;
         }
+
+        uint8_t p = debugState.registersBefore.statusRegister;
+        ImGui::Text("P(old) N:%01d V:%01d B:%01d%01d D:%01d I:%01d Z:%01d C:%01d", 
+            (p & 0x80) != 0, 
+            (p & 0x40) != 0, 
+            (p&0x20) != 0, 
+            (p&0x10) != 0, 
+            (p&0x08) != 0, 
+            (p&0x04) != 0, 
+            (p&0x02) != 0, 
+            (p&0x01) != 0);
+        p = debugState.registersAfter.statusRegister;
+        ImGui::Text("P(New) N:%01d V:%01d B:%01d%01d D:%01d I:%01d Z:%01d C:%01d", 
+            (p & 0x80) != 0, 
+            (p & 0x40) != 0, 
+            (p&0x20) != 0, 
+            (p&0x10) != 0, 
+            (p&0x08) != 0, 
+            (p&0x04) != 0, 
+            (p&0x02) != 0, 
+            (p&0x01) != 0);
+
         ImGui::Text("%s %02X%02X", NES::instructionString[ins], debugState.opCodeArgs[1], debugState.opCodeArgs[0]);
         ImGui::Columns(1);
         ImGui::Separator();
@@ -190,6 +212,9 @@ void showDebugState(NES::DebugState &debugState, NES::NesControlDeck &controlDec
         ImGui::SameLine();
         if (ImGui::Button("Pause")) {
             int i =0;
+        }
+        if (ImGui::Button("Power")) {
+            controlDeck.cpu.setPowerUpState();
         }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(50);
@@ -255,7 +280,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     unsigned int iterations = 0;
     setupRenderSurface();
 
-	GLFWwindow* debugWindow = glfwCreateWindow(500, 500, "Debug", NULL, NULL);
+	GLFWwindow* debugWindow = glfwCreateWindow(600, 500, "Debug", NULL, NULL);
     int windowX,windowY;
     glfwGetWindowPos(window, &windowX, &windowY);
     glfwSetWindowPos(debugWindow, windowX + (width * 2) + 100, windowY);

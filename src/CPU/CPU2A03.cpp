@@ -77,7 +77,7 @@ namespace NES {
                 cyclesTaken += opCode->cycles + branchCycles + opCodeArgs.pagingInstructions;
 
                 if (debug) {
-                    debugState.print();
+                   // debugState.print();
                 }
             }
         } 
