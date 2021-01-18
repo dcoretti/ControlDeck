@@ -98,6 +98,19 @@ namespace NES {
             return acc - val <= 0;
         }
 
+        void statusToString(char out[8]) {
+            // Rearranged s/t bit 0(carry) is out[7] to read l to r
+            out[0] = 'n' - (((statusRegister & 0x80) > 0) * 32);
+            out[1] = 'v' - (((statusRegister & 0x40) > 0) * 32);
+            out[2] = 'u' - (((statusRegister & 0x20) > 0) * 32);
+            out[3] = 'b' - (((statusRegister & 0x10) > 0) * 32);
+            out[4] = 'd' - (((statusRegister & 0x8) > 0) * 32);
+            out[5] = 'i' - (((statusRegister & 0x4) > 0) * 32);
+            out[6] = 'z' - (((statusRegister & 0x2) > 0) * 32);
+            out[7] = 'c' - (((statusRegister & 0x1) > 0) * 32);
+            out[9] = '\0';
+        }
+
         // Commonly used for counters/offsets in memory accesss.  
         // Can be loaded/saved in memory, compared with memory values.
         // Can be used to get a copy of the stack pointer/change its value

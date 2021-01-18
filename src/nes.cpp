@@ -12,6 +12,9 @@ namespace NES {
 
         controlDeck.cpu.debug = true;
         controlDeck.cpu.setPowerUpState();
+
+
+        controlDeck.cpu.debugOutputFile = fopen("debug.txt", "w+");
     }
 
 
@@ -22,10 +25,15 @@ namespace NES {
     DebugState nesLoop(NesControlDeck &nes, int numInstructions) {
         bool countDown = numInstructions > -1;
         DebugState dbgState;
-        while (numInstructions != 0) {
+        int instructionCounter = 0;
+        while (instructionCounter < numInstructions) {
             dbgState = nes.cpu.processInstruction();
             if (countDown) {
-                numInstructions--;
+                instructionCounter++;
+            }
+
+            if (instructionCounter % 100 == 0 ) {
+                printf("i: %d\n", instructionCounter);
             }
         }
 

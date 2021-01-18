@@ -1,6 +1,8 @@
 #include <ControlDeck/CPU/cpu2A03.h>
 #include <ControlDeck/CPU/AddressingModeHandler.h>
 #include <string.h>
+#include <stdarg.h>
+
 namespace NES {
     Cpu2a03::Cpu2a03(Ppu2C02 *ppu, Cartridge *cartridge) : ppu(ppu), cartridge(cartridge) {
     }
@@ -65,8 +67,7 @@ namespace NES {
 
                 // Set up system bus to contain relevant memory data for a particular instruction.
                 OpCodeArgs opCodeArgs = handleAddressingMode(opCode->addressingMode);
-                debugState.opCodeArgs[0] = opCodeArgs.args[0];
-                debugState.opCodeArgs[1] = opCodeArgs.args[1];
+                debugState.opCodeArgs = opCodeArgs;
 
                 // Call the instruction handler
                 uint8_t branchCycles = opCode->instructionHandler(*opCode, *this);
@@ -74,11 +75,12 @@ namespace NES {
                 debugState.registersAfter = registers;
                 debugState.systemBusAfter = systemBus;
 
-                cyclesTaken += opCode->cycles + branchCycles + opCodeArgs.pagingInstructions;
+                cyclesTaken += opCode->cycles + branchCycles + opCodeArgs.pagingCycles;
 
                 if (debug) {
                    // debugState.print();
                 }
+                debugState.print(debugOutputFile);
             }
         } 
         // clear interrupt source flag set by hardware pins if any.
@@ -93,11 +95,13 @@ namespace NES {
 
     //https://wiki.nesdev.com/w/index.php/CPU_power_up_state#cite_note-1
     void Cpu2a03::setPowerUpState() {
-        registers.statusRegister = 0x24;   // interrupt enabled with unused flag also set (though not used)
+        // Some documentation talked about 0x24 being the general state but setting to just 0x4 since
+        // that seems to be used on some references.
+        registers.statusRegister = 0x4;   // interrupt enabled
         registers.acc = 0;
         registers.x = 0;
         registers.y = 0;
-        registers.stackPointer = 0;// during reset gets -=2 to 0xfd;
+        registers.stackPointer = 0xfd;  // power up causes NMI RESET interrupt which will -=3 to FA
         registers.programCounter = 0xffed;  // will do reset vector following
         registers.interruptStatus = InterruptType::INT_RESET;
         memset(ram.ram, 0, SystemRam::systemRAMBytes);
@@ -119,32 +123,70 @@ namespace NES {
         registers.interruptStatus = InterruptType::INT_RESET;
     }
 
-    void DebugState::print(){
-        if (isDma) {
-            printf("DMA B: {baseAddress: $%04x, isActive: %d, cycleCounter: %d, bytesWritten: %d, curByteToWrite %d\n",
-                dmaBefore.baseAddress, dmaBefore.isActive, dmaBefore.cycleCounter, dmaBefore.bytesWritten, dmaBefore.curByteToWrite);
-            printf("DMA A: {baseAddress: $%04x, isActive: %d, cycleCounter: %d, bytesWritten: %d, curByteToWrite %d\n",
-                dmaAfter.baseAddress, dmaAfter.isActive, dmaAfter.cycleCounter, dmaAfter.bytesWritten, dmaAfter.curByteToWrite);
-        } else {
-            if (opCode->bytes == 3) {
-                // absolute address
-                printf("[%s(%02x) $%02x%02x, addrMode: %s]:\n", instructionNames[opCode->instruction], opCode->opCode, opCodeArgs[1], opCodeArgs[0], addressingModeNames[opCode->addressingMode]);
-            } else if (opCode->bytes == 2) {
-                // single arg
-                printf("[%s(%02x), $%02x, addrMode: %s]:\n", instructionNames[opCode->instruction], opCode->opCode, opCodeArgs[0], addressingModeNames[opCode->addressingMode]);
-
-            } else {
-                printf("[%s(%02x), addrMode: %s]:\n",  instructionNames[opCode->instruction], opCode->opCode, addressingModeNames[opCode->addressingMode]);
-            }
 
 
-            printf("B: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, p: $%02x, sp:$%02x, pc: $%04x}\n",
-                systemBusBefore.addressBus, systemBusBefore.dataBus, systemBusBefore.read,
-                registersBefore.acc, registersBefore.x, registersBefore.y, registersBefore.statusRegister, registersBefore.stackPointer, registersBefore.programCounter);
-            printf("A: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, p: $%02x, sp: $%02x, pc: $%04x}\n",
-                systemBusAfter.addressBus, systemBusAfter.dataBus, systemBusAfter.read,
-                registersAfter.acc, registersAfter.x, registersAfter.y, registersAfter.statusRegister, registersAfter.stackPointer, registersAfter.programCounter);
+
+    // Print to f and stdout. Outputs only to stdout if f is null
+    void dprintf(FILE * f, const char *fmt, ...) {
+        va_list ap;
+        va_start(ap, fmt);
+        vprintf(fmt, ap);
+        va_end(ap);
+        if (f != nullptr) {
+            va_start(ap, fmt);
+            vfprintf(f, fmt, ap);
+            va_end(ap);
         }
+    }
+
+    void DebugState::print(FILE * debugOut){
+        char status[9];
+        registersBefore.statusToString(status);
+
+        dprintf(debugOut, "A:%02X X:%02X Y:%02X S:%02X P:%.8s $%04X:%02X ", 
+                registersBefore.acc,
+                registersBefore.x, 
+                registersBefore.y,
+                registersBefore.stackPointer,
+                status,
+                systemBusBefore.addressBus,
+                opCode->opCode);
+        if (opCodeArgs.numArgs == 2) {
+            dprintf(debugOut, "%02X %02X", opCodeArgs.args[0], opCodeArgs.args[1]);
+        } else if (opCodeArgs.numArgs == 1) {
+            dprintf(debugOut, "%02X   ", opCodeArgs.args[0], opCodeArgs.args[1]);
+        } else {
+            dprintf(debugOut, "     ");
+        }
+        dprintf(debugOut, "  %s \n", instructionString[opCode->instruction]);
+
+
+        // if (isDma) {
+        //     printf("DMA B: {baseAddress: $%04x, isActive: %d, cycleCounter: %d, bytesWritten: %d, curByteToWrite %d\n",
+        //         dmaBefore.baseAddress, dmaBefore.isActive, dmaBefore.cycleCounter, dmaBefore.bytesWritten, dmaBefore.curByteToWrite);
+        //     printf("DMA A: {baseAddress: $%04x, isActive: %d, cycleCounter: %d, bytesWritten: %d, curByteToWrite %d\n",
+        //         dmaAfter.baseAddress, dmaAfter.isActive, dmaAfter.cycleCounter, dmaAfter.bytesWritten, dmaAfter.curByteToWrite);
+        // } else {
+        //     if (opCode->bytes == 3) {
+        //         // absolute address
+        //         printf("[%s(%02x) $%02x%02x, addrMode: %s]:\n", instructionNames[opCode->instruction], opCode->opCode, opCodeArgs[1], opCodeArgs[0], addressingModeNames[opCode->addressingMode]);
+        //     } else if (opCode->bytes == 2) {
+        //         // single arg
+        //         printf("[%s(%02x), $%02x, addrMode: %s]:\n", instructionNames[opCode->instruction], opCode->opCode, opCodeArgs[0], addressingModeNames[opCode->addressingMode]);
+
+        //     } else {
+        //         printf("[%s(%02x), addrMode: %s]:\n",  instructionNames[opCode->instruction], opCode->opCode, addressingModeNames[opCode->addressingMode]);
+        //     }
+
+
+        //     printf("B: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, p: $%02x, sp:$%02x, pc: $%04x}\n",
+        //         systemBusBefore.addressBus, systemBusBefore.dataBus, systemBusBefore.read,
+        //         registersBefore.acc, registersBefore.x, registersBefore.y, registersBefore.statusRegister, registersBefore.stackPointer, registersBefore.programCounter);
+        //     printf("A: {addr: $%04x, data:$%02x, read:%d} {a: $%02x, x: $%02x, y: $%02x, p: $%02x, sp: $%02x, pc: $%04x}\n",
+        //         systemBusAfter.addressBus, systemBusAfter.dataBus, systemBusAfter.read,
+        //         registersAfter.acc, registersAfter.x, registersAfter.y, registersAfter.statusRegister, registersAfter.stackPointer, registersAfter.programCounter);
+        //}
+
     }
 
     void Cpu2a03::synchronizeProcessors() {
@@ -379,7 +421,7 @@ namespace NES {
     *        1. Get data from PC+1
     */
     void Cpu2a03::getImmediateAddress(OpCodeArgs &args) {
-        args.args[0] =  readFromAddress(registers.programCounter);
+        args.setArgs(readFromAddress(registers.programCounter));
     }
 
     /**
@@ -389,7 +431,7 @@ namespace NES {
     */
     void Cpu2a03::getRelativeAddress(OpCodeArgs &args) {
         // Argument is fetched to be used to alter PC
-        args.args[0] = readFromAddress(registers.programCounter);
+        args.setArgs(readFromAddress(registers.programCounter));
     }
 
     /**
@@ -400,8 +442,7 @@ namespace NES {
     void Cpu2a03::getZeroPageAddress(OpCodeArgs &args) {
         // get operand addr
         readFromAddress(registers.programCounter);
-        args.args[0] = systemBus.dataBus;
-
+        args.setArgs(systemBus.dataBus);
         // zero page addr only needs lower byte
         readFromAddress((uint16_t)systemBus.dataBus);
     }
@@ -413,7 +454,7 @@ namespace NES {
     */
     void Cpu2a03::getXIndexedZeroPageAddress(OpCodeArgs &args) {
         readFromAddress(registers.programCounter);
-        args.args[0] = systemBus.dataBus;
+        args.setArgs(systemBus.dataBus);
 
         readFromAddress((systemBus.dataBus + registers.x) % 0x80);
     }
@@ -425,7 +466,7 @@ namespace NES {
     */
     void Cpu2a03::getYIndexedZeroPageAddress(OpCodeArgs &args) {
         readFromAddress(registers.programCounter);
-        args.args[0] = systemBus.dataBus;
+        args.setArgs(systemBus.dataBus);
 
         readFromAddress((systemBus.dataBus + registers.y) % 0x80);
     }
@@ -441,8 +482,7 @@ namespace NES {
         readFromAddress(registers.programCounter + 1);
         systemBus.setAddressBus(adlTmp, systemBus.dataBus);
 
-        args.args[0] = adlTmp;
-        args.args[1] = systemBus.dataBus;
+        args.setArgs(adlTmp, systemBus.dataBus);
     }
 
     void Cpu2a03::getAbsoluateAddress(OpCodeArgs &args) {
@@ -455,7 +495,7 @@ namespace NES {
         fetchAddressFromPCToBus(args);
         if ((systemBus.addressBus & 0xff) + registers.x >= 0xff) {
             // page boundary crossed
-            args.pagingInstructions = 1;
+            args.pagingCycles = 1;
         }
         systemBus.addressBus += registers.x;
 
@@ -467,7 +507,7 @@ namespace NES {
         fetchAddressFromPCToBus(args);
         if ((systemBus.addressBus & 0xff) + registers.y >= 0xff) {
             // page boundary crossed
-            args.pagingInstructions = 1;
+            args.pagingCycles = 1;
         }
         systemBus.addressBus += registers.y;
 
@@ -502,7 +542,7 @@ namespace NES {
     */
     void Cpu2a03::getXIndexedIndirectAddress(OpCodeArgs &args) {
         readFromAddress(registers.programCounter);
-        args.args[0] = systemBus.dataBus;
+        args.setArgs(systemBus.dataBus);
 
         systemBus.setAdlOnly((systemBus.dataBus + registers.x) % 0xff);
         fetchIndirectAddressToBus();
@@ -523,12 +563,12 @@ namespace NES {
     */
     void Cpu2a03::getIndirectYIndexedAddress(OpCodeArgs &args) {
         readFromAddress(registers.programCounter);
-        args.args[0] = systemBus.dataBus;
+        args.setArgs(systemBus.dataBus);
 
         systemBus.setAdlOnly(systemBus.dataBus);
         fetchIndirectAddressToBus();
         if ((systemBus.addressBus & 0xff) + registers.y > 0xff) {
-            args.pagingInstructions = 1;
+            args.pagingCycles = 1;
         }
         systemBus.addressBus += registers.y;
 

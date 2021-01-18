@@ -16,7 +16,6 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-
 bool pause = true;
 NES::NesControlDeck controlDeck;
 
@@ -198,7 +197,13 @@ void showDebugState(NES::DebugState &debugState, NES::NesControlDeck &controlDec
             (p&0x02) != 0, 
             (p&0x01) != 0);
 
-        ImGui::Text("%s %02X%02X", NES::instructionString[ins], debugState.opCodeArgs[1], debugState.opCodeArgs[0]);
+        if (debugState.opCodeArgs.numArgs == 2) {
+            ImGui::Text("%s %02X %02X", NES::instructionString[ins], debugState.opCodeArgs.args[1], debugState.opCodeArgs.args[0]);
+        } else if (debugState.opCodeArgs.numArgs == 1) {
+            ImGui::Text("%s %02X %02X", NES::instructionString[ins], debugState.opCodeArgs.args[1]);
+        } else {
+            ImGui::Text("%s", NES::instructionString[ins]);
+        }
         ImGui::Columns(1);
         ImGui::Separator();
 
@@ -207,7 +212,7 @@ void showDebugState(NES::DebugState &debugState, NES::NesControlDeck &controlDec
         }
         ImGui::SameLine();
         if (ImGui::Button("Run")) {
-            int i =0;
+            debugState = nesLoop(controlDeck, 320000);
         }
         ImGui::SameLine();
         if (ImGui::Button("Pause")) {
@@ -224,6 +229,10 @@ void showDebugState(NES::DebugState &debugState, NES::NesControlDeck &controlDec
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     setupConsole();
+
+    TCHAR buf[1024];
+    GetCurrentDirectory(1024,buf);
+    printf("Working dir %s\n", buf);
 
     GLFWwindow* window;
     //glewExperimental = GL_TRUE;

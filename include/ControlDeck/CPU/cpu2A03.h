@@ -31,13 +31,31 @@ namespace NES {
         const AddressingMode addressingMode;
         const InstructionFnPtr instructionHandler;
     };
+    // debug info about arguments for an op code
+    struct OpCodeArgs {
+        uint8_t pagingCycles{ 0 };
+        uint8_t args[2]{};
+        uint8_t numArgs {0};
+        // TODO also add indirectly loaded args?
+
+        void setArgs(uint8_t arg0) {
+            args[0] = arg0;
+            numArgs = 1;
+        }
+        void setArgs(uint8_t arg0,  uint8_t arg1) {
+            args[0] = arg0;
+            args[1] = arg1;
+            numArgs = 2;
+        }
+    };
 
     struct DebugState {
         const OpCode *opCode;
+        // These two probably not needed
         uint8_t addressingCycles;
         uint8_t branchCycles;
-
-        uint8_t opCodeArgs[2];
+    
+        OpCodeArgs opCodeArgs;
 
         SystemBus systemBusBefore;
         Registers registersBefore;
@@ -47,16 +65,11 @@ namespace NES {
         DMAData dmaBefore;
         DMAData dmaAfter;
         bool isDma{ false };
-        void print();
-        inline uint8_t getInstructionsExecuted() { return addressingCycles + branchCycles + opCode->cycles; }
+        void print(FILE * debugOut);
+        inline uint8_t getCyclesExecuted() { return addressingCycles + branchCycles + opCode->cycles; }
     };
 
-    // debug info about arguments for an op code
-    struct OpCodeArgs {
-        uint8_t pagingInstructions{ 0 };
-        uint8_t args[2]{};
-        // TODO also add indirectly loaded args?
-    };
+
 
 
     /**
@@ -66,7 +79,11 @@ namespace NES {
     public:
         Cpu2a03() = default;
         Cpu2a03(Ppu2C02 *ppu, Cartridge *cartridge);
-
+        ~Cpu2a03() {
+            if (debugOutputFile != nullptr) {
+                fclose(debugOutputFile);
+            }
+        }
         DebugState processInstruction();
 
         //Map memory from the CPU address space, to RAM, PPU, APU, and cartridge components.
@@ -110,6 +127,7 @@ namespace NES {
         Ppu2C02 *ppu{ nullptr };
         Cartridge *cartridge{ nullptr };
         bool debug{ false };
+        FILE * debugOutputFile {nullptr};
     protected:
         uint32_t cycle{ 0 };
         void waitForNextInstruction();
